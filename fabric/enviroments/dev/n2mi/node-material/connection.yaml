@@ -1,0 +1,33 @@
+---
+name: n2med-network
+version: 1.0.0
+client:
+    organization: N2mi
+    connection:
+        timeout:
+            peer:
+                endorser: '300'
+            orderer: '300'
+channels:
+    mychannel:
+        orderers:
+        - orderer.n2med.com
+        peers:
+            peer0.n2mi.n2med.com: {}
+organizations:
+    N2mi:
+        mspid: N2miMSP
+        peers:
+        - peer0.n2mi.n2med.com
+        certificateAuthorities:
+        - ca.n2med.com
+orderers:
+    orderer.n2med.com:
+        url: grpc://localhost:7050
+peers:
+    peer0.org1.n2med.com:
+        url: grpc://localhost:7051
+certificateAuthorities:
+    ca.n2med.com:
+        url: http://localhost:7054
+        caName: ca.n2med.com

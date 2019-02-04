@@ -24,10 +24,10 @@ coverage
 .grunt
 
 # Fabric binaries which developers have to downloaded it in your own environment
-./fabric/enviroments/dev/n2mi/bin/
+fabric/enviroments/dev/n2mi/bin/
 
 # Local chaincode path
-./fabric/enviroments/dev/n2mi/chaincode/
+fabric/enviroments/dev/n2mi/chaincode/
 
 # Bower dependency directory (https://bower.io/)
 bower_components
