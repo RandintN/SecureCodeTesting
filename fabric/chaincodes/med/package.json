@@ -4,7 +4,11 @@
   "description": "Chaincode towards medicine offers and requests.",
   "main": "med.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "nodemon config/med-cc.ts",
+    "start": "nodemon config/med-cc.ts",
+    "prod": "npm run build && npm run start"
   },
   "keywords": [
     "med",
@@ -14,5 +18,28 @@
     "smartcontract"
   ],
   "author": "fmarino, vpoliveira",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^3.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "nodemon": "^1.18.9",
+    "ts-node": "^5.0.1"
+  },
+  "nodemonConfig": {
+    "watch": [
+      ""
+    ],
+    "ext": "ts",
+    "ignore": [
+      "*.test.ts",
+      "*.md",
+      "*.json"
+    ],
+    "delay": "3",
+    "execMap": {
+      "ts": "ts-node"
+    }
+  }
 }
