@@ -20,6 +20,8 @@
   "author": "fmarino, vpoliveira",
   "license": "ISC",
   "dependencies": {
+    "fabric-shim": "^1.4.0",
+    "node-gyp": "^3.8.0",
     "typescript": "^3.2.4"
   },
   "devDependencies": {

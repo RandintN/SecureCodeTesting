@@ -1,0 +1,5 @@
+peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -v 1.0 -c '{"Args":[""]}'
+
+peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -c '{"Args":["CAR1"], "Function":"queryCar"}'
+
+peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -l node -v 1.0 -c '{"Args":[]}' -P "OR ('N2miMSP.member')"

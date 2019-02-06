@@ -27,17 +27,6 @@ Organizations:
         # MSPDir is the filesystem path which contains the MSP configuration
         MSPDir: crypto-config/ordererOrganizations/n2med.com/msp
 
-        Policies:
-            Readers:
-                Type: Signature
-                Rule: "OR('OrdererN2medMSP.member')"
-            Writers:
-                Type: Signature
-                Rule: "OR('OrdererN2medMSP.member')"
-            Admins:
-                Type: Signature
-                Rule: "OR('OrdererN2medMSP.admin')"
-
     - &N2mi
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -48,20 +37,6 @@ Organizations:
 
         MSPDir: crypto-config/peerOrganizations/N2mi.n2med.com/msp
         
-        # Policies defines the set of policies at this level of the config tree
-        # For organization policies, their canonical path is usually
-        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
-        Policies:
-            Readers:
-                Type: Signature
-                Rule: "OR('N2miMSP.admin', 'N2miMSP.peer', 'N2miMSP.client')"
-            Writers:
-                Type: Signature
-                Rule: "OR('N2miMSP.admin', 'N2miMSP.client')"
-            Admins:
-                Type: Signature
-                Rule: "OR('N2miMSP.admin')"
-
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
