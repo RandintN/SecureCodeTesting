@@ -9,7 +9,7 @@ client:
                 endorser: '300'
             orderer: '300'
 channels:
-    mychannel:
+    n2medchannel:
         orderers:
         - orderer.n2med.com
         peers:

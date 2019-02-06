@@ -27,21 +27,37 @@ docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/h
 
 sleep ${FABRIC_START_TIMEOUT}
 
-pushd ../../../../chaincodes/fabcar/typescript
+pushd ../../../../chaincodes/med
 npm install
 npm run build
 popd
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
-    cli peer chaincode install -n fabcar -v 1.0 -p /opt/gopath/src/github.com/fabcar/typescript -l node
+    cli peer chaincode install -n med -v 1.0 -p /opt/gopath/src/github.com/med/ -l node
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
-    cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -l node -v 1.0 -c '{"Args":[]}' -P "AND ('N2miMSP.member')"
+    cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v 1.0 -c '{"Args":[]}' -P "AND ('N2miMSP.member')" #\
+ #   --collections-config /opt/gopath/src/github.com/med/collection-config.json
 
 sleep ${FABRIC_START_TIMEOUT}
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
-    cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -c '{"function":"initLedger","Args":[]}'
+    cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"initLedger","Args":[]}' 
+
+# docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
+#     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
+#     cli peer chaincode install -n fabcar -v 1.0 -p /opt/gopath/src/github.com/fabcar/typescript -l node
+
+# docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
+#     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
+#     cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -l node -v 1.0 -c '{"Args":[]}' -P "AND ('N2miMSP.member')" #\
+#     # --collections-config /opt/gopath/src/github.com/med/collection-config.json
+
+# sleep ${FABRIC_START_TIMEOUT}
+
+# docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
+#     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
+#     cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n fabcar -c '{"function":"initLedger","Args":[]}' 

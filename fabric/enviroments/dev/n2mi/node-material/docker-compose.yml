@@ -15,7 +15,7 @@ services:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca.n2med.com
       - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.n2mi.n2med.com-cert
-      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/91fc0fff72f4f5e6c6c6854577c871d7d10eb5be2d57514491d4ae25e95c8506_sk
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/2338638a4273d86008a91e0eb5d07d7672c4e94c25cfc08c04e5839ee7183bde_sk
     ports:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
@@ -53,6 +53,9 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.n2mi.n2med.com
       - FABRIC_LOGGING_SPEC=debug
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
       - CORE_CHAINCODE_LOGGING_LEVEL=debug
       - CORE_PEER_LOCALMSPID=N2miMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/

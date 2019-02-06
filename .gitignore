@@ -29,6 +29,10 @@ fabric/enviroments/dev/n2mi/bin/
 # Local chaincode path
 fabric/enviroments/dev/n2mi/chaincode/
 
+fabric/chaincodes/fabcar
+
+fabric/chaincodes/utilityToken
+
 # Bower dependency directory (https://bower.io/)
 bower_components
 

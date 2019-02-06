@@ -1,0 +1,9 @@
+[
+    {
+        "name": "collectionPrivateN2miPD",
+        "policy": "AND('N2miMSP.member')",
+	    "requiredPeerCount": 1,
+	    "maxPeerCount": 2,
+	    "blockToLive":1000000
+    }
+]
