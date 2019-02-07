@@ -12,7 +12,9 @@ export MSYS_NO_PATHCONV=1
 
 docker-compose -f docker-compose.yml down
 
-docker-compose -f docker-compose.yml up -d ca.n2med.com orderer.n2med.com peer0.n2mi.n2med.com couchdb cli
+#docker-compose -f docker-compose.yml up -p n2mi -d ca.n2med.com orderer.n2med.com peer0.n2mi.n2med.com couchdb cli
+
+docker-compose -p n2mi -f docker-compose.yml up -d ca.n2med.com orderer.n2med.com peer0.n2mi.n2med.com couchdb cli
 
 # wait for Hyperledger Fabric to start
 # incase of errors when running later commands, issue export FABRIC_START_TIMEOUT=<larger number>
