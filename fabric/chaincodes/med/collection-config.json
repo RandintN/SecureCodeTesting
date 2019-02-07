@@ -1,9 +1,10 @@
 [
     {
-        "name": "collectionPrivateN2miPD",
-        "policy": "AND('N2miMSP.member')",
-	    "requiredPeerCount": 1,
+        "name": "N2miMSP-PD",
+        "policy": "OR('N2miMSP.member')",
+	    "requiredPeerCount": 0,
 	    "maxPeerCount": 2,
-	    "blockToLive":1000000
+        "blockToLive":1000000,
+        "memberOnlyRead": true
     }
 ]

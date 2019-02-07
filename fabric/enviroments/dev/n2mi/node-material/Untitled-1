@@ -1,0 +1,3 @@
+peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v 1.0 -c '{"Args":[]}' -P "AND ('N2miMSP.member')" --collections-config /opt/gopath/src/github.com/med/collection-config.json
+
+peer channel update -o orderer.n2med.com:7050 -c n2medchannel -f ./channel-artifacts/N2miMSPanchors.txt
