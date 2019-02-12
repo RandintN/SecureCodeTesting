@@ -33,6 +33,10 @@ fabric/chaincodes/fabcar
 
 fabric/chaincodes/utilityToken
 
+fabric/enviroments/dev/n2mi/node-material/crypto-config
+
+fabric/enviroments/dev/n2mi/node-material/config/
+
 # Bower dependency directory (https://bower.io/)
 bower_components
 
