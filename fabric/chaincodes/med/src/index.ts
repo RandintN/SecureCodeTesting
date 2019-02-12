@@ -1,4 +1,4 @@
-import { MedRequestDomain } from './med-request-domain';
-export { MedRequestDomain } from './med-request-domain';
+import { MedicineRouterCC } from './medicine-router-cc';
+export { MedicineRouterCC } from './medicine-router-cc';
 
-export const contracts: any[] = [ MedRequestDomain ];
+export const contracts: any[] = [ MedicineRouterCC ];
