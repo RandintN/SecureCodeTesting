@@ -11,7 +11,7 @@ import { IActiveIngredientJson } from './active-ingredient-json';
 export class ActiveIngredient implements IValidatorModel {
 
     private static ERROR_EMPTY_NAME: ValidationError =
-        new ValidationError('PI-001', 'The parameter pharmaceutical_laboratory cannot be empty or null');
+        new ValidationError('AI-001', 'The parameter pharmaceutical_laboratory cannot be empty or null');
 
     /**
      * name of active ingredient
@@ -33,8 +33,17 @@ export class ActiveIngredient implements IValidatorModel {
         return validationResult;
     }
 
-    public toJson(json: IActiveIngredientJson): void {
+    public fromJson(json: IActiveIngredientJson): void {
         this.name = json.name;
         this.special = json.special;
+    }
+
+    public toJson(): IActiveIngredientJson {
+        const json: IActiveIngredientJson = {
+            name: this.name,
+            special: this.special,
+        };
+
+        return json;
     }
 }

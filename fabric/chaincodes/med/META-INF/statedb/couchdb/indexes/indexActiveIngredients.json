@@ -1,1 +1,8 @@
-{"index":{"fields":["name"]},"ddoc":"indexActiveIngredientsDoc", "name":"indexActiveIngredients","type":"json"}
+{
+    "index": {
+        "fields": ["name"]
+    },
+    "ddoc": "indexActiveIngredientsDoc",
+    "name": "indexActiveIngredients",
+    "type": "json"
+}

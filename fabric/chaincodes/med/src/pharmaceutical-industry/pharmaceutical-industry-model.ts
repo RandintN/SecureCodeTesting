@@ -1,3 +1,4 @@
+import { SituationEnum } from '../utils/situation-enum';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidatorModel } from '../validation/validator-interface';
@@ -11,11 +12,20 @@ export class PharmaceuticalIndustry implements IValidatorModel {
     //#endregion
     public pharmaceuticalLaboratory: string;
 
-    public situation: string;
+    public situation: SituationEnum;
 
     public fromJson(json: IPharmaceuticalIndustryJson): void {
         this.pharmaceuticalLaboratory = json.pharmaceutical_laboratory;
         this.situation = json.situation;
+    }
+
+    public toJson(): IPharmaceuticalIndustryJson {
+        const json: IPharmaceuticalIndustryJson = {
+            pharmaceutical_laboratory: this.pharmaceuticalLaboratory,
+            situation: this.situation,
+        };
+
+        return json;
     }
 
     public isValid(): ValidationResult {

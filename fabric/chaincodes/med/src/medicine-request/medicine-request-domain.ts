@@ -15,7 +15,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         new ValidationError('MRD-001', 'The active_ingredient is not found.');
 
     private static ERROR_ACTIVE_INGREDIENT_NOT_ALLOWED: ValidationError =
-        new ValidationError('MRD-001', 'The active_ingredient is not allowed for negotiation.');
+        new ValidationError('MRD-002', 'The active_ingredient is not allowed for negotiation.');
     //#endregion
 
     //#region region of methods to be invoked
@@ -35,6 +35,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             if (!validationResult.isValid) {
                 throw new Error(JSON.stringify(validationResult));
             }
+
             const idRequest: Guid = Guid.create();
             await ctx.stub.putPrivateData('N2miMSP-PD', idRequest.toString(), Buffer.from(medRequestJson));
 
@@ -92,5 +93,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         validationResult.isValid = validationResult.errors.length < 1;
         return validationResult;
     }
+
     //#endregion
 }

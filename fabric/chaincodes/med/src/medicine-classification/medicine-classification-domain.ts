@@ -1,4 +1,5 @@
 import { Context } from 'fabric-contract-api';
+import { Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
@@ -11,6 +12,7 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
     private static ADMIN_MSP: string = 'n2mimsp';
     private static ERROR_NOT_ALLOWED_MSP: ValidationError =
         new ValidationError('MCD-001', 'Forbidden');
+
     //#endregion
 
     public async addMedicineClassification(ctx: Context, strMedicineClassification: string): Promise<string> {
@@ -28,7 +30,8 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
             }
 
             const medicineClassificationID: string = Guid.create().toString();
-            await ctx.stub.putState(medicineClassificationID, Buffer.from(JSON.stringify(medicineClassification)));
+            await ctx.stub.putState(medicineClassificationID,
+                Buffer.from(JSON.stringify(medicineClassification.toJson())));
 
             return medicineClassificationID;
 
@@ -37,12 +40,51 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
         }
     }
 
+    //#region queries
     public async queryMedicineClassificationByKey(ctx: Context, key: string): Promise<string> {
         const medicineClassificationInBytes = await ctx.stub.getState(key);
         return medicineClassificationInBytes.toString();
     }
 
-    public async queryMedicineClassificationByName(ctx: Context, name: string): Promise<string> {
-        throw new Error('Method not implemented.');
+    public async queryMedicineClassificationByCategory(ctx: Context, strCategory: string): Promise<string> {
+        const queryJson = {
+            selector: {
+                category: strCategory,
+            },
+        };
+
+        const iterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult(JSON.stringify(queryJson));
+        return JSON.stringify(await this.getMedicineClassification(iterator));
     }
+
+    public async getMedicineClassificationByCategory(ctx: Context, medicineClassificationCategory: string):
+        Promise<MedicineClassification> {
+        const medicineClassification: MedicineClassification = new MedicineClassification();
+        medicineClassification.fromJson(JSON.parse(await this.queryMedicineClassificationByCategory(ctx,
+            medicineClassificationCategory)));
+        return medicineClassification;
+    }
+
+    //#endregion
+
+    //#region private methods
+    private async getMedicineClassification(iterator: Iterators.StateQueryIterator): Promise<MedicineClassification> {
+        const medicineClassification: MedicineClassification = new MedicineClassification();
+        while (true) {
+            const result = await iterator.next();
+
+            if (result.value && result.value.value.toString()) {
+                medicineClassification.fromJson(JSON.parse(result.value.value.toString('utf8')));
+            }
+
+            if (result.done) {
+                break;
+            }
+        }
+
+        return medicineClassification;
+    }
+
+    //#endregion
+
 }

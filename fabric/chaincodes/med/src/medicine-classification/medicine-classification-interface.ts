@@ -5,5 +5,5 @@ export interface IMedicineClassificationService {
 
     queryMedicineClassificationByKey(ctx: Context, key: string): Promise<string>;
 
-    queryMedicineClassificationByName(ctx: Context, name: string): Promise<string>;
+    queryMedicineClassificationByCategory(ctx: Context, strCategory: string): Promise<string>;
 }
