@@ -1,6 +1,7 @@
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { Medicine } from './medicine';
+import { Medicine } from './medicine-model';
+import { IMedicineOfferJson } from './medicine-offer-json';
 
 export class MedicineOffer extends Medicine {
     //#region constants
@@ -15,18 +16,40 @@ export class MedicineOffer extends Medicine {
 
     //#endregion
 
-    // tslint:disable-next-line:variable-name
     public classification: string[];
-    // tslint:disable-next-line:variable-name
-    public pharma_industry: string[];
+    public pharmaIndustry: string[];
+
+    public fromJson(medicineExchange: IMedicineOfferJson): void {
+        this.activeIngredient = medicineExchange.active_ingredient;
+        this.classification = medicineExchange.classification;
+        this.comercialName = medicineExchange.comercial_name;
+        this.concentration = medicineExchange.concentration;
+        this.dosage = medicineExchange.dosage;
+        this.pharmaForm = medicineExchange.pharma_form;
+        this.pharmaIndustry = medicineExchange.pharma_industry;
+    }
+
+    public toJson(): IMedicineOfferJson {
+        const json: IMedicineOfferJson = {
+            active_ingredient: this.activeIngredient,
+            classification: this.classification,
+            comercial_name: this.comercialName,
+            concentration: this.concentration,
+            dosage: this.dosage,
+            pharma_form: this.activeIngredient,
+            pharma_industry: this.pharmaIndustry,
+        };
+
+        return json;
+    }
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-        if (this.active_ingredient === null || this.active_ingredient === undefined) {
+        if (this.activeIngredient === null || this.activeIngredient === undefined) {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
-        if (this.pharma_form === null || this.pharma_form === undefined) {
+        if (this.pharmaForm === null || this.pharmaForm === undefined) {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_PHARMA_FORM);
         }
 
