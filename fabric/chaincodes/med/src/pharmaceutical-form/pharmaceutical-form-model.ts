@@ -13,13 +13,13 @@ export class PharmaceuticalForm implements IValidatorModel {
     public situation: SituationEnum;
 
     public fromJson(json: IPharmaceuticalFormJson) {
-        this.pharmaceuticalForm = json.pharmaceutical_form;
+        this.pharmaceuticalForm = json.pharma_form;
         this.situation = json.situation;
     }
 
     public toJson(): IPharmaceuticalFormJson {
         const json: IPharmaceuticalFormJson = {
-            pharmaceutical_form: this.pharmaceuticalForm,
+            pharma_form: this.pharmaceuticalForm,
             situation: this.situation,
         };
 

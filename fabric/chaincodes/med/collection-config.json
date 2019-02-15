@@ -1,6 +1,6 @@
 [
     {
-        "name": "N2miMSP-PD",
+        "name": "MED-REQUEST-PD",
         "policy": "OR('N2miMSP.member')",
 	    "requiredPeerCount": 0,
 	    "maxPeerCount": 2,
