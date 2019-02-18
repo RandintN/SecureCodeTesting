@@ -12,7 +12,7 @@ import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
 import { ValidationResult } from './validation/validation-model';
-import { Result } from './result/result';
+import { ChaincodeResponse } from 'fabric-shim';
 
 export class MedicineRouterCC extends Contract
     implements IActiveIngredientService, IPharmaceuticalIndustryService,
@@ -38,7 +38,7 @@ export class MedicineRouterCC extends Contract
     //#endregion
 
     //#region of methods of IMedicineRequestService
-    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<Result> {
+    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
         return await new MedicineRequestDomain().addMedicineRequest(ctx, medRequestJson);
     }
 

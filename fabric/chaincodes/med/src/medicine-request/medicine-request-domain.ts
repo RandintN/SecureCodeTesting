@@ -11,13 +11,14 @@ import { PharmaceuticalForm } from '../pharmaceutical-form/pharmaceutical-form-m
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { PharmaceuticalIndustry } from '../pharmaceutical-industry/pharmaceutical-industry-model';
 import { Result } from '../result/result';
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum, ResponseCodes } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { MedicineOffer } from './medicine-offer-model';
 import { IMedicineRequestService } from './medicine-request-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
 import { MedicineRequest } from './medicine-request-model';
+import { CommonMessages } from '../utils/common-messages';
 
 export class MedicineRequestDomain implements IMedicineRequestService {
 
@@ -54,6 +55,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     //#region region of methods to be invoked
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<Result> {
         try {
+            let chaincodeResponse: ChaincodeResponse;
             const medicineRequest: MedicineRequest = new MedicineRequest();
 
             medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
@@ -62,7 +64,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                 this.validateMedicineRequestRules(ctx, medicineRequest);
 
             if (validationResult.errors.length > 0) {
-                throw new Error(JSON.stringify(validationResult));
+                chaincodeResponse = {
+                    message : CommonMessages.VALIDATION_ERROR,
+                    payload : Buffer.from(JSON.stringify(validationResult)),
+                    status : ResponseCodes.BAD_REQUEST,
+                };
             }
 
             const idRequest: Guid = Guid.create();
@@ -76,7 +82,13 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             result.id = idRequest;
             result.timestamp = timestamp;
 
-            return result;
+            chaincodeResponse = {
+                message : undefined,
+                payload : Buffer.from(JSON.stringify(result)),
+                status : ResponseCodes.CREATED,
+            };
+
+            return chaincodeResponse;
         } catch (error) {
             throw error;
         }
