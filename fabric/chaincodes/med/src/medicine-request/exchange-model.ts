@@ -49,7 +49,7 @@ export class Exchange implements IValidatorModel {
         } else {
             const exchangeValidation: ValidationResult = this.medicine.isValid();
             if (!exchangeValidation.isValid) {
-                validationResult.errors.concat(exchangeValidation.errors);
+                validationResult.addErrors(exchangeValidation.errors);
 
             }
 

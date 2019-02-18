@@ -87,7 +87,7 @@ export class MedicineRequest implements IValidatorModel {
         const medicineValidation: ValidationResult = this.medicine.isValid();
 
         if (!medicineValidation.isValid) {
-            validationResult.errors.concat(medicineValidation.errors);
+            validationResult.addErrors(medicineValidation.errors);
         }
 
         if (this.type === null || this.type === undefined) {
@@ -102,7 +102,7 @@ export class MedicineRequest implements IValidatorModel {
             for (const exchange of this.exchange) {
                 const exchangeValidation: ValidationResult = exchange.isValid();
                 if (!exchangeValidation.isValid) {
-                    validationResult.errors.concat(exchangeValidation.errors);
+                    validationResult.addErrors(exchangeValidation.errors);
                 }
             }
         }

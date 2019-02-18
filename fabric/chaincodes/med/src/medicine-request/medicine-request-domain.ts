@@ -1,7 +1,7 @@
 import { Context } from 'fabric-contract-api';
+import { ChaincodeResponse, Shim } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
 import { ActiveIngredientDomain } from '../active-ingredient/active-ingredient-domain';
-import { ActiveIngredient } from '../active-ingredient/active-ingredient-model';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { MedicineClassification } from '../medicine-classification/medicine-classification-model';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -14,7 +14,6 @@ import { Result } from '../result/result';
 import { SituationEnum } from '../utils/situation-enum';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { Medicine } from './medicine-model';
 import { MedicineOffer } from './medicine-offer-model';
 import { IMedicineRequestService } from './medicine-request-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
@@ -23,11 +22,6 @@ import { MedicineRequest } from './medicine-request-model';
 export class MedicineRequestDomain implements IMedicineRequestService {
 
     //#region constants
-    private static ERROR_ACTIVE_INGREDIENT_NOT_FOUND: ValidationError =
-        new ValidationError('MRD-001', 'The active_ingredient is not found.');
-
-    private static ERROR_ACTIVE_INGREDIENT_NOT_ALLOWED: ValidationError =
-        new ValidationError('MRD-002', 'The active_ingredient is not allowed for negotiation.');
 
     private static ERROR_MEDICINE_CLASSIFICATION_NOT_FOUND: ValidationError =
         new ValidationError('MRD-003', 'The medicine_classification is not found.');
@@ -58,7 +52,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     //#endregion
 
     //#region region of methods to be invoked
-    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<string> {
+    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<Result> {
         try {
             const medicineRequest: MedicineRequest = new MedicineRequest();
 
@@ -67,7 +61,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const validationResult: ValidationResult = await
                 this.validateMedicineRequestRules(ctx, medicineRequest);
 
-            if (!validationResult.isValid) {
+            if (validationResult.errors.length > 0) {
                 throw new Error(JSON.stringify(validationResult));
             }
 
@@ -82,9 +76,9 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             result.id = idRequest;
             result.timestamp = timestamp;
 
-            return JSON.stringify(result);
+            return result;
         } catch (error) {
-            return JSON.stringify(error + 'Error');
+            throw error;
         }
     }
     //#endregion
@@ -115,7 +109,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validateActiveIngredientOfMedicineRequest(ctx, medicineRequest);
 
         if (!activeIngredientValidation.isValid) {
-            validationResult.errors.concat(activeIngredientValidation.errors);
+            validationResult.addErrors(activeIngredientValidation.errors);
 
         }
 
@@ -124,7 +118,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validateActiveIngredientOfMedicineExchange(ctx, medicineRequest);
 
         if (!activeIngredientValidationOfMedicineExchange.isValid) {
-            validationResult.errors.concat(activeIngredientValidationOfMedicineExchange.errors);
+            validationResult.addErrors(activeIngredientValidationOfMedicineExchange.errors);
 
         }
 
@@ -133,7 +127,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validateRequestNegotiationModality(ctx, medicineRequest);
 
         if (!activeNegotiationModalityValidation.isValid) {
-            validationResult.errors.concat(activeNegotiationModalityValidation.errors);
+            validationResult.addErrors(activeNegotiationModalityValidation.errors);
 
         }
 
@@ -142,7 +136,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validatePharmaceuticalIndustryOfMedicineExchange(ctx, medicineRequest);
 
         if (!pharmaceuticalIndustryExchangeValidation.isValid) {
-            validationResult.errors.concat(pharmaceuticalIndustryExchangeValidation.errors);
+            validationResult.addErrors(pharmaceuticalIndustryExchangeValidation.errors);
 
         }
 
@@ -150,7 +144,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validatePharmaceuticalIndustriesOfMedicineRequest(ctx, medicineRequest);
 
         if (!pharmaceuticalIndustryValidation.isValid) {
-            validationResult.errors.concat(pharmaceuticalIndustryValidation.errors);
+            validationResult.addErrors(pharmaceuticalIndustryValidation.errors);
 
         }
 
@@ -159,7 +153,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             await this.validateRequestPharmaceuticalPhorm(ctx, medicineRequest);
 
         if (!pharmaceuticalFormValidation.isValid) {
-            validationResult.errors.concat(pharmaceuticalFormValidation.errors);
+            validationResult.addErrors(pharmaceuticalFormValidation.errors);
 
         }
 
@@ -173,9 +167,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     private async validateActiveIngredientOfMedicineRequest(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
         let validationResult: ValidationResult;
+        const activeIngredientDomain: ActiveIngredientDomain = new ActiveIngredientDomain();
 
         try {
-            validationResult = await this.validateActiveIngredient(ctx, medicineRequest.medicine);
+            validationResult = await activeIngredientDomain.
+                validateActiveIngredient(ctx, medicineRequest.medicine.activeIngredient);
 
         } catch (error) {
             throw error;
@@ -189,14 +185,16 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     private async validateActiveIngredientOfMedicineExchange(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
+        const activeIngredientDomain: ActiveIngredientDomain = new ActiveIngredientDomain();
 
         try {
             for (const medicineExchange of medicineRequest.exchange) {
                 const mEValidationResult: ValidationResult =
-                    await this.validateActiveIngredient(ctx, medicineExchange.medicine);
+                    await activeIngredientDomain.
+                        validateActiveIngredient(ctx, medicineExchange.medicine.activeIngredient);
 
                 if (!mEValidationResult.isValid) {
-                    validationResult.errors.concat(mEValidationResult.errors);
+                    validationResult.addErrors(mEValidationResult.errors);
 
                 }
 
@@ -208,34 +206,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         validationResult.isValid = validationResult.errors.length < 1;
         return validationResult;
 
-    }
-
-    private async validateActiveIngredient(ctx: Context, medicine: Medicine): Promise<ValidationResult> {
-        const validationResult: ValidationResult = new ValidationResult();
-        const activeIngredientDomain: ActiveIngredientDomain = new ActiveIngredientDomain();
-
-        try {
-            const activeIngredient: ActiveIngredient = await activeIngredientDomain.
-                getActiveIngredientByName(ctx, medicine.activeIngredient);
-
-            if (!activeIngredient) {
-                validationResult.errors.push(MedicineRequestDomain.ERROR_ACTIVE_INGREDIENT_NOT_FOUND);
-                validationResult.isValid = false;
-                return validationResult;
-            }
-
-            if (activeIngredient.special) {
-                validationResult.errors.push(MedicineRequestDomain.ERROR_ACTIVE_INGREDIENT_NOT_ALLOWED);
-                validationResult.isValid = false;
-                return validationResult;
-            }
-
-        } catch (error) {
-            throw error;
-        }
-
-        validationResult.isValid = validationResult.errors.length < 1;
-        return validationResult;
     }
 
     //#endregion
@@ -254,7 +224,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     this.validateMedicineRequestClassification(ctx, medicineRequest.medicine);
 
                 if (!medicineOfferValidation.isValid) {
-                    validationResult.errors.concat(medicineOfferValidation.errors);
+                    validationResult.addErrors(medicineOfferValidation.errors);
                 }
 
             }
@@ -265,7 +235,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     this.validateMedicineClassification(ctx, exchande.medicine.classification);
 
                 if (!validationExchangeResult.isValid) {
-                    validationResult.errors.concat(validationExchangeResult.errors);
+                    validationResult.addErrors(validationExchangeResult.errors);
                 }
             }
 
@@ -287,7 +257,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     this.validateMedicineClassification(ctx, classification);
 
                 if (!medicineClassificationValidation.isValid) {
-                    validationResult.errors.concat(medicineClassificationValidation.errors);
+                    validationResult.addErrors(medicineClassificationValidation.errors);
 
                 }
             }
@@ -341,7 +311,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                 this.validatePharmaceuticalPhorm(ctx, medicineRequest.medicine.pharmaForm);
 
             if (!medicineOfferValidation.isValid) {
-                validationResult.errors.concat(medicineOfferValidation.errors);
+                validationResult.addErrors(medicineOfferValidation.errors);
 
             }
 
@@ -351,7 +321,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     this.validateMedicineClassification(ctx, exchande.medicine.pharmaForm);
 
                 if (!validationExchangeResult.isValid) {
-                    validationResult.errors.concat(validationExchangeResult.errors);
+                    validationResult.addErrors(validationExchangeResult.errors);
 
                 }
 
@@ -409,7 +379,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                         await this.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
 
                     if (!pharmaIndustryValidationResult.isValid) {
-                        validationResult.errors.concat(pharmaIndustryValidationResult.errors);
+                        validationResult.addErrors(pharmaIndustryValidationResult.errors);
 
                     }
 
@@ -435,7 +405,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     await this.validatePharmaceuticalIndustry(ctx, medicineExchange.medicine.pharmaIndustry);
 
                 if (!mEValidationResult.isValid) {
-                    validationResult.errors.concat(mEValidationResult.errors);
+                    validationResult.addErrors(mEValidationResult.errors);
 
                 }
             }
@@ -491,7 +461,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     await this.validateNegotiationModality(ctx, modality);
 
                 if (!modalityValidationResult.isValid) {
-                    validationResult.errors.concat(modalityValidationResult.errors);
+                    validationResult.addErrors(modalityValidationResult.errors);
 
                 }
 

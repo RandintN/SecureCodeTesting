@@ -7,6 +7,17 @@ export class ValidationResult {
     constructor() {
         this.isValid = false;
         this.errors = [];
+
+    }
+
+    public addErrors(errors: ValidationError[]): void {
+        this.errors = this.errors.concat(errors);
+
+    }
+
+    public addError(error: ValidationError) {
+        this.errors.push(error);
+
     }
 
 }

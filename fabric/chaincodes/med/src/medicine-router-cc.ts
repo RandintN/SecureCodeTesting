@@ -11,10 +11,13 @@ import { PharmaceuticalFormDomain } from './pharmaceutical-form/pharmaceutical-f
 import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical-form-interface';
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
+import { ValidationResult } from './validation/validation-model';
+import { Result } from './result/result';
 
 export class MedicineRouterCC extends Contract
     implements IActiveIngredientService, IPharmaceuticalIndustryService,
     IMedicineClassificationService, IMedicineRequestService, IPharmaceuticalFormService, INegotiationModalityService {
+
 
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
@@ -28,10 +31,14 @@ export class MedicineRouterCC extends Contract
     public async queryActiveIngredientByName(ctx: Context, name: string): Promise<string> {
         return await new ActiveIngredientDomain().queryActiveIngredientByName(ctx, name);
     }
+
+    public async validateActiveIngredient(ctx: Context, activeIngredientName: string): Promise<ValidationResult> {
+        return await new ActiveIngredientDomain().validateActiveIngredient(ctx, activeIngredientName);
+    }
     //#endregion
 
     //#region of methods of IMedicineRequestService
-    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<string> {
+    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<Result> {
         return await new MedicineRequestDomain().addMedicineRequest(ctx, medRequestJson);
     }
 
