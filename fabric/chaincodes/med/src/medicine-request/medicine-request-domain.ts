@@ -10,15 +10,16 @@ import { PharmaceuticalFormDomain } from '../pharmaceutical-form/pharmaceutical-
 import { PharmaceuticalForm } from '../pharmaceutical-form/pharmaceutical-form-model';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { PharmaceuticalIndustry } from '../pharmaceutical-industry/pharmaceutical-industry-model';
+import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
-import { SituationEnum, ResponseCodes } from '../utils/enums';
+import { CommonMessages } from '../utils/common-messages';
+import { ResponseCodes, SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { MedicineOffer } from './medicine-offer-model';
 import { IMedicineRequestService } from './medicine-request-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
 import { MedicineRequest } from './medicine-request-model';
-import { CommonMessages } from '../utils/common-messages';
 
 export class MedicineRequestDomain implements IMedicineRequestService {
 
@@ -53,9 +54,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     //#endregion
 
     //#region region of methods to be invoked
-    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<Result> {
+    public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
         try {
-            let chaincodeResponse: ChaincodeResponse;
             const medicineRequest: MedicineRequest = new MedicineRequest();
 
             medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
@@ -64,11 +64,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                 this.validateMedicineRequestRules(ctx, medicineRequest);
 
             if (validationResult.errors.length > 0) {
-                chaincodeResponse = {
-                    message : CommonMessages.VALIDATION_ERROR,
-                    payload : Buffer.from(JSON.stringify(validationResult)),
-                    status : ResponseCodes.BAD_REQUEST,
-                };
+                return ResponseUtil.ResponseBadRequest(CommonMessages.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(validationResult)));
             }
 
             const idRequest: Guid = Guid.create();
@@ -82,15 +79,9 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             result.id = idRequest;
             result.timestamp = timestamp;
 
-            chaincodeResponse = {
-                message : undefined,
-                payload : Buffer.from(JSON.stringify(result)),
-                status : ResponseCodes.CREATED,
-            };
-
-            return chaincodeResponse;
+            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(Result)));
         } catch (error) {
-            throw error;
+            return ResponseUtil.ResponseError(error, undefined);
         }
     }
     //#endregion
