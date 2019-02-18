@@ -84,7 +84,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             return JSON.stringify(result);
         } catch (error) {
-            return JSON.stringify(error);
+            return JSON.stringify(error + 'Error');
         }
     }
     //#endregion
@@ -533,7 +533,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
     }
 
-    ////#endregion
-
     //#endregion
+
 }

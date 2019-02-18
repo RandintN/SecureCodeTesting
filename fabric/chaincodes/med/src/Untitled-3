@@ -107,7 +107,7 @@ docker exec \
 
 
 #testing PharmaceuticalForm
-npm install && npm run build && export CC_VERSION=36.8 && \
+npm install && npm run build && export CC_VERSION=60.1 && \
 docker exec \
     -e "CORE_PEER_LOCALMSPID=N2miMSP" \
     -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
@@ -126,3 +126,34 @@ docker exec \
     -e "CORE_PEER_LOCALMSPID=N2miMSP" \
     -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
         cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"queryPharmaceuticalFormByForm","Args":["test"]}'
+
+
+
+
+
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addActiveIngredient","Args":["{\"name\":\"test\", \"special\":false}"]}' && \
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addPharmaceuticalForm","Args":["{\"pharma_form\": \"test\", \"situation\": \"ACTIVE\"}"]}' && \
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addPharmaceuticalIndustry","Args":["{\"pharmaceutical_laboratory\": \"test\", \"situation\": \"ATIVO\"}"]}' && \
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addMedicineClassification","Args":["{\"category\": \"test\", \"situation\": \"ACTIVE\"}"]}' && \
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addNegotiationModality","Args":["{\"modality\": \"test\", \"situation\": \"ACTIVE\"}"]}'
+
+
+docker exec \
+    -e "CORE_PEER_LOCALMSPID=N2miMSP" \
+    -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/User1@n2mi.n2med.com/msp" \
+        cli peer chaincode invoke -o orderer.n2med.com:7050 -C n2medchannel -n med -c '{"function":"addMedicineRequest","Args":["{\"org_id\":\"n2mi\",\"affiliation_id\":\"\",\"amount\":\"2\",\"medicine\":{\"active_ingredient\":\"test\",\"comercial_name\":\"test\",\"pharma_form\":\"test\",\"dosage\":\"test\",\"classification\":[\"test\"],\"pharma_industry\":[\"test\"]},\"type\":[\"test\",\"test\"],\"return_date\":\"test\",\"exchange\":[{\"amount\":\"test\",\"medicine\":{\"active_ingredient\":\"test\",\"comercial_name\":\"test\",\"pharma_form\":\"test\",\"dosage\":\"test\",\"classification\":\"test\",\"pharma_industry\":\"test\"}}]}"]}'

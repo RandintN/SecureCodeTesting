@@ -7,7 +7,7 @@ import { IPharmaceuticalFormJson } from './pharmaceutical-form-json';
 export class PharmaceuticalForm implements IValidatorModel {
 
     private static ERROR_EMPTY_PHARMACEUTICAL_FORM: ValidationError =
-        new ValidationError('PF-001', 'The parameter pharmaceutical_form cannot be empty or null');
+        new ValidationError('PF-001', 'The parameter pharma_form cannot be empty or null');
 
     public pharmaceuticalForm: string;
     public situation: SituationEnum;

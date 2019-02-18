@@ -35,8 +35,8 @@ export class MedicineRouterCC extends Contract
         return await new MedicineRequestDomain().addMedicineRequest(ctx, medRequestJson);
     }
 
-    public async queryMedicineRequest(ctx: Context): Promise<string> {
-        return await new MedicineRequestDomain().queryMedicineRequest(ctx);
+    public async queryMedicineRequest(ctx: Context, key: string): Promise<string> {
+        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
     //#endregion
 
