@@ -12,11 +12,11 @@ export class ResponseUtil {
     }
 
     public static ResponseBadRequest(resultMessage: string, resultPayload: Buffer): ChaincodeResponse {
-        return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.CREATED);
+        return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.BAD_REQUEST);
     }
 
     public static ResponseNotFound(resultMessage: string, resultPayload: Buffer): ChaincodeResponse {
-        return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.CREATED);
+        return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.NOT_FOUND);
     }
 
     public static ResponseError(errorMessage: string, resultPayload: Buffer): ChaincodeResponse {

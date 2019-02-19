@@ -1,6 +1,7 @@
 import { Context } from 'fabric-contract-api';
 import { Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IPharmaceuticalFormService } from './pharmaceutical-form-interface';
@@ -10,8 +11,15 @@ import { PharmaceuticalForm } from './pharmaceutical-form-model';
 export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
     //#region constants
     private static ADMIN_MSP: string = 'n2mimsp';
+
     private static ERROR_NOT_ALLOWED_MSP: ValidationError =
         new ValidationError('PFD-001', 'Forbidden');
+
+    private static ERROR_PHARMACEUTICAL_FORM_NOT_FOUND: ValidationError =
+        new ValidationError('PFD-002', 'The pharma_form is not found.');
+
+    private static ERROR_PHARMACEUTICAL_FORM_INACTIVATED: ValidationError =
+        new ValidationError('PFD-003', 'The pharma_form is not active for negotiation.');
 
     //#endregion
 
@@ -60,6 +68,31 @@ export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
         const pharmaceuticalForm: PharmaceuticalForm = new PharmaceuticalForm();
         pharmaceuticalForm.fromJson(JSON.parse(await this.queryPharmaceuticalFormByForm(ctx, form)));
         return pharmaceuticalForm;
+    }
+
+    public async validatePharmaceuticalForm(ctx: Context, strPharmaceuticalForm: string):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            const pharmaceuticalForm: PharmaceuticalForm =
+                await this.getPharmaceuticalFormByForm(ctx, strPharmaceuticalForm);
+
+            if (!pharmaceuticalForm) {
+                validationResult.errors.push(PharmaceuticalFormDomain.ERROR_PHARMACEUTICAL_FORM_NOT_FOUND);
+
+            } else if (pharmaceuticalForm.situation === SituationEnum.INACTIVE) {
+                validationResult.errors.push(PharmaceuticalFormDomain.
+                    ERROR_PHARMACEUTICAL_FORM_INACTIVATED);
+
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+        return validationResult;
     }
 
     //#endregion

@@ -1,4 +1,4 @@
-import { IMedicineExchangeJson } from './medicine-exchange-json';
+import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
 
 export interface IExchangeJson {
     amount: string;

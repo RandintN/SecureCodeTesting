@@ -1,6 +1,7 @@
 import { Context } from 'fabric-contract-api';
 import { Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineClassificationService } from './medicine-classification-interface';
@@ -12,6 +13,12 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
     private static ADMIN_MSP: string = 'n2mimsp';
     private static ERROR_NOT_ALLOWED_MSP: ValidationError =
         new ValidationError('MCD-001', 'Forbidden');
+
+    private static ERROR_MEDICINE_CLASSIFICATION_NOT_FOUND: ValidationError =
+        new ValidationError('MCD-002', 'The medicine_classification is not found.');
+
+    private static ERROR_MEDICINE_CLASSIFICATION_INACTIVATED: ValidationError =
+        new ValidationError('MCD-003', 'The medicine_classification is not active for negotiation.');
 
     //#endregion
 
@@ -65,6 +72,31 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
         return medicineClassification;
     }
 
+    public async validateMedicineClassification(ctx: Context, classification: string):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            const medicineClassification: MedicineClassification = await
+                this.getMedicineClassificationByCategory(ctx, classification);
+
+            if (!medicineClassification) {
+                validationResult.errors.push(MedicineClassificationDomain.ERROR_MEDICINE_CLASSIFICATION_NOT_FOUND);
+
+            } else if (medicineClassification.situation === SituationEnum.INACTIVE) {
+                validationResult.errors.push(MedicineClassificationDomain.
+                    ERROR_MEDICINE_CLASSIFICATION_INACTIVATED);
+
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+        return validationResult;
+
+    }
     //#endregion
 
     //#region private methods

@@ -1,5 +1,5 @@
 import { ValidationResult } from './validation-model';
 
-export interface IValidatorModel {
+export interface IValidator {
     isValid(): ValidationResult;
 }

@@ -1,10 +1,10 @@
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
+import { IValidator } from '../validation/validator-interface';
 import { IMedicineClassificationJson } from './medicine-classification-json';
 
-export class MedicineClassification implements IValidatorModel {
+export class MedicineClassification implements IValidator {
 
     private static ERROR_EMPTY_CATEGORY: ValidationError =
         new ValidationError('MC-001', 'The parameter category cannot be empty or null');

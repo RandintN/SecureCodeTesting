@@ -1,13 +1,13 @@
+import { IExchangeJson } from '../exchange/exchange-json';
+import { Exchange } from '../exchange/exchange-model';
+import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
+import { MedicineOffer } from '../medicine-offer/medicine-offer-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
-import { IExchangeJson } from './exchange-json';
-import { Exchange } from './exchange-model';
-import { IMedicineOfferJson } from './medicine-offer-json';
-import { MedicineOffer } from './medicine-offer-model';
+import { IValidator } from '../validation/validator-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
 
-export class MedicineRequest implements IValidatorModel {
+export class MedicineRequest implements IValidator {
     //#region constants
     private static ERROR_EMPTY_ORG_ID: ValidationError =
         new ValidationError('MR-001', 'The parameter org_id cannot be empty or null');

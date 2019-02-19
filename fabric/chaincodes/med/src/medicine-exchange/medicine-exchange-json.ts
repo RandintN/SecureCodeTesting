@@ -1,4 +1,4 @@
-import { IMedicineJson } from './medicine-json';
+import { IMedicineJson } from '../medicine-abstract/medicine-json';
 
 export interface IMedicineExchangeJson extends IMedicineJson {
         classification: string;

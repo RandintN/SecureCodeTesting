@@ -1,10 +1,10 @@
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
+import { IValidator } from '../validation/validator-interface';
 import { IPharmaceuticalIndustryJson } from './pharmaceutical-industry-json';
 
-export class PharmaceuticalIndustry implements IValidatorModel {
+export class PharmaceuticalIndustry implements IValidator {
     //#region constants
     private static ERROR_EMPTY_PHARMACEUTICAL_LABORATORY: ValidationError =
         new ValidationError('PI-001', 'The parameter pharmaceutical_laboratory cannot be empty or null');

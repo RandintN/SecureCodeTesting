@@ -1,10 +1,10 @@
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
+import { IValidator } from '../validation/validator-interface';
 import { INegotiationModalityJson } from './negotiation-modality-json';
 
-export class NegotiationModality implements IValidatorModel {
+export class NegotiationModality implements IValidator {
 
     private static ERROR_EMPTY_MODALITY: ValidationError =
         new ValidationError('NM-001', 'The parameter modality cannot be empty or null');

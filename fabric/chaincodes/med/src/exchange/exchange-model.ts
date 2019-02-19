@@ -1,11 +1,11 @@
+import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
+import { MedicineExchange } from '../medicine-exchange/medicine-exchange-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
+import { IValidator } from '../validation/validator-interface';
 import { IExchangeJson } from './exchange-json';
-import { IMedicineExchangeJson } from './medicine-exchange-json';
-import { MedicineExchange } from './medicine-exchange-model';
 
-export class Exchange implements IValidatorModel {
+export class Exchange implements IValidator {
 
     private static ERROR_EMPTY_AMOUNT: ValidationError =
     new ValidationError('EX-001', 'The parameter amount cannot be empty or null');

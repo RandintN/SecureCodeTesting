@@ -1,6 +1,7 @@
 import { Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
 import { Context } from 'vm';
+import { SituationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { INegotiationModalityService } from './negotiation-modality-interface';
@@ -10,8 +11,15 @@ import { NegotiationModality } from './negotiation-modality-model';
 export class NegotiationModalityDomain implements INegotiationModalityService {
     //#region constants
     private static ADMIN_MSP: string = 'n2mimsp';
+
     private static ERROR_NOT_ALLOWED_MSP: ValidationError =
         new ValidationError('NMD-001', 'Forbidden');
+
+    private static ERROR_NEGOTIATION_MODALITY_NOT_FOUND: ValidationError =
+        new ValidationError('NMD-002', 'The type is not found.');
+
+    private static ERROR_NEGOTIATION_MODALITY_INACTIVATED: ValidationError =
+        new ValidationError('NMD-003', 'The type is not active for negotiation.');
 
     //#endregion
 
@@ -60,6 +68,31 @@ export class NegotiationModalityDomain implements INegotiationModalityService {
         const negotiationModality: NegotiationModality = new NegotiationModality();
         negotiationModality.fromJson(JSON.parse(await this.queryNegotiationModalityByModality(ctx, modality)));
         return negotiationModality;
+    }
+
+    public async validateNegotiationModality(ctx: Context, modality: string):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            const negotiationModality: NegotiationModality = await this.getNegotiationModalityByModality(ctx, modality);
+
+            if (!negotiationModality) {
+                validationResult.errors.push(NegotiationModalityDomain.ERROR_NEGOTIATION_MODALITY_NOT_FOUND);
+
+            } else if (negotiationModality.situation === SituationEnum.INACTIVE) {
+                validationResult.errors.push(NegotiationModalityDomain.
+                    ERROR_NEGOTIATION_MODALITY_INACTIVATED);
+
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+
+        return validationResult;
     }
 
     //#endregion

@@ -1,4 +1,4 @@
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum } from '../utils/enums';
 
 export interface INegotiationModalityJson {
     modality: string;

@@ -1,5 +1,5 @@
-import { IExchangeJson } from './exchange-json';
-import { IMedicineOfferJson } from './medicine-offer-json';
+import { IExchangeJson } from '../exchange/exchange-json';
+import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
 
 export interface IMedicineRequestJson {
     org_id: string;

@@ -1,4 +1,4 @@
-import { SituationEnum } from '../utils/situation-enum';
+import { SituationEnum } from '../utils/enums';
 
 export interface IMedicineClassificationJson {
     category: string;

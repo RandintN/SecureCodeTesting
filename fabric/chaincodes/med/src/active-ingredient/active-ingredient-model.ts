@@ -1,6 +1,6 @@
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IValidatorModel } from '../validation/validator-interface';
+import { IValidator } from '../validation/validator-interface';
 import { IActiveIngredientJson } from './active-ingredient-json';
 
 /**
@@ -8,7 +8,7 @@ import { IActiveIngredientJson } from './active-ingredient-json';
  *
  * Class of active ingredients.
  */
-export class ActiveIngredient implements IValidatorModel {
+export class ActiveIngredient implements IValidator {
 
     private static ERROR_EMPTY_NAME: ValidationError =
         new ValidationError('AI-001', 'The parameter pharmaceutical_laboratory cannot be empty or null');

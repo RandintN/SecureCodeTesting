@@ -1,31 +1,25 @@
+import { Medicine } from '../medicine-abstract/medicine-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineExchangeJson } from './medicine-exchange-json';
-import { Medicine } from './medicine-model';
+import { IMedicineOfferJson } from './medicine-offer-json';
 
-export class MedicineExchange extends Medicine {
+export class MedicineOffer extends Medicine {
     //#region constants
     private static ERROR_EMPTY_ACTIVE_INGREDIENT: ValidationError =
-        new ValidationError('ME-001', 'The parameter active_ingredient cannot be empty or null');
+        new ValidationError('MO-001', 'The parameter active_ingredient cannot be empty or null');
 
     private static ERROR_EMPTY_PHARMA_FORM: ValidationError =
-        new ValidationError('ME-003', 'The parameter pharma_form cannot be empty or null');
+        new ValidationError('MO-002', 'The parameter pharma_form cannot be empty or null');
 
     private static ERROR_EMPTY_CONCENTRATION: ValidationError =
-        new ValidationError('ME-004', 'The parameter concentration cannot be empty or null');
-
-    private static ERROR_EMPTY_PHARMA_INDUSTRY: ValidationError =
-        new ValidationError('ME-005', 'The parameter pharma_industry cannot be empty or null');
-
-    private static ERROR_EMPTY_CLASSIFICATION: ValidationError =
-        new ValidationError('ME-006', 'The parameter classification cannot be empty or null');
+        new ValidationError('MO-003', 'The parameter concentration cannot be empty or null');
 
     //#endregion
 
-    public classification: string;
-    public pharmaIndustry: string;
+    public classification: string[];
+    public pharmaIndustry: string[];
 
-    public fromJson(medicineExchange: IMedicineExchangeJson): void {
+    public fromJson(medicineExchange: IMedicineOfferJson): void {
         this.activeIngredient = medicineExchange.active_ingredient;
         this.classification = medicineExchange.classification;
         this.comercialName = medicineExchange.comercial_name;
@@ -35,8 +29,8 @@ export class MedicineExchange extends Medicine {
         this.pharmaIndustry = medicineExchange.pharma_industry;
     }
 
-    public toJson(): IMedicineExchangeJson {
-        const json: IMedicineExchangeJson = {
+    public toJson(): IMedicineOfferJson {
+        const json: IMedicineOfferJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
             comercial_name: this.comercialName,
@@ -52,27 +46,20 @@ export class MedicineExchange extends Medicine {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
         if (this.activeIngredient === null || this.activeIngredient === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_ACTIVE_INGREDIENT);
+            validationResult.errors.push(MedicineOffer.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
         if (this.pharmaForm === null || this.pharmaForm === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_PHARMA_FORM);
+            validationResult.errors.push(MedicineOffer.ERROR_EMPTY_PHARMA_FORM);
         }
 
         if (this.concentration === null || this.concentration === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_CONCENTRATION);
-        }
-
-        if (this.pharmaIndustry === null || this.pharmaIndustry === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_PHARMA_INDUSTRY);
-        }
-
-        if (this.classification === null || this.classification === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_CLASSIFICATION);
+            validationResult.errors.push(MedicineOffer.ERROR_EMPTY_CONCENTRATION);
         }
 
         validationResult.isValid = validationResult.errors.length < 1;
 
         return validationResult;
     }
+
 }
