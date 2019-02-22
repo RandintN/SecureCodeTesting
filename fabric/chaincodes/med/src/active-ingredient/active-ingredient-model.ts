@@ -23,6 +23,10 @@ export class ActiveIngredient implements IValidator {
      */
     public special: boolean;
 
+    /**
+     * Method that makes validations
+     * @returns ValidationResult
+     */
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
         if (this.name === null || this.name === undefined) {
@@ -33,11 +37,19 @@ export class ActiveIngredient implements IValidator {
         return validationResult;
     }
 
+    /**
+     * Method that deserializes an IActiveIngredientJson to ActiveIngredient
+     * @param json IActiveIngredientJson to be deserialized
+     */
     public fromJson(json: IActiveIngredientJson): void {
         this.name = json.name;
         this.special = json.special;
     }
 
+    /**
+     * Method to serialize ActiveIngredient
+     * @returns IActiveIngredientJson
+     */
     public toJson(): IActiveIngredientJson {
         const json: IActiveIngredientJson = {
             name: this.name,

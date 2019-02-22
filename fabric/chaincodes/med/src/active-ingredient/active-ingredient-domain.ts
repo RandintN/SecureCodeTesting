@@ -7,18 +7,43 @@ import { IActiveIngredientService } from './active-ingredient-interface';
 import { IActiveIngredientJson } from './active-ingredient-json';
 import { ActiveIngredient } from './active-ingredient-model';
 
+/**
+ * @author fmarino - CPqD
+ *
+ * Domain of ActiveIngredient, which implements IActiveIngredientService.
+ */
 export class ActiveIngredientDomain implements IActiveIngredientService {
+
+    /**
+     * Constant with MSP key of administrator org i.e.: N2MI
+     */
     private static ADMIN_MSP: string = 'n2mimsp';
+
+    /**
+     * Constant of ValidationError to forbidden cases
+     */
     private static ERROR_NOT_ALLOWED_MSP: ValidationError =
         new ValidationError('AID-001', 'Forbidden');
 
+    /**
+     * Constant of ValidationError to active_ingredient not found
+     */
     private static ERROR_ACTIVE_INGREDIENT_NOT_FOUND: ValidationError =
         new ValidationError('AID-002', 'The active_ingredient is not found.');
 
+    /**
+     * Constant of ValidationError to active_ingredient not allowed
+     */
     private static ERROR_ACTIVE_INGREDIENT_NOT_ALLOWED: ValidationError =
         new ValidationError('AID-003', 'The active_ingredient is not allowed for negotiation.');
 
     //#region region of methods to be invoked
+
+    /**
+     * Method to add an ActiveIngredient. These methods is allowed just for administration Org i.e.: N2Mi
+     * @param ctx Context of operation
+     * @param strActiveIngredient String json of implementation of IActiveIngredientJson
+     */
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
         try {
             if (ActiveIngredientDomain.ADMIN_MSP !== ctx.stub.getCreator().getMspid().toLowerCase()) {
@@ -47,24 +72,42 @@ export class ActiveIngredientDomain implements IActiveIngredientService {
     //#endregion
 
     //#region queries
+
+    /**
+     * Method to query ActivieIngredient by key
+     * @param ctx Context of operation
+     * @param key Key of ActiveIngredient
+     */
     public async queryActiveIngredientByKey(ctx: Context, key: string): Promise<string> {
         const activeIngredientInBytes = await ctx.stub.getState(key);
         return activeIngredientInBytes.toString();
     }
 
+    /**
+     * Method to reach query of ActiveIngregient by name
+     * @param ctx Context of operation
+     * @param strName name of Active Ingredient
+     */
     public async queryActiveIngredientByName(ctx: Context, strName: string): Promise<string> {
+        // Creates QueryJson of couchDB index query
         const queryJson = {
             selector: {
                 name: strName,
             },
         };
 
+        // Getting query result
         const iterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult(JSON.stringify(queryJson));
         const activeIngredient: ActiveIngredient = await this.getActiveIngredient(iterator);
 
         return activeIngredient ? JSON.stringify(activeIngredient.toJson()) : null;
     }
 
+    /**
+     * Method to validate an ActiveIngredient
+     * @param ctx context of operation
+     * @param activeIngredientName active ingredient name that will be validated
+     */
     public async validateActiveIngredient(ctx: Context, activeIngredientName: string): Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
 
@@ -91,6 +134,11 @@ export class ActiveIngredientDomain implements IActiveIngredientService {
         return validationResult;
     }
 
+    /**
+     * Internal method used to get an ActiveIngredient by name
+     * @param ctx context of operation
+     * @param activeIngredientName ActiveIngredient name
+     */
     public async getActiveIngredientByName(ctx: Context, activeIngredientName: string): Promise<ActiveIngredient> {
         let activeIngredient: ActiveIngredient = null;
         const strActiveIngredientJson: string =
@@ -110,6 +158,11 @@ export class ActiveIngredientDomain implements IActiveIngredientService {
     //#endregion
 
     //#region private methods
+
+    /**
+     * Auxiliar method that's iterate over an interator of ActiveIngredient to retrieve the query result.
+     * @param iterator iterator
+     */
     private async getActiveIngredient(iterator: Iterators.StateQueryIterator): Promise<ActiveIngredient> {
         let activeIngredient: ActiveIngredient;
         let activeIngredientJson: IActiveIngredientJson;

@@ -39,11 +39,17 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             }
 
             const idRequest: Guid = Guid.create();
-            await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                idRequest.toString(), Buffer.from(medRequestJson));
+
+            if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
+                await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
+                    idRequest.toString(), Buffer.from(medRequestJson));
+
+            } else {
+                await ctx.stub.putState(idRequest.toString(), Buffer.from(medRequestJson));
+
+            }
 
             const timestamp: number = new Date().getTime();
-
             const result: Result = new Result();
 
             result.id = idRequest.toString();
@@ -87,10 +93,14 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             }
 
-            const hasExchange: string = medicineRequest.type.find((sType) => sType.toLowerCase() === 'exchange');
+            if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
+                if (!medicineRequest.exchange) {
+                    validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
 
-            if (hasExchange && medicineRequest.exchange.length < 1) {
-                validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
+                } else if (medicineRequest.exchange.length < 1) {
+                    validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
+
+                }
 
             }
 
