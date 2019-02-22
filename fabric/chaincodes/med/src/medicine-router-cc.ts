@@ -1,4 +1,5 @@
 import { Context, Contract } from 'fabric-contract-api';
+import { ChaincodeResponse } from 'fabric-shim';
 import { ActiveIngredientDomain } from './active-ingredient/active-ingredient-domain';
 import { IActiveIngredientService } from './active-ingredient/active-ingredient-interface';
 import { MedicineClassificationDomain } from './medicine-classification/medicine-classification-domain';
@@ -12,7 +13,6 @@ import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
 import { ValidationResult } from './validation/validation-model';
-import { ChaincodeResponse } from 'fabric-shim';
 
 export class MedicineRouterCC extends Contract
     implements IActiveIngredientService, IPharmaceuticalIndustryService,

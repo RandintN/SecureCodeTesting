@@ -31,6 +31,7 @@ export class ActiveIngredient implements IValidator {
         const validationResult: ValidationResult = new ValidationResult();
         if (this.name === null || this.name === undefined) {
             validationResult.errors.push(ActiveIngredient.ERROR_EMPTY_NAME);
+
         }
 
         validationResult.isValid = validationResult.errors.length === 0;
@@ -44,6 +45,7 @@ export class ActiveIngredient implements IValidator {
     public fromJson(json: IActiveIngredientJson): void {
         this.name = json.name;
         this.special = json.special;
+
     }
 
     /**
@@ -54,6 +56,7 @@ export class ActiveIngredient implements IValidator {
         const json: IActiveIngredientJson = {
             name: this.name,
             special: this.special,
+
         };
 
         return json;

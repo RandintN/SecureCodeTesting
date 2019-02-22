@@ -24,7 +24,8 @@
     "@types/xlsx": "0.0.36",
     "fabric-contract-api": "^1.4.0",
     "fabric-shim": "~1.4.0",
-    "guid-typescript": "^1.0.9"
+    "guid-typescript": "^1.0.9",
+    "moment": "^2.24.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

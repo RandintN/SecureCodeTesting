@@ -6,7 +6,7 @@ import { MedicineOfferDomain } from '../medicine-offer/medicine-offer-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
-import { CommonMessages } from '../utils/common-messages';
+import { CommonConstants } from '../utils/common-messages';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineRequestService } from './medicine-request-interface';
@@ -34,7 +34,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                 this.validateMedicineRequestRules(ctx, medicineRequest);
 
             if (validationResult.errors.length > 0) {
-                return ResponseUtil.ResponseBadRequest(CommonMessages.VALIDATION_ERROR,
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(validationResult)));
             }
 
