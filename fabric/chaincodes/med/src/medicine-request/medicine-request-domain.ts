@@ -46,7 +46,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             const result: Result = new Result();
 
-            result.id = idRequest;
+            result.id = idRequest.toString();
             result.timestamp = timestamp;
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));

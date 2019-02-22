@@ -42,10 +42,12 @@ export class MedicineRequest implements IValidator {
 
         const exchanges: Exchange[] = [];
 
-        for (const exchangeJson of medicineRequestJson.exchange) {
-            const exchange: Exchange = new Exchange();
-            exchange.fromJson(exchangeJson);
-            exchanges.push(exchange);
+        if (medicineRequestJson.exchange) {
+            for (const exchangeJson of medicineRequestJson.exchange) {
+                const exchange: Exchange = new Exchange();
+                exchange.fromJson(exchangeJson);
+                exchanges.push(exchange);
+            }
         }
 
         this.exchange = exchanges;
@@ -76,11 +78,11 @@ export class MedicineRequest implements IValidator {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-        if (this.orgId === null || this.orgId === undefined) {
+        if (!this.orgId) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_ORG_ID);
         }
 
-        if (this.amount === null || this.amount === undefined) {
+        if (!this.amount) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_AMOUNT);
         }
 
@@ -90,15 +92,15 @@ export class MedicineRequest implements IValidator {
             validationResult.addErrors(medicineValidation.errors);
         }
 
-        if (this.type === null || this.type === undefined) {
+        if (!this.type) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
         } else if (this.type.length < 1) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
         }
 
-        if (this.exchange === null || this.exchange === undefined || this.exchange.length < 1) {
+        if (!this.exchange) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_EXCHANGE);
-        } else if (this.exchange !== null && this.exchange !== undefined) {
+        } else {
             for (const exchange of this.exchange) {
                 const exchangeValidation: ValidationResult = exchange.isValid();
                 if (!exchangeValidation.isValid) {
