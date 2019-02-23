@@ -29,11 +29,11 @@ fabric/enviroments/dev/n2mi/bin/
 # Local chaincode path
 fabric/enviroments/dev/n2mi/chaincode/
 
-fabric/chaincodes/fabcar
+fabric/chaincodes/fabcar/
 
-fabric/chaincodes/utilityToken
+fabric/chaincodes/utilityToken/
 
-fabric/enviroments/dev/n2mi/node-material/crypto-config
+fabric/enviroments/dev/n2mi/node-material/crypto-config/
 
 fabric/enviroments/dev/n2mi/node-material/config/
 
