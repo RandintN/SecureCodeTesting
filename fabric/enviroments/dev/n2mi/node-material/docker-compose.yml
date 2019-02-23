@@ -16,6 +16,7 @@ services:
       - FABRIC_CA_SERVER_CA_NAME=ca.n2med.com
       - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.n2mi.n2med.com-cert
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/8b7fb68a4bf8c74ef03bd1347e567b7cc20abd023a444a30400e99e2c73139df_sk
+
     ports:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
