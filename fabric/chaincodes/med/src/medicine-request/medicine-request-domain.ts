@@ -33,7 +33,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const validationResult: ValidationResult = await
                 this.validateMedicineRequestRules(ctx, medicineRequest);
 
-            if (validationResult.errors.length > 0) {
+            if (!validationResult.isValid) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(validationResult)));
             }

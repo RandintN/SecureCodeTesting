@@ -40,12 +40,20 @@ export class MedicineExchange extends Medicine {
     public fromJson(medicineExchange: IMedicineExchangeJson): void {
         this.medicineBatch = [];
 
-        medicineExchange.medicine_batch.forEach((mbj) => {
-            const medicineBatch: MedicineBatch = new MedicineBatch();
-            medicineBatch.fromJson(mbj);
-            this.medicineBatch.push(medicineBatch);
+        try {
+            if (medicineExchange.medicine_batch) {
+                for (const batchJson of medicineExchange.medicine_batch) {
+                    const medicineBatch: MedicineBatch = new MedicineBatch();
+                    medicineBatch.fromJson(batchJson);
+                    this.medicineBatch.push(medicineBatch);
 
-        });
+                }
+
+            }
+
+        } catch (error) {
+            throw Error(error + ' ME-51');
+        }
 
         this.activeIngredient = medicineExchange.active_ingredient;
         this.classification = medicineExchange.classification;
@@ -60,10 +68,18 @@ export class MedicineExchange extends Medicine {
     public toJson(): IMedicineExchangeJson {
         const medicineBatchJson: IMedicineBatchJson[] = [];
 
-        this.medicineBatch.forEach((mb) => {
-            medicineBatchJson.push(mb.toJson());
+        try {
+            if (this.medicineBatch) {
+                for (const batch of this.medicineBatch) {
+                    medicineBatchJson.push(batch.toJson());
 
-        });
+                }
+
+            }
+
+        } catch (error) {
+            throw Error(error + ' ME-75');
+        }
 
         const json: IMedicineExchangeJson = {
             active_ingredient: this.activeIngredient,
@@ -111,12 +127,14 @@ export class MedicineExchange extends Medicine {
 
         if (!this.medicineBatch || this.medicineBatch.length < 1) {
             validationResult.addError(MedicineExchange.ERROR_EMPTY_MEDICINE_BATCH);
-        }
 
-        const validationOfDuplicatedBatches: ValidationResult = this.validateDuplicatedBatches();
+        } else {
+            const validationOfDuplicatedBatches: ValidationResult = this.validateDuplicatedBatches();
 
-        if (!validationOfDuplicatedBatches.isValid) {
-            validationResult.addErrors(validationOfDuplicatedBatches.errors);
+            if (!validationOfDuplicatedBatches.isValid) {
+                validationResult.addErrors(validationOfDuplicatedBatches.errors);
+
+            }
 
         }
 
@@ -127,32 +145,50 @@ export class MedicineExchange extends Medicine {
     private validateDuplicatedBatches() {
         const validationResult: ValidationResult = new ValidationResult();
 
-        const batches: string[] = [];
-        this.medicineBatch.filter((mb) => mb.batch !== null && mb.batch !== undefined).
-            forEach((mbnn) => {
-                batches.push(mbnn.batch);
-            });
+        try {
+            const batches: string[] = [];
+            const indentifiedBatches: MedicineBatch[] =
+                this.medicineBatch.filter((mb) => mb.batch !== null && mb.batch !== undefined);
 
-        const validationResultOfIndentifiedBatches: ValidationResult =
-            this.validateDuplicatedItems(batches, MedicineExchange.ERROR_DUPLICATED_BATCH);
+            for (const idBatch of indentifiedBatches) {
+                batches.push(idBatch.batch);
 
-        if (!validationResultOfIndentifiedBatches.isValid) {
-            validationResult.addErrors(validationResultOfIndentifiedBatches.errors);
+            }
 
-        }
+            if (batches && batches.length > 0) {
+                const validationResultOfIndentifiedBatches: ValidationResult =
+                    this.validateDuplicatedItems(batches, MedicineExchange.ERROR_DUPLICATED_BATCH);
 
-        const expirateDatesOfUnidentifiedBatches: string[] = [];
+                if (!validationResultOfIndentifiedBatches.isValid) {
+                    validationResult.addErrors(validationResultOfIndentifiedBatches.errors);
 
-        this.medicineBatch.filter((mb) => !mb.batch).forEach((mbu) => {
-            expirateDatesOfUnidentifiedBatches.push(mbu.expireDate);
-        });
+                }
 
-        const validationResultOfUnindentifiedBatches: ValidationResult =
-            this.validateDuplicatedItems(batches, MedicineExchange.ERROR_DUPLICATED_UNDEFINED_BATCH);
+            }
 
-        if (!validationResultOfUnindentifiedBatches.isValid) {
-            validationResult.addErrors(validationResultOfUnindentifiedBatches.errors);
+            const expirateDatesOfUnidentifiedBatches: string[] = [];
 
+            const unindentifiedBatches: MedicineBatch[] = this.medicineBatch.filter((mb) => !mb.batch);
+
+            for (const unidBatch of unindentifiedBatches) {
+                expirateDatesOfUnidentifiedBatches.push(unidBatch.expireDate);
+
+            }
+
+            if (expirateDatesOfUnidentifiedBatches && expirateDatesOfUnidentifiedBatches.length > 0) {
+                const validationResultOfUnindentifiedBatches: ValidationResult =
+                    this.validateDuplicatedItems(expirateDatesOfUnidentifiedBatches,
+                        MedicineExchange.ERROR_DUPLICATED_UNDEFINED_BATCH);
+
+                if (!validationResultOfUnindentifiedBatches.isValid) {
+                    validationResult.addErrors(validationResultOfUnindentifiedBatches.errors);
+
+                }
+
+            }
+
+        } catch (error) {
+            throw Error(error + ' ME-184');
         }
 
         validationResult.isValid = validationResult.errors.length < 1;
@@ -164,7 +200,7 @@ export class MedicineExchange extends Medicine {
 
         const object: any = {};
 
-        items.forEach((item) => {
+        for (const item of items) {
             if (!object[item]) {
                 object[item] = 0;
 
@@ -172,7 +208,7 @@ export class MedicineExchange extends Medicine {
 
             object[item] += 1;
 
-        });
+        }
 
         for (const prop in object) {
             if (object[prop] >= 2) {

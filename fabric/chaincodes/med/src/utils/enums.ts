@@ -1,6 +1,6 @@
 export enum SituationEnum {
-    ACTIVE = 'Active',
-    INACTIVE = 'Inactive',
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
 }
 
 export enum ResponseCodes {
