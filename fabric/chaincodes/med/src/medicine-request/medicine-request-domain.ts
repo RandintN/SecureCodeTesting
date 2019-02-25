@@ -93,6 +93,15 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             }
 
+            const negotiationModalityDomain: NegotiationModalityDomain = new NegotiationModalityDomain();
+            const modalityValidationResult: ValidationResult =
+                await negotiationModalityDomain.validateNegotiationModality(ctx, medicineRequest.type);
+
+            if (!modalityValidationResult.isValid) {
+                validationResult.addErrors(modalityValidationResult.errors);
+
+            }
+
             if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
                 if (!medicineRequest.exchange || medicineRequest.exchange.length < 1) {
                     validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
@@ -109,19 +118,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                         }
 
                     }
-
-                }
-
-            }
-
-            const negotiationModalityDomain: NegotiationModalityDomain = new NegotiationModalityDomain();
-
-            for (const modality of medicineRequest.type) {
-                const modalityValidationResult: ValidationResult =
-                    await negotiationModalityDomain.validateNegotiationModality(ctx, modality);
-
-                if (!modalityValidationResult.isValid) {
-                    validationResult.addErrors(modalityValidationResult.errors);
 
                 }
 

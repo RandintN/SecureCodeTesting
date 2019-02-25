@@ -124,7 +124,7 @@ export class MedicineExchange extends Medicine {
             validationResult.errors.push(MedicineExchange.ERROR_EMPTY_CLASSIFICATION);
 
         }
-
+        console.log(this.medicineBatch);
         if (!this.medicineBatch || this.medicineBatch.length < 1) {
             validationResult.addError(MedicineExchange.ERROR_EMPTY_MEDICINE_BATCH);
 

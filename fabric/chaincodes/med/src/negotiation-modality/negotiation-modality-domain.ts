@@ -80,7 +80,7 @@ export class NegotiationModalityDomain implements INegotiationModalityService {
             if (!negotiationModality) {
                 validationResult.errors.push(NegotiationModalityDomain.ERROR_NEGOTIATION_MODALITY_NOT_FOUND);
 
-            } else if (negotiationModality.situation === SituationEnum.INACTIVE) {
+            } else if (negotiationModality.situation.toString().toLowerCase() === SituationEnum.INACTIVE.toString().toLowerCase()) {
                 validationResult.errors.push(NegotiationModalityDomain.
                     ERROR_NEGOTIATION_MODALITY_INACTIVATED);
 
