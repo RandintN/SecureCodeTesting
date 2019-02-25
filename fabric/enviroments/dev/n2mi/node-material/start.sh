@@ -41,9 +41,9 @@ popd
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
-    cli peer chaincode install -n med -v 220.0 -p /opt/gopath/src/github.com/med/ -l node
+    cli peer chaincode install -n med -v 505.0 -p /opt/gopath/src/github.com/med/ -l node
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e \
     "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/msp" \
-    cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v 220.0 -c '{"Args":[]}' -P "OR('N2miMSP.member')" \
+    cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v 505.0 -c '{"Args":[]}' -P "OR('N2miMSP.member')" \
     --collections-config /opt/gopath/src/github.com/med/collection-config.json
