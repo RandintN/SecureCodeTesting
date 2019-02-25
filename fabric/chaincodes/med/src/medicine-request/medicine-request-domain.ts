@@ -94,23 +94,21 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             }
 
             if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
-                if (!medicineRequest.exchange) {
+                if (!medicineRequest.exchange || medicineRequest.exchange.length < 1) {
                     validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
 
-                } else if (medicineRequest.exchange.length < 1) {
-                    validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
+                } else {
+                    const exchangeDomain: ExchangeDomain = new ExchangeDomain();
 
-                }
+                    for (const exchange of medicineRequest.exchange) {
+                        const exchangeValidation: ValidationResult = await exchangeDomain.isValid(ctx, exchange);
 
-            }
+                        if (!exchangeValidation.isValid) {
+                            validationResult.addErrors(exchangeValidation.errors);
 
-            const exchangeDomain: ExchangeDomain = new ExchangeDomain();
+                        }
 
-            for (const exchange of medicineRequest.exchange) {
-                const exchangeValidation: ValidationResult = await exchangeDomain.isValid(ctx, exchange);
-
-                if (!exchangeValidation.isValid) {
-                    validationResult.addErrors(exchangeValidation.errors);
+                    }
 
                 }
 
