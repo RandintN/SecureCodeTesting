@@ -1,5 +1,5 @@
 
-# Rede básicoa para Desenvolvimento
+# Rede básica para Desenvolvimento
 Rede com configuração básica para executar Chaincodes em desenvolvimento.
 
 ## Dados da rede
