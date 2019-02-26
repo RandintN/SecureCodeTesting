@@ -1,32 +1,38 @@
-## Rede básicoa para Desenvolvimento
 
+# Rede básicoa para Desenvolvimento
 Rede com configuração básica para executar Chaincodes em desenvolvimento.
 
+## Dados da rede
 O canal criado chama-se n2medchannel
 
 Lista de MSP criados:
 
-    - N2miMSP
+- N2miMSP
 
-Para iniciar a rede, certifique-se que o ambiente para o Hyperledger-Fabric está devidamente configurado.
-
+## Configurando o ambiente
 Para configurar o ambiente para o HF, siga as seguintes instruções:
 
-Pre-requisitos:
+**Pre-requisitos:**
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/prereqs.html
 
-Instalar binários:
-
+**Instalar binários:**
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
 
+**Instalar e configurar o Go:**
+https://medium.com/@RidhamTarpara/install-go-1-11-on-ubuntu-18-04-16-04-lts-8c098c503c5f
+
+## Iniciando a rede DLT
 Com a configuração do ambiente feita, deve-se gerar o material criptográfico, isso pode ser feito executando o seguinte comando:
-``generate.sh``.
 
-Com isso feito, colocar o nome do arquivo gerado ``./crypto-config/peerOrganizations/n2mi.n2med.com/ca/identifier-sample_sk`` deve-se alterar o arquivo ``docker-compose.yml`` no campo ``FABRIC_CA_SERVER_CA_KEYFILE`` do serviço ``ca.n2med.com``. Exemplo:
+``./generate.sh``.
 
-To start the network, run ``start.sh``.
-To stop it, run ``stop.sh``
-To completely remove all incriminating evidence of the network
-on your system, run ``teardown.sh``.
+Com isso feito, copie o nome do arquivo gerado:
+ ``./crypto-config/peerOrganizations/n2mi.n2med.com/ca/identifier-sample_sk`` 
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>
+E cole-o no campo ``FABRIC_CA_SERVER_CA_KEYFILE`` do serviço ``ca.n2med.com`` do arquivo ``docker-compose.yml``. 
+
+Exemplo:
+
+Para iniciar a rede DLT execute ``start.sh``.
+
+Para remover completamente os componentes da rede do seu sistema, execute ``clean-all.sh``.
