@@ -4,10 +4,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
 export PATH=$GOPATH/src/github.com/hyperledger/fabric/build/bin:${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 CHANNEL_NAME=n2medchannel
+
+# Create config and crypto-config if not exists
+mkdir -p config/
+mkdir -p crypto-config/
 
 # remove previous crypto material and config transactions
 rm -fr config/*
