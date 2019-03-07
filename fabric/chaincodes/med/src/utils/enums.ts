@@ -1,6 +1,13 @@
 export enum SituationEnum {
     ACTIVE = 'ACTIVE',
     INACTIVE = 'INACTIVE',
+
+}
+
+export enum MedicineRequestStatusEnum {
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED',
+
 }
 
 export enum ResponseCodes {
@@ -10,4 +17,5 @@ export enum ResponseCodes {
     FORBIDDEN = 401,
     NOT_FOUND = 404,
     INTERNAL_SERVER_ERROR = 500,
+
 }

@@ -18,7 +18,6 @@ export class MedicineRouterCC extends Contract
     implements IActiveIngredientService, IPharmaceuticalIndustryService,
     IMedicineClassificationService, IMedicineRequestService, IPharmaceuticalFormService, INegotiationModalityService {
 
-
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
         return await new ActiveIngredientDomain().addActiveIngredient(ctx, strActiveIngredient);
@@ -40,6 +39,10 @@ export class MedicineRouterCC extends Contract
     //#region of methods of IMedicineRequestService
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
         return await new MedicineRequestDomain().addMedicineRequest(ctx, medRequestJson);
+    }
+
+    public async approveMedicinePendingRequest(ctx: Context, medReqApproveJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().approveMedicinePendingRequest(ctx, medReqApproveJson);
     }
 
     public async queryMedicineRequest(ctx: Context, key: string): Promise<string> {
