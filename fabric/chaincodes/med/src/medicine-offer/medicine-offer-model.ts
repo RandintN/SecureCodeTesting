@@ -45,15 +45,15 @@ export class MedicineOffer extends Medicine {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-        if (this.activeIngredient === null || this.activeIngredient === undefined) {
+        if (this.activeIngredient === null || this.activeIngredient === undefined || this.activeIngredient === "") {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
-        if (this.pharmaForm === null || this.pharmaForm === undefined) {
+        if (this.pharmaForm === null || this.pharmaForm === undefined || this.pharmaForm === "") {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_PHARMA_FORM);
         }
 
-        if (this.concentration === null || this.concentration === undefined) {
+        if (this.concentration === null || this.concentration === undefined || this.concentration === "") {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_CONCENTRATION);
         }
 
