@@ -45,7 +45,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             if (!validationResult.isValid) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                    Buffer.from(JSON.stringify(validationResult)));
+                    Buffer.from(JSON.stringify(validationResult.errors)));
             }
 
             const idRequest: Guid = Guid.create();

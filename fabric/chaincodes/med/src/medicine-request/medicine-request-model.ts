@@ -9,24 +9,16 @@ import { IMedicineRequestJson } from './medicine-request-json';
 
 export class MedicineRequest implements IValidator {
     //#region constants
-    private static ERROR_EMPTY_USER_ID: ValidationError =
-        new ValidationError('MR-001', 'The parameter user_id cannot be empty or null');
-
-    private static ERROR_EMPTY_AFFILIATION_ID: ValidationError =
-        new ValidationError('MR-002', 'The parameter affiliation_id cannot be empty or null');
-
     private static ERROR_EMPTY_AMOUNT: ValidationError =
-        new ValidationError('MR-003', 'The parameter amount cannot be empty or null');
+        new ValidationError('MR-001', 'The parameter amount cannot be empty or null');
 
     private static ERROR_EMPTY_TYPE: ValidationError =
-        new ValidationError('MR-004', 'The parameter type cannot be empty or null');
+        new ValidationError('MR-002', 'The parameter type cannot be empty or null');
 
     private static ERROR_EMPTY_EXCHANGE: ValidationError =
-        new ValidationError('MR-005', 'The parameter exchange cannot be empty or null');
+        new ValidationError('MR-003', 'The parameter exchange cannot be empty or null');
 
     //#endregion
-    public user_id: string;
-    public affiliation_id: string;
     public amount: string;
     public medicine: MedicineOffer;
     public type: string;
@@ -34,8 +26,6 @@ export class MedicineRequest implements IValidator {
     public exchange: Exchange[];
 
     public fromJson(medicineRequestJson: IMedicineRequestJson): void {
-        this.user_id = medicineRequestJson.user_id;
-        this.affiliation_id = medicineRequestJson.affiliation_id;
         this.amount = medicineRequestJson.amount;
         this.returnDate = medicineRequestJson.return_date;
         this.type = medicineRequestJson.type;
@@ -72,8 +62,6 @@ export class MedicineRequest implements IValidator {
         }
 
         const medicineRequestJson: IMedicineRequestJson = {
-            user_id: this.user_id,
-            affiliation_id: this.affiliation_id,
             amount: this.amount,
             exchange: exchangesJson,
             medicine: medicineOfferJson,
@@ -87,14 +75,6 @@ export class MedicineRequest implements IValidator {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-
-        if (!this.user_id) {
-            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_USER_ID);
-        }
-
-        if (!this.affiliation_id) {
-            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_AFFILIATION_ID);
-        }
 
         if (!this.amount) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_AMOUNT);
