@@ -2,6 +2,7 @@ import { IExchangeJson } from '../exchange/exchange-json';
 import { Exchange } from '../exchange/exchange-model';
 import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
 import { MedicineOffer } from '../medicine-offer/medicine-offer-model';
+import { MedicineRequestStatusEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -24,11 +25,14 @@ export class MedicineRequest implements IValidator {
     public type: string;
     public returnDate: string;
     public exchange: Exchange[];
+    public status: any;
 
     public fromJson(medicineRequestJson: IMedicineRequestJson): void {
         this.amount = medicineRequestJson.amount;
         this.returnDate = medicineRequestJson.return_date;
         this.type = medicineRequestJson.type;
+        this.status = medicineRequestJson.status ? medicineRequestJson.status
+            : MedicineRequestStatusEnum.WAITING_FOR_APPROVAL;
 
         const medicineOffer: MedicineOffer = new MedicineOffer();
         medicineOffer.fromJson(medicineRequestJson.medicine);
@@ -66,6 +70,7 @@ export class MedicineRequest implements IValidator {
             exchange: exchangesJson,
             medicine: medicineOfferJson,
             return_date: this.returnDate,
+            status: this.status,
             type: this.type,
 
         };

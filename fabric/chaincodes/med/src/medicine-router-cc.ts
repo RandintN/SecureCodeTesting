@@ -45,9 +45,14 @@ export class MedicineRouterCC extends Contract
         return await new MedicineRequestDomain().approveMedicinePendingRequest(ctx, medReqApproveJson);
     }
 
+    public async rejectMedicinePendingRequest(ctx: Context, medReqRejectJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().rejectMedicinePendingRequest(ctx, medReqRejectJson);
+    }
+
     public async queryMedicineRequest(ctx: Context, key: string): Promise<string> {
         return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
+
     //#endregion
 
     //#region of methods of IPharmaceuticalIndustryService
