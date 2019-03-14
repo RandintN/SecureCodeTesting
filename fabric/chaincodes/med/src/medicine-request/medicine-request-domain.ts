@@ -8,7 +8,7 @@ import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-m
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
-import { MedicineRequestStatusEnum } from '../utils/enums';
+import { MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineRequestApproveJson } from './medicine-request-approve-json';
@@ -31,10 +31,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     private static ERROR_INVALID_STATE: ValidationError =
         new ValidationError('MRD-003',
             'Invalid state.');
+    private static ERROR_INVALID_TYPE: ValidationError = new ValidationError('MRD-004', 'Type is invalid. Choose between \'loan\', \'exchange\' and \'donation\'.');
     //#endregion
 
     //#region region of methods to be invoked
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
+
         try {
             const medicineRequest: MedicineRequest = new MedicineRequest();
 
@@ -161,6 +163,13 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             if (!modalityValidationResult.isValid) {
                 validationResult.addErrors(modalityValidationResult.errors);
 
+            }
+
+            if( medicineRequest.type.toLocaleLowerCase() !== RequestMode.DONATION &&
+            medicineRequest.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
+            medicineRequest.type.toLocaleLowerCase() !== RequestMode.LOAN
+            ){
+                validationResult.addError(MedicineRequestDomain.ERROR_INVALID_TYPE);
             }
 
             if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {

@@ -19,3 +19,9 @@ export enum ResponseCodes {
     INTERNAL_SERVER_ERROR = 500,
 
 }
+
+export enum RequestMode {
+    LOAN = 'loan',
+    EXCHANGE = 'exchange',
+    DONATION = 'donation',
+}
