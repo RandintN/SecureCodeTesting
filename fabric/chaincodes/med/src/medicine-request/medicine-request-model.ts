@@ -80,6 +80,7 @@ export class MedicineRequest implements IValidator {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
+
         if (!this.amount) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_AMOUNT);
 

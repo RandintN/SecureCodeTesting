@@ -11,7 +11,7 @@ export class Exchange implements IValidator {
     new ValidationError('EX-001', 'The parameter amount cannot be empty or null');
 
     private static ERROR_EMPTY_MEDICINE: ValidationError =
-    new ValidationError('EX-001', 'The parameter amount cannot be empty or null');
+    new ValidationError('EX-001', 'The parameter medicine cannot be empty or null');
 
     public amount: string;
     public medicine: MedicineExchange;
