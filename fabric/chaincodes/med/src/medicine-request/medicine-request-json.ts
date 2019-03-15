@@ -1,5 +1,6 @@
 import { IExchangeJson } from '../exchange/exchange-json';
 import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
+import { MedicineRequestStatusEnum } from '../utils/enums';
 
 export interface IMedicineRequestJson {
     amount: string;
@@ -7,5 +8,6 @@ export interface IMedicineRequestJson {
     type: string;
     return_date: string;
     exchange: IExchangeJson[];
+    status: MedicineRequestStatusEnum;
 
 }
