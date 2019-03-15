@@ -27,7 +27,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         new ValidationError('MRD-002',
             'The medicine request is not found.');
 
-    private static ERROR_INVALID_TYPE: ValidationError = new ValidationError('MRD-004', 'Type is invalid. Choose between \'loan\', \'exchange\' and \'donation\'.');
+    private static ERROR_INVALID_TYPE: ValidationError =
+        new ValidationError('MRD-004', 'Type is invalid. Choose between loan, exchange and donation.');
     //#endregion
 
     //#region region of methods to be invoked
@@ -47,11 +48,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             const idRequest: string = Guid.create().toString();
 
-            if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
+            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
                 await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
                     idRequest, Buffer.from(JSON.stringify(medicineRequest.toJson())));
 
             } else {
+                medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
                 await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequest.toJson())));
 
             }
@@ -198,10 +200,10 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             }
 
-            if( medicineRequest.type.toLocaleLowerCase() !== RequestMode.DONATION &&
+            if (medicineRequest.type.toLocaleLowerCase() !== RequestMode.DONATION &&
             medicineRequest.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
             medicineRequest.type.toLocaleLowerCase() !== RequestMode.LOAN
-            ){
+            ) {
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_TYPE);
             }
 
