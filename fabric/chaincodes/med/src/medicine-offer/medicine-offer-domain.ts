@@ -65,7 +65,7 @@ export class MedicineOfferDomain extends MedicineDomain {
         const validationResult: ValidationResult = new ValidationResult();
         const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
         try {
-            if(medicineOffer.classification){
+            if (medicineOffer.classification) {
                 for (const classification of medicineOffer.classification) {
                     const medicineClassificationValidation: ValidationResult = await
                         medicineClassificationDomain.validateMedicineClassification(ctx, classification);

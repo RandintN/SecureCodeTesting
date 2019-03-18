@@ -114,7 +114,7 @@ export class ActiveIngredientDomain implements IActiveIngredientService {
         try {
             const activeIngredient: ActiveIngredient = await this.getActiveIngredientByName(ctx, activeIngredientName);
 
-            if (activeIngredient === null || activeIngredient === undefined) {
+            if (!activeIngredient) {
                 validationResult.errors.push(ActiveIngredientDomain.ERROR_ACTIVE_INGREDIENT_NOT_FOUND);
                 validationResult.isValid = false;
                 return validationResult;
@@ -189,5 +189,6 @@ export class ActiveIngredientDomain implements IActiveIngredientService {
 
         return activeIngredient;
     }
+
     //#endregion
 }

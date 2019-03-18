@@ -53,6 +53,11 @@ export class MedicineRouterCC extends Contract
         return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
 
+    public async queryMedicineRequestsWithPagination(ctx: Context, key: string, pageSize: number, bookmark?: string):
+        Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().queryMedicineRequestsWithPagination(ctx, key, pageSize, bookmark);
+    }
+
     //#endregion
 
     //#region of methods of IPharmaceuticalIndustryService

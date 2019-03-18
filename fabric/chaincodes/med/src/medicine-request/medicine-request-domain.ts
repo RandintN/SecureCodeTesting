@@ -1,6 +1,7 @@
 import { Context } from 'fabric-contract-api';
-import { ChaincodeResponse } from 'fabric-shim';
+import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
+import { error } from 'util';
 import { ExchangeDomain } from '../exchange/exchange-domain';
 import { MedicineOfferDomain } from '../medicine-offer/medicine-offer-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -13,7 +14,10 @@ import { ValidationResult } from '../validation/validation-model';
 import { IMedicineRequestApproveRejectJson } from './medicine-request-approve-reject-json';
 import { IMedicineRequestService } from './medicine-request-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
+import { IMedicineRequestLedgerJson } from './medicine-request-ledger-json';
 import { MedicineRequest } from './medicine-request-model';
+import { IMedicineRequestPaginationResultJson } from './medicine-request-pagination-result';
+import { IMedicineRequestQuery, QueryType } from './medicine-request-query';
 
 export class MedicineRequestDomain implements IMedicineRequestService {
 
@@ -49,12 +53,23 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const idRequest: string = Guid.create().toString();
 
             if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+
+                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+
                 await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                    idRequest, Buffer.from(JSON.stringify(medicineRequest.toJson())));
+                    idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             } else {
                 medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
-                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequest.toJson())));
+
+                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+
+                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+
+                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             }
 
@@ -162,9 +177,58 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
     //#region region of queries
 
-    public async queryMedicineRequest(ctx: Context, key: string): Promise<string> {
-        const requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
-        return JSON.stringify(requestAsByte.toString());
+    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+        Promise<ChaincodeResponse> {
+
+        try {
+            let requestAsByte = null;
+
+            switch (status) {
+                case MedicineRequestStatusEnum.APPROVED:
+                    requestAsByte = await ctx.stub.getState(key);
+                    break;
+                case MedicineRequestStatusEnum.WAITING_FOR_APPROVAL:
+                case MedicineRequestStatusEnum.REJECTED:
+                    requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
+                    break;
+                default:
+                    throw error('Unknow state');
+            }
+
+            return ResponseUtil.ResponseCreated(Buffer.from(requestAsByte.toString()));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
+    public async queryMedicineRequestsWithPagination(
+        ctx: Context,
+        queryParams: IMedicineRequestQuery,
+        pageSize: number,
+        bookmark?: string):
+        Promise<ChaincodeResponse> {
+
+        try {
+            const stateQuery: StateQueryResponse<Iterators.StateQueryIterator> =
+                await ctx.stub.getQueryResultWithPagination(
+                    this.createQueryMedicineRequest(ctx, queryParams),
+                    pageSize,
+                    bookmark);
+
+            const records: IMedicineRequestJson[] = await this.getMedicineRequests(stateQuery.iterator);
+
+            const result: IMedicineRequestPaginationResultJson = {
+                bookmark: stateQuery.metadata.bookmark,
+                fetched_records_count: stateQuery.metadata.fetched_records_count,
+                medicine_requests: records,
+                timestamp: new Date().getTime(),
+
+            };
+
+            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
     }
 
     //#endregion
@@ -172,6 +236,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     //#region of private methods
     private async validateMedicineRequestRules(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
+
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
@@ -201,10 +266,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             }
 
             if (medicineRequest.type.toLocaleLowerCase() !== RequestMode.DONATION &&
-            medicineRequest.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
-            medicineRequest.type.toLocaleLowerCase() !== RequestMode.LOAN
+                medicineRequest.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
+                medicineRequest.type.toLocaleLowerCase() !== RequestMode.LOAN
             ) {
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_TYPE);
+
             }
 
             if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
@@ -237,6 +303,51 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         return validationResult;
     }
 
+    /**
+     * Auxiliar method that iterates over an interator of MedicineRequest and mount the query result.
+     * @param iterator iterator
+     * @returns query results
+     */
+    private async getMedicineRequests(iterator: Iterators.StateQueryIterator): Promise<IMedicineRequestJson[]> {
+        const results: IMedicineRequestJson[] = [];
+
+        while (true) {
+            const result = await iterator.next();
+
+            let medicineRequestJson: IMedicineRequestJson;
+
+            if (result.value && result.value.value.toString()) {
+                medicineRequestJson = JSON.parse(result.value.value.toString('utf8')) as IMedicineRequestJson;
+
+            }
+
+            if (medicineRequestJson) {
+                results.push(medicineRequestJson);
+
+            }
+
+            if (result.done) {
+                break;
+            }
+
+        }
+
+        return results;
+    }
+
+    private createQueryMedicineRequest(ctx: Context, query: IMedicineRequestQuery): string {
+
+        const queryJson = {
+            selector: {
+            },
+        };
+
+        if (query.query_type === QueryType.MY_OWN_REQUESTS) {
+            queryJson.selector = { msp_id: ctx.clientIdentity.getMSPID().toUpperCase() };
+        }
+
+        return JSON.stringify(queryJson);
+    }
     //#endregion
 
 }
