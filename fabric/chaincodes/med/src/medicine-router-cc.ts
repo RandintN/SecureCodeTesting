@@ -6,17 +6,23 @@ import { MedicineClassificationDomain } from './medicine-classification/medicine
 import { IMedicineClassificationService } from './medicine-classification/medicine-classification-interface';
 import { MedicineRequestDomain } from './medicine-request/medicine-request-domain';
 import { IMedicineRequestService } from './medicine-request/medicine-request-interface';
+import { IMedicineRequestQuery } from './medicine-request/medicine-request-query';
 import { NegotiationModalityDomain } from './negotiation-modality/negotiation-modality-domain';
 import { INegotiationModalityService } from './negotiation-modality/negotiation-modality-interface';
 import { PharmaceuticalFormDomain } from './pharmaceutical-form/pharmaceutical-form-domain';
 import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical-form-interface';
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
+import { MedicineRequestStatusEnum } from './utils/enums';
 import { ValidationResult } from './validation/validation-model';
 
-export class MedicineRouterCC extends Contract
-    implements IActiveIngredientService, IPharmaceuticalIndustryService,
-    IMedicineClassificationService, IMedicineRequestService, IPharmaceuticalFormService, INegotiationModalityService {
+export class MedicineRouterCC extends Contract implements
+    IActiveIngredientService,
+    IPharmaceuticalIndustryService,
+    IMedicineClassificationService,
+    IMedicineRequestService,
+    IPharmaceuticalFormService,
+    INegotiationModalityService {
 
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
@@ -49,13 +55,21 @@ export class MedicineRouterCC extends Contract
         return await new MedicineRequestDomain().rejectMedicinePendingRequest(ctx, medReqRejectJson);
     }
 
-    public async queryMedicineRequest(ctx: Context, key: string): Promise<string> {
-        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
+    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+        Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key, status);
     }
 
-    public async queryMedicineRequestsWithPagination(ctx: Context, key: string, pageSize: number, bookmark?: string):
-        Promise<ChaincodeResponse> {
-        return await new MedicineRequestDomain().queryMedicineRequestsWithPagination(ctx, key, pageSize, bookmark);
+    public async queryMedicineRequestsWithPagination(
+        ctx: Context,
+        queryParams: IMedicineRequestQuery,
+        pageSize: number,
+        bookmark?: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().queryMedicineRequestsWithPagination(
+            ctx,
+            queryParams,
+            pageSize,
+            bookmark);
     }
 
     //#endregion
