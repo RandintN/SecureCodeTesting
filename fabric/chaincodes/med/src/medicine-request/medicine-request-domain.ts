@@ -195,7 +195,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     throw error('Unknow state');
             }
 
-            return ResponseUtil.ResponseCreated(Buffer.from(requestAsByte.toString()));
+            if (!requestAsByte || requestAsByte.length < 1) {
+                return ResponseUtil.ResponseNotFound();
+            }
+
+            return ResponseUtil.ResponseOk(Buffer.from(requestAsByte.toString()));
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }

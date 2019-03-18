@@ -15,7 +15,7 @@ export class ResponseUtil {
         return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.BAD_REQUEST);
     }
 
-    public static ResponseNotFound(resultMessage: string, resultPayload: Buffer): ChaincodeResponse {
+    public static ResponseNotFound(resultMessage?: string, resultPayload?: Buffer): ChaincodeResponse {
         return ResponseUtil.CreateResponse(resultMessage, resultPayload, ResponseCodes.NOT_FOUND);
     }
 
