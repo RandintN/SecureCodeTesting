@@ -17,10 +17,10 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
         new ValidationError('PID-001', 'Forbidden');
 
     private static ERROR_PHARMACEUTICAL_INDUSTRY_NOT_FOUND: ValidationError =
-        new ValidationError('PID-002', 'The pharmaceutical_industry is not found.');
+        new ValidationError('PID-002', 'The pharma_industry is not found.');
 
     private static ERROR_PHARMACEUTICAL_INDUSTRY_INACTIVATED: ValidationError =
-        new ValidationError('PID-003', 'The pharmaceutical_industry is not active for negotiation.');
+        new ValidationError('PID-003', 'The pharma_industry is not active for negotiation.');
 
     //#endregion
 
@@ -32,6 +32,7 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
 
             const pharmaceuticalIndustry: PharmaceuticalIndustry = new PharmaceuticalIndustry();
             pharmaceuticalIndustry.fromJson(JSON.parse(strPharmaceuticalIndustry) as IPharmaceuticalIndustryJson);
+
             const validationResult: ValidationResult = (pharmaceuticalIndustry as PharmaceuticalIndustry).isValid();
 
             if (!validationResult.isValid) {
@@ -45,7 +46,7 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
             return pharmaceuticalIndustryID;
 
         } catch (error) {
-            return JSON.stringify(error + 'Error ocurrence');
+            return JSON.stringify(error);
         }
 
     }
@@ -59,22 +60,14 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
     public async queryPharmaceuticalIndustryByName(ctx: Context, pharmaceuticalLaboratory: string): Promise<string> {
         const queryJson = {
             selector: {
-                pharmaceutical_laboratory: pharmaceuticalLaboratory,
+                pharma_industry: pharmaceuticalLaboratory,
             },
         };
 
         const iterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult(JSON.stringify(queryJson));
+        const pharmaceuticalIndustry: PharmaceuticalIndustry = await this.getPharmaceuticalIndustry(iterator);
 
-        return JSON.stringify(await this.getPharmaceuticalIndustry(iterator));
-    }
-
-    public async getPharmaceuticalIndustryByName(ctx: Context, pharmaceuticalIndustryName: string):
-        Promise<PharmaceuticalIndustry> {
-        const pharmaceuticalIndustry: PharmaceuticalIndustry = new PharmaceuticalIndustry();
-        pharmaceuticalIndustry.fromJson(JSON.parse(
-            await this.queryPharmaceuticalIndustryByName(ctx, pharmaceuticalIndustryName)));
-
-        return pharmaceuticalIndustry;
+        return pharmaceuticalIndustry ? JSON.stringify(pharmaceuticalIndustry.toJson()) : null;
     }
 
     public async validatePharmaceuticalIndustry(ctx: Context, pharmaIndustry: string):
@@ -108,15 +101,35 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
         return validationResult;
     }
 
+    public async getPharmaceuticalIndustryByName(ctx: Context, pharmaceuticalIndustryName: string)
+        : Promise<PharmaceuticalIndustry> {
+
+        let pharmaceuticalIndustry: PharmaceuticalIndustry = null;
+        const strPharmaceuticalIndustry: string =
+            await this.queryPharmaceuticalIndustryByName(ctx, pharmaceuticalIndustryName);
+
+        if (strPharmaceuticalIndustry) {
+            pharmaceuticalIndustry = new PharmaceuticalIndustry();
+            pharmaceuticalIndustry.fromJson(JSON.parse(strPharmaceuticalIndustry) as IPharmaceuticalIndustryJson);
+            return pharmaceuticalIndustry;
+        }
+
+        return null;
+    }
+
     //#region private methods
     private async getPharmaceuticalIndustry(iterator: Iterators.StateQueryIterator):
         Promise<PharmaceuticalIndustry> {
-        const pharmaceuticalIndustry: PharmaceuticalIndustry = new PharmaceuticalIndustry();
+
+        let pharmaceuticalIndustry: PharmaceuticalIndustry = null;
+        let pharmaceuticalIndustryJson: IPharmaceuticalIndustryJson;
+
         while (true) {
             const result = await iterator.next();
 
             if (result.value && result.value.value.toString()) {
-                pharmaceuticalIndustry.fromJson(JSON.parse(result.value.value.toString('utf8')));
+                pharmaceuticalIndustryJson =
+                    JSON.parse(result.value.value.toString('utf8')) as IPharmaceuticalIndustryJson;
 
             }
 
@@ -124,6 +137,11 @@ export class PharmaceuticalIndustryDomain implements IPharmaceuticalIndustryServ
                 break;
             }
 
+        }
+
+        if (pharmaceuticalIndustryJson) {
+            pharmaceuticalIndustry = new PharmaceuticalIndustry();
+            pharmaceuticalIndustry.fromJson(pharmaceuticalIndustryJson);
         }
 
         return pharmaceuticalIndustry;

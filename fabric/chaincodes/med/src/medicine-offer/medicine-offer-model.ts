@@ -36,7 +36,7 @@ export class MedicineOffer extends Medicine {
             comercial_name: this.comercialName,
             concentration: this.concentration,
             dosage: this.dosage,
-            pharma_form: this.activeIngredient,
+            pharma_form: this.pharmaForm,
             pharma_industry: this.pharmaIndustry,
         };
 

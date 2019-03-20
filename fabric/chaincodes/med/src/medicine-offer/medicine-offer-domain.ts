@@ -90,16 +90,17 @@ export class MedicineOfferDomain extends MedicineDomain {
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
         const pharmaIndustryDomain: PharmaceuticalIndustryDomain = new PharmaceuticalIndustryDomain();
-
         try {
             if (medicine.pharmaIndustry && medicine.pharmaIndustry.length > 0) {
                 for (const pharmaIndustry of medicine.pharmaIndustry) {
-                    const pharmaIndustryValidationResult: ValidationResult =
-                        await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
+                    if (pharmaIndustry) {
+                        const pharmaIndustryValidationResult: ValidationResult =
+                            await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
 
-                    if (!pharmaIndustryValidationResult.isValid) {
-                        validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                        if (!pharmaIndustryValidationResult.isValid) {
+                            validationResult.addErrors(pharmaIndustryValidationResult.errors);
 
+                        }
                     }
 
                 }

@@ -1,6 +1,6 @@
 {
     "index": {
-        "fields": ["pharmaceutical_form"]
+        "fields": ["pharma_form"]
     },
     "ddoc": "indexPharmaceuticalFormDoc",
     "name": "indexPharmaceuticalForm",

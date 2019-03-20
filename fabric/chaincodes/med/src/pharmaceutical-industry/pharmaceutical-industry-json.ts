@@ -1,6 +1,6 @@
 import { SituationEnum } from '../utils/enums';
 
 export interface IPharmaceuticalIndustryJson {
-    pharmaceutical_laboratory: string;
+    pharma_industry: string;
     situation: SituationEnum;
 }

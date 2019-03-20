@@ -31,6 +31,7 @@ export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
 
             const pharmaceuticalForm: PharmaceuticalForm = new PharmaceuticalForm();
             pharmaceuticalForm.fromJson(JSON.parse(strPharmaceuticalForm) as IPharmaceuticalFormJson);
+
             const validationResult: ValidationResult = pharmaceuticalForm.isValid();
 
             if (!validationResult.isValid) {
@@ -49,25 +50,20 @@ export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
 
     //#region queries
     public async queryPharmaceuticalFormByKey(ctx: Context, key: string): Promise<string> {
-        const medicineClassificationInBytes = await ctx.stub.getState(key);
-        return medicineClassificationInBytes.toString();
+        const pharmaceuticalFormInBytes = await ctx.stub.getState(key);
+        return pharmaceuticalFormInBytes.toString();
     }
 
     public async queryPharmaceuticalFormByForm(ctx: Context, strForm: string): Promise<string> {
         const queryJson = {
             selector: {
-                pharmaceutical_form: strForm,
+                pharma_form: strForm,
             },
         };
 
         const iterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult(JSON.stringify(queryJson));
-        return JSON.stringify(await this.gePharmaceuticalForm(iterator));
-    }
-
-    public async getPharmaceuticalFormByForm(ctx: Context, form: string): Promise<PharmaceuticalForm> {
-        const pharmaceuticalForm: PharmaceuticalForm = new PharmaceuticalForm();
-        pharmaceuticalForm.fromJson(JSON.parse(await this.queryPharmaceuticalFormByForm(ctx, form)));
-        return pharmaceuticalForm;
+        const pharmaceuticalForm: PharmaceuticalForm = await this.getPharmaceuticalForm(iterator);
+        return pharmaceuticalForm ? JSON.stringify(pharmaceuticalForm.toJson()) : null;
     }
 
     public async validatePharmaceuticalForm(ctx: Context, strPharmaceuticalForm: string):
@@ -80,10 +76,15 @@ export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
 
             if (!pharmaceuticalForm) {
                 validationResult.errors.push(PharmaceuticalFormDomain.ERROR_PHARMACEUTICAL_FORM_NOT_FOUND);
+                validationResult.isValid = false;
+                return validationResult;
+            }
 
-            } else if (pharmaceuticalForm.situation === SituationEnum.INACTIVE) {
+            if (pharmaceuticalForm.situation === SituationEnum.INACTIVE) {
                 validationResult.errors.push(PharmaceuticalFormDomain.
                     ERROR_PHARMACEUTICAL_FORM_INACTIVATED);
+                validationResult.isValid = false;
+                return validationResult;
 
             }
 
@@ -95,23 +96,40 @@ export class PharmaceuticalFormDomain implements IPharmaceuticalFormService {
         return validationResult;
     }
 
+    public async getPharmaceuticalFormByForm(ctx: Context, form: string): Promise<PharmaceuticalForm> {
+        let pharmaceuticalForm: PharmaceuticalForm = null;
+        const strPharmaceuticalForm: string = await this.queryPharmaceuticalFormByForm(ctx, form);
+
+        if (strPharmaceuticalForm) {
+            pharmaceuticalForm = new PharmaceuticalForm();
+            pharmaceuticalForm.fromJson(JSON.parse(strPharmaceuticalForm) as IPharmaceuticalFormJson);
+            return pharmaceuticalForm;
+        }
+        return null;
+    }
+
     //#endregion
 
     //#region private methods
-    private async gePharmaceuticalForm(iterator: Iterators.StateQueryIterator): Promise<PharmaceuticalForm> {
-        const pharmaceuticalForm: PharmaceuticalForm = new PharmaceuticalForm();
+    private async getPharmaceuticalForm(iterator: Iterators.StateQueryIterator): Promise<PharmaceuticalForm> {
+        let pharmaceuticalForm: PharmaceuticalForm;
+        let pharmaceuticalFormJson: IPharmaceuticalFormJson;
+
         while (true) {
             const result = await iterator.next();
 
             if (result.value && result.value.value.toString()) {
-                pharmaceuticalForm.fromJson(JSON.parse(result.value.value.toString('utf8')));
+                pharmaceuticalFormJson = JSON.parse(result.value.value.toString('utf8'));
             }
 
             if (result.done) {
                 break;
             }
         }
-
+        if (pharmaceuticalFormJson) {
+            pharmaceuticalForm = new PharmaceuticalForm();
+            pharmaceuticalForm.fromJson(pharmaceuticalFormJson);
+        }
         return pharmaceuticalForm;
     }
 

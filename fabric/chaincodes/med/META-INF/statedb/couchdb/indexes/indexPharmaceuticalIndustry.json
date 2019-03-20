@@ -1,6 +1,6 @@
 {
     "index": {
-        "fields": ["pharmaceutical_laboratory"]
+        "fields": ["pharma_industry"]
     },
     "ddoc": "indexPharmaceuticalIndustryDoc",
     "name": "indexPharmaceuticalIndustry",

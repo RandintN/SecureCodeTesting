@@ -10,18 +10,18 @@ export class PharmaceuticalIndustry implements IValidator {
         new ValidationError('PI-001', 'The parameter pharmaceutical_laboratory cannot be empty or null');
 
     //#endregion
-    public pharmaceuticalLaboratory: string;
+    public pharmaIndustry: string;
 
     public situation: SituationEnum;
 
     public fromJson(json: IPharmaceuticalIndustryJson): void {
-        this.pharmaceuticalLaboratory = json.pharmaceutical_laboratory;
+        this.pharmaIndustry = json.pharma_industry;
         this.situation = json.situation;
     }
 
     public toJson(): IPharmaceuticalIndustryJson {
         const json: IPharmaceuticalIndustryJson = {
-            pharmaceutical_laboratory: this.pharmaceuticalLaboratory,
+            pharma_industry: this.pharmaIndustry,
             situation: this.situation,
         };
 
@@ -30,7 +30,7 @@ export class PharmaceuticalIndustry implements IValidator {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-        if (this.pharmaceuticalLaboratory === null || this.pharmaceuticalLaboratory === undefined) {
+        if (this.pharmaIndustry === null || this.pharmaIndustry === undefined) {
             validationResult.errors.push(PharmaceuticalIndustry.ERROR_EMPTY_PHARMACEUTICAL_LABORATORY);
         }
 

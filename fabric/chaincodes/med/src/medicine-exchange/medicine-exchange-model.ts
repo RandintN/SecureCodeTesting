@@ -88,7 +88,7 @@ export class MedicineExchange extends Medicine {
             concentration: this.concentration,
             dosage: this.dosage,
             medicine_batch: medicineBatchJson,
-            pharma_form: this.activeIngredient,
+            pharma_form: this.pharmaForm,
             pharma_industry: this.pharmaIndustry,
             ref_value: this.refValue,
 
