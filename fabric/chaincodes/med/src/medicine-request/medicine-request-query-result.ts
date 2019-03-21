@@ -5,7 +5,7 @@ import { IMedicineRequestJson } from './medicine-request-json';
  *
  * @author fmarino - CPqD
  */
-export interface IMedicinePrivateDataResultJson {
+export interface IMedicineRequestQueryResultJson {
 
     /**
      * Array with records
