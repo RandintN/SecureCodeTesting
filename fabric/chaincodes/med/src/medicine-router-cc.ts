@@ -72,6 +72,10 @@ export class MedicineRouterCC extends Contract implements
             bookmark);
     }
 
+    public async queryMedicineRequestPrivateData(ctx: Context, queryParams: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().queryMedicineRequestPrivateData(ctx, queryParams);
+    }
+
     //#endregion
 
     //#region of methods of IPharmaceuticalIndustryService
