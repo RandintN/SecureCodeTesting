@@ -1,7 +1,6 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
-import { error } from 'util';
 import { ExchangeDomain } from '../exchange/exchange-domain';
 import { MedicineOfferDomain } from '../medicine-offer/medicine-offer-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -184,30 +183,30 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     //#region region of queries
 
     /** Check the documentation of IMedicineRequestService */
-    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+    public async queryMedicineRequest(ctx: Context, key: string):
         Promise<ChaincodeResponse> {
 
         try {
             let requestAsByte = null;
-
-            switch (status) {
-                case MedicineRequestStatusEnum.APPROVED:
-                    requestAsByte = await ctx.stub.getState(key);
-                    break;
-                case MedicineRequestStatusEnum.WAITING_FOR_APPROVAL:
-                case MedicineRequestStatusEnum.REJECTED:
-                    requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
-                    break;
-                default:
-                    throw error('Unknow state');
-            }
-
+            requestAsByte = await ctx.stub.getState(key);
             if (!requestAsByte || requestAsByte.length < 1) {
-                return ResponseUtil.ResponseNotFound();
+                requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
+                if (!requestAsByte || requestAsByte.length < 1) {
+                    return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                        Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
+                }
             }
 
-            return ResponseUtil.ResponseOk(Buffer.from(requestAsByte.toString()));
+            const result: IMedicineRequestPaginationResultJson = {
+                bookmark: undefined,
+                fetched_records_count: 1,
+                medicine_requests: JSON.parse(requestAsByte.toString()),
+                timestamp: new Date().getTime(),
+            };
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+
         } catch (error) {
+            console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
     }

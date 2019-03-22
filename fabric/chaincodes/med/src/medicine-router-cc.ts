@@ -55,9 +55,9 @@ export class MedicineRouterCC extends Contract implements
         return await new MedicineRequestDomain().rejectMedicinePendingRequest(ctx, medReqRejectJson);
     }
 
-    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+    public async queryMedicineRequest(ctx: Context, key: string):
         Promise<ChaincodeResponse> {
-        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key, status);
+        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
 
     public async queryMedicineRequestsWithPagination(

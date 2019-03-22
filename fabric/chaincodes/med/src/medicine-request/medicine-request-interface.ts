@@ -56,7 +56,6 @@ export interface IMedicineRequestService {
      * Method to query a specific Medicine Request by their ID
      * @param ctx Context of transaction
      * @param key The ID (aka KEY) of medicine request
-     * @param status the status of request, that will be used to access the private or public ledger.
      * @returns If success returns 200 and the json of Medicine Request (see IMedicineRequestJson documentation),
      * otherwise will return one of these status and a list of errors:
      * - 400 (bad request)
@@ -64,7 +63,7 @@ export interface IMedicineRequestService {
      * - 404 (not found)
      * - 500 (internal error)
      */
-    queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum): Promise<ChaincodeResponse>;
+    queryMedicineRequest(ctx: Context, key: string): Promise<ChaincodeResponse>;
 
     /**
      * Method to query medicine(s) request(s) at the public ledger with pagination mode.
