@@ -247,7 +247,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             // Checking if some records were founding...
             if (!records || records.length < 1) {
-                return ResponseUtil.ResponseNotFound();
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
             }
 
             const result: IMedicineRequestPaginationResultJson = {
@@ -260,6 +261,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
         } catch (error) {
+            console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
     }
@@ -279,13 +281,14 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const filter: string = JSON.stringify(queryJson);
 
             // Get Query
-            const queryIterator: Iterators.StateQueryIterator =
-                await ctx.stub.getPrivateDataQueryResult(MedicineRequestDomain.MED_REQUEST_PD, filter);
+            // TODO: alterar aqui para quando o jira FAB-14216 for fechado
+            const queryIterator: any = await ctx.stub.getPrivateDataQueryResult
+                (MedicineRequestDomain.MED_REQUEST_PD, filter);
 
-            const records: IMedicineRequestJson[] = await this.getMedicineRequests(queryIterator);
-
+            const records: IMedicineRequestJson[] = await this.getMedicineRequests(queryIterator.iterator);
             if (!records || records.length < 1) {
-                return ResponseUtil.ResponseNotFound();
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
             }
 
             const result: IMedicineRequestQueryResultJson = {
@@ -391,9 +394,14 @@ export class MedicineRequestDomain implements IMedicineRequestService {
      * @returns query results
      */
     private async getMedicineRequests(iterator: Iterators.StateQueryIterator): Promise<IMedicineRequestJson[]> {
-        const results: IMedicineRequestJson[] = [];
+        const results: IMedicineRequestJson[] = new Array<IMedicineRequestJson>();
+
+        if (!iterator || typeof iterator.next !== 'function') {
+            return results;
+        }
 
         while (true) {
+
             const result = await iterator.next();
 
             let medicineRequestJson: IMedicineRequestJson;
