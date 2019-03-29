@@ -107,21 +107,24 @@ export class MedicineRequest implements IValidator {
         if (!this.type) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === 'loan' && !this.returnDate) {
-            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
-        } else {
-            let returnedDate = new Date(this.returnDate);
-            let timeNow = new Date(Date.now());
-            const date = Date.parse(this.returnDate);
-
-            if (Number.isNaN(date) || date <= 0) {
-                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+        } else if (this.type.toLocaleLowerCase() === 'loan') {
+            if(!this.returnDate){
+                validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
             }
-            if( returnedDate.getFullYear() < timeNow.getFullYear() ||
-                returnedDate.getMonth() < timeNow.getMonth() ||
-                returnedDate.getDate() < timeNow.getDate()){
+            else{
+                let returnedDate = new Date(this.returnDate);
+                let timeNow = new Date(Date.now());
+                const date = Date.parse(this.returnDate);
 
-                    validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+                if (Number.isNaN(date) || date <= 0) {
+                    validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+                }
+                if( returnedDate.getFullYear() < timeNow.getFullYear() ||
+                    returnedDate.getMonth() < timeNow.getMonth() ||
+                    returnedDate.getDate() < timeNow.getDate()){
+
+                        validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+                }
             }
         }
 
