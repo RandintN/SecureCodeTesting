@@ -80,7 +80,7 @@ export class MedicineClassificationDomain implements IMedicineClassificationServ
             const medicineClassification: MedicineClassification = await
                 this.getMedicineClassificationByCategory(ctx, classification);
 
-            if (!medicineClassification) {
+            if (!medicineClassification.category) {
                 validationResult.errors.push(MedicineClassificationDomain.ERROR_MEDICINE_CLASSIFICATION_NOT_FOUND);
 
             } else if (medicineClassification.situation === SituationEnum.INACTIVE) {

@@ -14,34 +14,9 @@ export interface IMedicineRequestQuery {
     query_type: QueryType;
 
     /**
-     * Demographic region of organization
+     * Dynamic filter which will be used to query ledger
      */
-    demographic: string;
-
-    /**
-     * Abbreviation of the federated state union of organization (e.g.: SP, RJ, RS ...)
-     */
-    state: string;
-
-    /**
-     * City of organization
-     */
-    city: string;
-
-    /**
-     * Array with the types which will be searched
-     */
-    type: string[];
-
-    /**
-     * Active ingredient
-     */
-    active_ingredient: string;
-
-    /**
-     * Status MedicineRequestStatusEnum
-     */
-    status: MedicineRequestStatusEnum;
+    selector: {[k: string]: any};
 
 }
 

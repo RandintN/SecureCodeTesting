@@ -1,7 +1,6 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
-import { error } from 'util';
 import { ExchangeDomain } from '../exchange/exchange-domain';
 import { MedicineOfferDomain } from '../medicine-offer/medicine-offer-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -18,6 +17,7 @@ import { IMedicineRequestLedgerJson } from './medicine-request-ledger-json';
 import { MedicineRequest } from './medicine-request-model';
 import { IMedicineRequestPaginationResultJson } from './medicine-request-pagination-result';
 import { IMedicineRequestQuery, QueryType } from './medicine-request-query';
+import { IMedicineRequestQueryResultJson } from './medicine-request-query-result';
 
 export class MedicineRequestDomain implements IMedicineRequestService {
 
@@ -33,9 +33,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
     private static ERROR_INVALID_TYPE: ValidationError =
         new ValidationError('MRD-004', 'Type is invalid. Choose between loan, exchange and donation.');
+
     //#endregion
 
     //#region region of methods to be invoked
+
+    /** Check the documentation of IMedicineRequestService */
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
 
         try {
@@ -87,6 +90,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         }
     }
 
+    /** Check the documentation of IMedicineRequestService */
     public async approveMedicinePendingRequest(ctx: Context, medReqApproveStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
         try {
@@ -131,6 +135,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         }
     }
 
+    /** Check the documentation of IMedicineRequestService */
     public async rejectMedicinePendingRequest(ctx: Context, medReqRejectStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
         try {
@@ -177,49 +182,74 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
     //#region region of queries
 
-    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+    /** Check the documentation of IMedicineRequestService */
+    public async queryMedicineRequest(ctx: Context, key: string):
         Promise<ChaincodeResponse> {
 
         try {
             let requestAsByte = null;
-
-            switch (status) {
-                case MedicineRequestStatusEnum.APPROVED:
-                    requestAsByte = await ctx.stub.getState(key);
-                    break;
-                case MedicineRequestStatusEnum.WAITING_FOR_APPROVAL:
-                case MedicineRequestStatusEnum.REJECTED:
-                    requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
-                    break;
-                default:
-                    throw error('Unknow state');
-            }
-
+            requestAsByte = await ctx.stub.getState(key);
             if (!requestAsByte || requestAsByte.length < 1) {
-                return ResponseUtil.ResponseNotFound();
+                requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
+                if (!requestAsByte || requestAsByte.length < 1) {
+                    return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                        Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
+                }
             }
 
-            return ResponseUtil.ResponseOk(Buffer.from(requestAsByte.toString()));
+            const result: IMedicineRequestPaginationResultJson = {
+                bookmark: undefined,
+                fetched_records_count: 1,
+                medicine_requests: JSON.parse(requestAsByte.toString()),
+                timestamp: new Date().getTime(),
+            };
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+
         } catch (error) {
+            console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
     }
 
+    /** Check the documentation of IMedicineRequestService */
     public async queryMedicineRequestsWithPagination(
         ctx: Context,
-        queryParams: IMedicineRequestQuery,
-        pageSize: number,
+        queryParams: string,
+        pageSize: string,
         bookmark?: string):
         Promise<ChaincodeResponse> {
 
         try {
+            // Retrieves query from string
+            const query: IMedicineRequestQuery = JSON.parse(queryParams) as IMedicineRequestQuery;
+
+            // When the kind of query is own the MSP_ID is setted in endogenous way,
+            // to assurance that is the trust identity
+            if (query.query_type === QueryType.MY_OWN_REQUESTS) {
+                query.selector.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+            }
+
+            // Creates the query of couchdb
+            const queryJson = {
+                selector: query.selector,
+            };
+
+            const filter: string = JSON.stringify(queryJson);
+
+            // Get Query
             const stateQuery: StateQueryResponse<Iterators.StateQueryIterator> =
                 await ctx.stub.getQueryResultWithPagination(
-                    this.createQueryMedicineRequest(ctx, queryParams),
-                    pageSize,
+                    filter,
+                    Number(pageSize),
                     bookmark);
 
             const records: IMedicineRequestJson[] = await this.getMedicineRequests(stateQuery.iterator);
+
+            // Checking if some records were founding...
+            if (!records || records.length < 1) {
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
+            }
 
             const result: IMedicineRequestPaginationResultJson = {
                 bookmark: stateQuery.metadata.bookmark,
@@ -229,15 +259,66 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             };
 
-            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
         } catch (error) {
+            console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
     }
 
+    /** Check the documentation of IMedicineRequestService */
+    public async queryMedicineRequestPrivateData(ctx: Context, queryParams: string): Promise<ChaincodeResponse> {
+
+        try {
+            // Retrieves query from string
+            const query: IMedicineRequestQuery = JSON.parse(queryParams) as IMedicineRequestQuery;
+
+            // Creates the query of couchdb
+            const queryJson = {
+                selector: query.selector,
+            };
+
+            const filter: string = JSON.stringify(queryJson);
+
+            // Get Query
+            // TODO: alterar aqui para quando o jira FAB-14216 for fechado
+            const queryIterator: any = await ctx.stub.getPrivateDataQueryResult
+                (MedicineRequestDomain.MED_REQUEST_PD, filter);
+
+            const records: IMedicineRequestJson[] = await this.getMedicineRequests(queryIterator.iterator);
+            if (!records || records.length < 1) {
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
+            }
+
+            const result: IMedicineRequestQueryResultJson = {
+                medicine_requests: records,
+                timestamp: new Date().getTime(),
+
+            };
+
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
     //#endregion
 
     //#region of private methods
+
+    /**
+     * Method used to validate a MedicineRequest.
+     *
+     * First of all is checked the validation of fields of MedicineRequest, once it's valid will verify the
+     * logical rules requirements.
+     *
+     * Note, if exists attributes inconsistents, the validation will return a
+     * ValidationResult with status 'false' and doesnt will verify the rules.
+     *
+     * @param ctx Context of transaction
+     * @param medicineRequest MedicineRequest that will ve verified
+     * @returns ValidationResult
+     */
     private async validateMedicineRequestRules(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
 
@@ -313,9 +394,14 @@ export class MedicineRequestDomain implements IMedicineRequestService {
      * @returns query results
      */
     private async getMedicineRequests(iterator: Iterators.StateQueryIterator): Promise<IMedicineRequestJson[]> {
-        const results: IMedicineRequestJson[] = [];
+        const results: IMedicineRequestJson[] = new Array<IMedicineRequestJson>();
+
+        if (!iterator || typeof iterator.next !== 'function') {
+            return results;
+        }
 
         while (true) {
+
             const result = await iterator.next();
 
             let medicineRequestJson: IMedicineRequestJson;
@@ -339,19 +425,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         return results;
     }
 
-    private createQueryMedicineRequest(ctx: Context, query: IMedicineRequestQuery): string {
-
-        const queryJson = {
-            selector: {
-            },
-        };
-
-        if (query.query_type === QueryType.MY_OWN_REQUESTS) {
-            queryJson.selector = { msp_id: ctx.clientIdentity.getMSPID().toUpperCase() };
-        }
-
-        return JSON.stringify(queryJson);
-    }
     //#endregion
 
 }

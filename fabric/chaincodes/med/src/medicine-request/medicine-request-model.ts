@@ -19,6 +19,15 @@ export class MedicineRequest implements IValidator {
     private static ERROR_EMPTY_EXCHANGE: ValidationError =
         new ValidationError('MR-003', 'The parameter exchange cannot be empty or null');
 
+    private static ERROR_EMPTY_RETURN_DATE: ValidationError = new ValidationError
+        ('MR-004', 'The parameter return_date cannot be empty or null when the medicine request type is loan');
+
+    private static ERROR_RETURN_DATE_INVALID: ValidationError =
+        new ValidationError('MR-005', 'The parameter return_date is invalid');
+
+    private static ERROR_RETURN_DATE_FROM_PAST: ValidationError =
+        new ValidationError('MR-006', 'The parameter return_date cannot be before today');
+
     //#endregion
     public amount: string;
     public medicine: MedicineOffer;
@@ -35,7 +44,9 @@ export class MedicineRequest implements IValidator {
             : MedicineRequestStatusEnum.WAITING_FOR_APPROVAL;
 
         const medicineOffer: MedicineOffer = new MedicineOffer();
-        medicineOffer.fromJson(medicineRequestJson.medicine);
+        if (medicineRequestJson.medicine) {
+            medicineOffer.fromJson(medicineRequestJson.medicine);
+        }
 
         this.medicine = medicineOffer;
 
@@ -96,6 +107,22 @@ export class MedicineRequest implements IValidator {
         if (!this.type) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
 
+        } else if (this.type.toLocaleLowerCase() === 'loan' && !this.returnDate) {
+            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
+        } else {
+            let returnedDate = new Date(this.returnDate);
+            let timeNow = new Date(Date.now());
+            const date = Date.parse(this.returnDate);
+
+            if (Number.isNaN(date) || date <= 0) {
+                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+            }
+            if( returnedDate.getFullYear() < timeNow.getFullYear() ||
+                returnedDate.getMonth() < timeNow.getMonth() ||
+                returnedDate.getDate() < timeNow.getDate()){
+
+                    validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+            }
         }
 
         if (!this.exchange) {

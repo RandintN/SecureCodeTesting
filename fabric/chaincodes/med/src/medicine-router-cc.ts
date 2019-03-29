@@ -6,7 +6,6 @@ import { MedicineClassificationDomain } from './medicine-classification/medicine
 import { IMedicineClassificationService } from './medicine-classification/medicine-classification-interface';
 import { MedicineRequestDomain } from './medicine-request/medicine-request-domain';
 import { IMedicineRequestService } from './medicine-request/medicine-request-interface';
-import { IMedicineRequestQuery } from './medicine-request/medicine-request-query';
 import { NegotiationModalityDomain } from './negotiation-modality/negotiation-modality-domain';
 import { INegotiationModalityService } from './negotiation-modality/negotiation-modality-interface';
 import { PharmaceuticalFormDomain } from './pharmaceutical-form/pharmaceutical-form-domain';
@@ -40,6 +39,7 @@ export class MedicineRouterCC extends Contract implements
     public async validateActiveIngredient(ctx: Context, activeIngredientName: string): Promise<ValidationResult> {
         return await new ActiveIngredientDomain().validateActiveIngredient(ctx, activeIngredientName);
     }
+
     //#endregion
 
     //#region of methods of IMedicineRequestService
@@ -55,21 +55,25 @@ export class MedicineRouterCC extends Contract implements
         return await new MedicineRequestDomain().rejectMedicinePendingRequest(ctx, medReqRejectJson);
     }
 
-    public async queryMedicineRequest(ctx: Context, key: string, status: MedicineRequestStatusEnum):
+    public async queryMedicineRequest(ctx: Context, key: string):
         Promise<ChaincodeResponse> {
-        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key, status);
+        return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
 
     public async queryMedicineRequestsWithPagination(
         ctx: Context,
-        queryParams: IMedicineRequestQuery,
-        pageSize: number,
+        queryParams: string,
+        pageSize: string,
         bookmark?: string): Promise<ChaincodeResponse> {
         return await new MedicineRequestDomain().queryMedicineRequestsWithPagination(
             ctx,
             queryParams,
             pageSize,
             bookmark);
+    }
+
+    public async queryMedicineRequestPrivateData(ctx: Context, queryParams: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().queryMedicineRequestPrivateData(ctx, queryParams);
     }
 
     //#endregion
@@ -88,6 +92,7 @@ export class MedicineRouterCC extends Contract implements
         return await new PharmaceuticalIndustryDomain().
             queryPharmaceuticalIndustryByName(ctx, pharmaceutical_laboratory);
     }
+
     //#endregion
 
     //#region methods of medicine-classification
@@ -102,6 +107,7 @@ export class MedicineRouterCC extends Contract implements
     public async queryMedicineClassificationByCategory(ctx: Context, name: string): Promise<string> {
         return await new MedicineClassificationDomain().queryMedicineClassificationByCategory(ctx, name);
     }
+
     //#endregion
 
     //#region methods of negotiation-modality

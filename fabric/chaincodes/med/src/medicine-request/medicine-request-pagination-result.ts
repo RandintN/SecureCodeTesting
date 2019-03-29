@@ -1,11 +1,12 @@
-import { IMedicineRequestJson } from './medicine-request-json';
+import { IMedicineRequestQueryResultJson } from './medicine-request-query-result';
 
 /**
  * Interface of results of paginated query
  *
  * @author fmarino - CPqD
  */
-export interface IMedicineRequestPaginationResultJson {
+export interface IMedicineRequestPaginationResultJson extends IMedicineRequestQueryResultJson {
+
     /**
      * Amount of fetched records
      */
@@ -15,15 +16,5 @@ export interface IMedicineRequestPaginationResultJson {
      * Current bookmark
      */
     bookmark: string;
-
-    /**
-     * Array with records
-     */
-    medicine_requests: IMedicineRequestJson[];
-
-    /**
-     * Operation timestamp
-     */
-    timestamp: number;
 
 }
