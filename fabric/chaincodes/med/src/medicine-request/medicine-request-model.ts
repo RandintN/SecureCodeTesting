@@ -25,6 +25,9 @@ export class MedicineRequest implements IValidator {
     private static ERROR_RETURN_DATE_INVALID: ValidationError =
         new ValidationError('MR-005', 'The parameter return_date is invalid');
 
+    private static ERROR_RETURN_DATE_FROM_PAST: ValidationError =
+        new ValidationError('MR-006', 'The parameter return_date cannot be before today');
+
     //#endregion
     public amount: string;
     public medicine: MedicineOffer;
@@ -104,15 +107,16 @@ export class MedicineRequest implements IValidator {
         if (!this.type) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === 'loan' && !this.returnDate) {
-            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
-        } else {
-            const date = Date.parse(this.returnDate);
-            if (Number.isNaN(date) || date <= 0) {
-                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+        } else if (this.type.toLocaleLowerCase() === 'loan') {
+            if (!this.returnDate) {
+                validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
+            } else {
+                let returnedDate = new Date(this.returnDate);
+                let timeNow = new Date(Date.now());
+                const date = Date.parse(this.returnDate);
+                this.validateDate(date, validationResult, returnedDate, timeNow);
             }
         }
-
         if (!this.exchange) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_EXCHANGE);
 
@@ -131,5 +135,23 @@ export class MedicineRequest implements IValidator {
         validationResult.isValid = validationResult.errors.length < 1;
 
         return validationResult;
+    }
+
+    private validateDate(date: number, validationResult: ValidationResult, returnedDate: Date, timeNow: Date) {
+        if (Number.isNaN(date) || date <= 0) {
+            validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+        }
+        if (returnedDate.getFullYear() < timeNow.getFullYear()) {
+            validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+        }
+        else if (returnedDate.getFullYear() === timeNow.getFullYear()) {
+            if (returnedDate.getMonth() < timeNow.getMonth()) {
+                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+            }
+            else if ((returnedDate.getMonth() === timeNow.getMonth()) &&
+                (returnedDate.getDate() < timeNow.getDate())) {
+                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+            }
+        }
     }
 }

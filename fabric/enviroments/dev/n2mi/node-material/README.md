@@ -12,6 +12,9 @@ Lista de MSP criados:
 ## Configurando o ambiente
 Para configurar o ambiente para o HF, siga as seguintes instruções:
 
+**Premissa**
+O respositório deve ser clonado em um diretório de nome **n2mi**.
+
 **Instalar e configurar o Go:**
 https://medium.com/@RidhamTarpara/install-go-1-11-on-ubuntu-18-04-16-04-lts-8c098c503c5f
 
