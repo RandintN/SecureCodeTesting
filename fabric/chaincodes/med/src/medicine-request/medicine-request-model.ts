@@ -108,26 +108,15 @@ export class MedicineRequest implements IValidator {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
 
         } else if (this.type.toLocaleLowerCase() === 'loan') {
-            if(!this.returnDate){
+            if (!this.returnDate) {
                 validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
-            }
-            else{
+            } else {
                 let returnedDate = new Date(this.returnDate);
                 let timeNow = new Date(Date.now());
                 const date = Date.parse(this.returnDate);
-
-                if (Number.isNaN(date) || date <= 0) {
-                    validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
-                }
-                if( returnedDate.getFullYear() < timeNow.getFullYear() ||
-                    returnedDate.getMonth() < timeNow.getMonth() ||
-                    returnedDate.getDate() < timeNow.getDate()){
-
-                        validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
-                }
+                this.validateDate(date, validationResult, returnedDate, timeNow);
             }
         }
-
         if (!this.exchange) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_EXCHANGE);
 
@@ -146,5 +135,23 @@ export class MedicineRequest implements IValidator {
         validationResult.isValid = validationResult.errors.length < 1;
 
         return validationResult;
+    }
+
+    private validateDate(date: number, validationResult: ValidationResult, returnedDate: Date, timeNow: Date) {
+        if (Number.isNaN(date) || date <= 0) {
+            validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_INVALID);
+        }
+        if (returnedDate.getFullYear() < timeNow.getFullYear()) {
+            validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+        }
+        else if (returnedDate.getFullYear() === timeNow.getFullYear()) {
+            if (returnedDate.getMonth() < timeNow.getMonth()) {
+                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+            }
+            else if ((returnedDate.getMonth() === timeNow.getMonth()) &&
+                (returnedDate.getDate() < timeNow.getDate())) {
+                validationResult.errors.push(MedicineRequest.ERROR_RETURN_DATE_FROM_PAST);
+            }
+        }
     }
 }
