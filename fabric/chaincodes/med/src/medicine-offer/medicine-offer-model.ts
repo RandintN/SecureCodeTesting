@@ -19,14 +19,13 @@ export class MedicineOffer extends Medicine {
     public classification: string[];
     public pharmaIndustry: string[];
 
-    public fromJson(medicineExchange: IMedicineOfferJson): void {
-        this.activeIngredient = medicineExchange.active_ingredient;
-        this.classification = medicineExchange.classification;
-        this.comercialName = medicineExchange.comercial_name;
-        this.concentration = medicineExchange.concentration;
-        this.dosage = medicineExchange.dosage;
-        this.pharmaForm = medicineExchange.pharma_form;
-        this.pharmaIndustry = medicineExchange.pharma_industry;
+    public fromJson(medicineOffer: IMedicineOfferJson): void {
+        this.activeIngredient = medicineOffer.active_ingredient;
+        this.classification = medicineOffer.classification;
+        this.comercialName = medicineOffer.comercial_name;
+        this.concentration = medicineOffer.concentration;
+        this.pharmaForm = medicineOffer.pharma_form;
+        this.pharmaIndustry = medicineOffer.pharma_industry;
     }
 
     public toJson(): IMedicineOfferJson {
@@ -35,7 +34,6 @@ export class MedicineOffer extends Medicine {
             classification: this.classification,
             comercial_name: this.comercialName,
             concentration: this.concentration,
-            dosage: this.dosage,
             pharma_form: this.pharmaForm,
             pharma_industry: this.pharmaIndustry,
         };

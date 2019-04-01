@@ -18,6 +18,12 @@ export class MedicineBatch implements IValidator {
     private static ERROR_INVALID_AMOUNT: ValidationError =
         new ValidationError('MB-004', 'The parameter amount must be greater than 0');
 
+    private static ERROR_DUPLICATED_BATCH: ValidationError =
+        new ValidationError('MB-005', 'The parameter medicine_batch cannot be duplicated');
+
+    private static ERROR_DUPLICATED_UNDEFINED_BATCH: ValidationError =
+        new ValidationError('MB-006', 'Unidentifieds medicine_batch cannot have the same expirate_date');
+
     public batch: string;
     public expireDate: string;
     public amount: number;
@@ -54,6 +60,7 @@ export class MedicineBatch implements IValidator {
         }
 
         // Validatin amount value
+        console.log(this.amount);
         if (!this.amount) {
             validationResult.addError(MedicineBatch.ERROR_EMPTY_AMOUNT);
 
@@ -63,6 +70,86 @@ export class MedicineBatch implements IValidator {
         }
 
         validationResult.isValid = validationResult.errors.length === 0;
+        return validationResult;
+    }
+
+    public validateDuplicatedBatches(medicineBatch: MedicineBatch[]) {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            const batches: string[] = [];
+            const indentifiedBatches: MedicineBatch[] =
+                medicineBatch.filter((mb) => mb.batch !== null && mb.batch !== undefined);
+
+            for (const idBatch of indentifiedBatches) {
+                batches.push(idBatch.batch);
+
+            }
+
+            if (batches && batches.length > 0) {
+                const validationResultOfIndentifiedBatches: ValidationResult =
+                    this.validateDuplicatedItems(batches, MedicineBatch.ERROR_DUPLICATED_BATCH);
+
+                if (!validationResultOfIndentifiedBatches.isValid) {
+                    validationResult.addErrors(validationResultOfIndentifiedBatches.errors);
+
+                }
+
+            }
+
+            const expirateDatesOfUnidentifiedBatches: string[] = [];
+
+            const unindentifiedBatches: MedicineBatch[] = medicineBatch.filter((mb) => !mb.batch);
+
+            for (const unidBatch of unindentifiedBatches) {
+                expirateDatesOfUnidentifiedBatches.push(unidBatch.expireDate);
+
+            }
+
+            if (expirateDatesOfUnidentifiedBatches && expirateDatesOfUnidentifiedBatches.length > 0) {
+                const validationResultOfUnindentifiedBatches: ValidationResult =
+                    this.validateDuplicatedItems(expirateDatesOfUnidentifiedBatches,
+                        MedicineBatch.ERROR_DUPLICATED_UNDEFINED_BATCH);
+
+                if (!validationResultOfUnindentifiedBatches.isValid) {
+                    validationResult.addErrors(validationResultOfUnindentifiedBatches.errors);
+
+                }
+
+            }
+
+        } catch (error) {
+            throw Error(error + ' ME-184');
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+        return validationResult;
+    }
+
+    private validateDuplicatedItems(items: any[], errorInDuplicatedCase: ValidationError): ValidationResult {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        const object: any = {};
+
+        for (const item of items) {
+            if (!object[item]) {
+                object[item] = 0;
+
+            }
+
+            object[item] += 1;
+
+        }
+
+        for (const prop in object) {
+            if (object[prop] >= 2) {
+                validationResult.addError(errorInDuplicatedCase);
+
+            }
+
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
         return validationResult;
     }
 

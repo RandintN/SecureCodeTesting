@@ -5,7 +5,7 @@
    "active_ingredient": "test",
    "comercial_name": "test",
    "pharma_form": "test",
-   "dosage": "test",
+   "concentration": "test",
    "classification": [ "test" ],
    "pharma_industry": [ "test", "test"]
  },
@@ -18,7 +18,7 @@
        "active_ingredient": "test",
        "comercial_name": "test",
        "pharma_form": "test",
-       "dosage": "test",
+       "concentration": "test",
        "classification": "test",
        "pharma_industry": ""
      }

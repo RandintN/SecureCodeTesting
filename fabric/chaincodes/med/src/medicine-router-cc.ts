@@ -4,6 +4,8 @@ import { ActiveIngredientDomain } from './active-ingredient/active-ingredient-do
 import { IActiveIngredientService } from './active-ingredient/active-ingredient-interface';
 import { MedicineClassificationDomain } from './medicine-classification/medicine-classification-domain';
 import { IMedicineClassificationService } from './medicine-classification/medicine-classification-interface';
+import { MedicineOfferedRequestDomain } from './medicine-offered-request/medicine-offered-request-domain';
+import { IMedicineOfferedRequestService } from './medicine-offered-request/medicine-offered-request-interface';
 import { MedicineRequestDomain } from './medicine-request/medicine-request-domain';
 import { IMedicineRequestService } from './medicine-request/medicine-request-interface';
 import { NegotiationModalityDomain } from './negotiation-modality/negotiation-modality-domain';
@@ -12,7 +14,6 @@ import { PharmaceuticalFormDomain } from './pharmaceutical-form/pharmaceutical-f
 import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical-form-interface';
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
-import { MedicineRequestStatusEnum } from './utils/enums';
 import { ValidationResult } from './validation/validation-model';
 
 export class MedicineRouterCC extends Contract implements
@@ -21,7 +22,8 @@ export class MedicineRouterCC extends Contract implements
     IMedicineClassificationService,
     IMedicineRequestService,
     IPharmaceuticalFormService,
-    INegotiationModalityService {
+    INegotiationModalityService,
+    IMedicineOfferedRequestService {
 
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
@@ -140,4 +142,9 @@ export class MedicineRouterCC extends Contract implements
 
     //#endregion
 
+    //#region methods of IMedicineOfferedRequestService
+    public async offerMedicineRequest(ctx: Context, medicineOfferedRequestJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineOfferedRequestDomain().offerMedicineRequest(ctx, medicineOfferedRequestJson);
+    }
+    //#endregion
 }

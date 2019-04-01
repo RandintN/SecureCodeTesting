@@ -358,7 +358,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             }
 
-            if (medicineRequest.type.toLocaleLowerCase() === 'exchange') {
+            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
                 if (!medicineRequest.exchange || medicineRequest.exchange.length < 1) {
                     validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
 

@@ -1,6 +1,5 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse } from 'fabric-shim';
-import { MedicineRequestStatusEnum } from '../utils/enums';
 
 /**
  * @author fmarino - CPqD
