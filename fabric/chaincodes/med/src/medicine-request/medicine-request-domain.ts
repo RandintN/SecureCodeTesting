@@ -199,7 +199,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             const result: IMedicineRequestPaginationResultJson = {
                 bookmark: undefined,
-                fetched_records_count: 1,
+                fetched_records_count: requestAsByte.length,
                 medicine_requests: JSON.parse(requestAsByte.toString()),
                 timestamp: new Date().getTime(),
             };

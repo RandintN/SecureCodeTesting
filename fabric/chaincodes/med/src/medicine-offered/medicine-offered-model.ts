@@ -26,12 +26,11 @@ export class MedicineOffered extends Medicine {
     private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
         new ValidationError('MO-006', 'The parameter medicine_batch cannot be empty or null');
 
-    private static ERROR_EMPTY_AMOUNT: ValidationError =
-        new ValidationError('MO-007', 'The parameter amount cannot be empty or null');
+    private static ERROR_EMPTY_COMERCIAL_NAME: ValidationError =
+        new ValidationError('MO-007', 'The parameter comercial_name cannot be empty or null');
 
     //#endregion
 
-    public amount: string;
     public pharmaIndustry: string;
     public classification: string;
     public refValue: number;
@@ -57,7 +56,6 @@ export class MedicineOffered extends Medicine {
         this.comercialName = medicineOffered.comercial_name;
         this.pharmaForm = medicineOffered.pharma_form;
         this.concentration = medicineOffered.concentration;
-        this.amount = medicineOffered.amount;
         this.classification = medicineOffered.classification;
         this.pharmaIndustry = medicineOffered.pharma_industry;
         this.refValue = medicineOffered.ref_value;
@@ -82,7 +80,6 @@ export class MedicineOffered extends Medicine {
 
         const json: IMedicineOfferedJson = {
             active_ingredient: this.activeIngredient,
-            amount: this.amount,
             classification: this.classification,
             comercial_name: this.comercialName,
             concentration: this.concentration,
@@ -102,16 +99,16 @@ export class MedicineOffered extends Medicine {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
+        if (!this.comercialName) {
+            validationResult.addError(MedicineOffered.ERROR_EMPTY_COMERCIAL_NAME);
+        }
+
         if (!this.pharmaForm) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_FORM);
         }
 
         if (!this.concentration) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_CONCENTRATION);
-        }
-
-        if (!this.amount) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_AMOUNT);
         }
 
         if (!this.classification) {

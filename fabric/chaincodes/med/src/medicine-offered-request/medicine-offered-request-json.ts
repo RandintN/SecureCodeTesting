@@ -1,5 +1,5 @@
 import { IMedicineOfferedJson } from '../medicine-offered/medicine-offered-json';
-import { MedicineRequestStatusEnum } from '../utils/enums';
+import { MedicineOfferedStatusEnum } from '../utils/enums';
 
 export interface IMedicineOfferedRequestJson {
     request_id: string;
@@ -7,7 +7,6 @@ export interface IMedicineOfferedRequestJson {
     medicine: IMedicineOfferedJson;
     type: string;
     new_return_date: string;
-    exchange: IMedicineOfferedJson;
-    status: MedicineRequestStatusEnum;
+    status: MedicineOfferedStatusEnum;
     observations: string;
 }

@@ -27,3 +27,9 @@ export enum RequestMode {
     DONATION = 'donation',
 
 }
+
+export enum MedicineOfferedStatusEnum {
+    PROPOSED = 'proposed',
+    ACCEPTED = 'accepted',
+    REJECTED = 'rejected',
+}

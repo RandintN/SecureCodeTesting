@@ -1,7 +1,6 @@
 import { IMedicineBatchJson } from '../medicine-batch/medicine-batch-json';
 
 export interface IMedicineOfferedJson {
-    amount: string;
     active_ingredient: string;
     comercial_name: string;
     pharma_form: string;

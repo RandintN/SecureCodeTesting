@@ -1,5 +1,5 @@
 import { MedicineOffered } from '../medicine-offered/medicine-offered-model';
-import { MedicineRequestStatusEnum } from '../utils/enums';
+import { MedicineOfferedStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -20,6 +20,9 @@ export class MedicineOfferedRequest implements IValidator {
     private static ERROR_EMPTY_TYPE: ValidationError =
         new ValidationError('MOR-004', 'The parameter type cannot be empty or null');
 
+    private static ERROR_TYPE_IS_NOT_IMPLEMENTED: ValidationError =
+        new ValidationError('MOR-005', 'The request type exchange is not implemented.');
+
     //#endregion
 
     public requestId: string;
@@ -27,8 +30,7 @@ export class MedicineOfferedRequest implements IValidator {
     public medicine: MedicineOffered;
     public type: string;
     public newReturnDate: string;
-    public exchange: MedicineOffered;
-    public status: MedicineRequestStatusEnum;
+    public status: MedicineOfferedStatusEnum;
     public observations: string;
 
     public fromJson(medicineOfferedRequestJson: IMedicineOfferedRequestJson): void {
@@ -36,7 +38,6 @@ export class MedicineOfferedRequest implements IValidator {
         this.amount = medicineOfferedRequestJson.amount;
         this.type = medicineOfferedRequestJson.type;
         this.newReturnDate = medicineOfferedRequestJson.new_return_date;
-        this.status = MedicineRequestStatusEnum.WAITING_FOR_APPROVAL;
         this.observations = medicineOfferedRequestJson.observations;
 
         this.medicine = new MedicineOffered();
@@ -44,16 +45,11 @@ export class MedicineOfferedRequest implements IValidator {
             this.medicine.fromJson(medicineOfferedRequestJson.medicine);
         }
 
-        this.exchange = new MedicineOffered();
-        if (medicineOfferedRequestJson.exchange) {
-            this.exchange.fromJson(medicineOfferedRequestJson.exchange);
-        }
     }
 
     public toJson(): IMedicineOfferedRequestJson {
         const medicineOfferedRequestJson: IMedicineOfferedRequestJson = {
             amount: this.amount,
-            exchange: this.exchange.toJson(),
             medicine: this.medicine.toJson(),
             new_return_date: this.newReturnDate,
             observations: this.observations,
@@ -69,6 +65,13 @@ export class MedicineOfferedRequest implements IValidator {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
 
+        if (!this.type) {
+            validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_TYPE);
+
+        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+            validationResult.addError(MedicineOfferedRequest.ERROR_TYPE_IS_NOT_IMPLEMENTED);
+        }
+
         if (!this.requestId) {
             validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_REQUEST_ID);
         }
@@ -80,11 +83,6 @@ export class MedicineOfferedRequest implements IValidator {
         if (!this.medicine || Object.keys(this.medicine).length === 0) {
 
             validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_MEDICINE_OFFERED);
-        }
-
-        if (!this.type) {
-            validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_TYPE);
-
         }
 
         validationResult.isValid = validationResult.errors.length < 1;

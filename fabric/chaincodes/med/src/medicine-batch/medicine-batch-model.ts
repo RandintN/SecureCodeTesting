@@ -60,7 +60,6 @@ export class MedicineBatch implements IValidator {
         }
 
         // Validatin amount value
-        console.log(this.amount);
         if (!this.amount) {
             validationResult.addError(MedicineBatch.ERROR_EMPTY_AMOUNT);
 
