@@ -11,22 +11,18 @@ export class MedicineOfferedRequest implements IValidator {
     private static ERROR_EMPTY_REQUEST_ID: ValidationError =
         new ValidationError('MOR-001', 'The parameter request_id cannot be empty or null');
 
-    private static ERROR_EMPTY_AMOUNT: ValidationError =
-        new ValidationError('MOR-002', 'The parameter amount cannot be empty or null');
-
     private static ERROR_EMPTY_MEDICINE_OFFERED: ValidationError =
-        new ValidationError('MOR-003', 'The parameter medicine cannot be empty or null');
+        new ValidationError('MOR-002', 'The parameter medicine cannot be empty or null');
 
     private static ERROR_EMPTY_TYPE: ValidationError =
-        new ValidationError('MOR-004', 'The parameter type cannot be empty or null');
+        new ValidationError('MOR-003', 'The parameter type cannot be empty or null');
 
     private static ERROR_TYPE_IS_NOT_IMPLEMENTED: ValidationError =
-        new ValidationError('MOR-005', 'The request type exchange is not implemented.');
+        new ValidationError('MOR-004', 'The request type exchange is not implemented.');
 
     //#endregion
 
     public requestId: string;
-    public amount: string;
     public medicine: MedicineOffered;
     public type: string;
     public newReturnDate: string;
@@ -35,7 +31,6 @@ export class MedicineOfferedRequest implements IValidator {
 
     public fromJson(medicineOfferedRequestJson: IMedicineOfferedRequestJson): void {
         this.requestId = medicineOfferedRequestJson.request_id;
-        this.amount = medicineOfferedRequestJson.amount;
         this.type = medicineOfferedRequestJson.type;
         this.newReturnDate = medicineOfferedRequestJson.new_return_date;
         this.observations = medicineOfferedRequestJson.observations;
@@ -49,7 +44,6 @@ export class MedicineOfferedRequest implements IValidator {
 
     public toJson(): IMedicineOfferedRequestJson {
         const medicineOfferedRequestJson: IMedicineOfferedRequestJson = {
-            amount: this.amount,
             medicine: this.medicine.toJson(),
             new_return_date: this.newReturnDate,
             observations: this.observations,
@@ -74,10 +68,6 @@ export class MedicineOfferedRequest implements IValidator {
 
         if (!this.requestId) {
             validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_REQUEST_ID);
-        }
-        if (!this.amount) {
-            validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_AMOUNT);
-
         }
 
         if (!this.medicine || Object.keys(this.medicine).length === 0) {

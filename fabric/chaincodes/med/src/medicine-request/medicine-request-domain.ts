@@ -82,8 +82,6 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             result.request_id = idRequest;
             result.timestamp = timestamp;
 
-            console.log('Medicine Request id: ' + result.request_id);
-
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);

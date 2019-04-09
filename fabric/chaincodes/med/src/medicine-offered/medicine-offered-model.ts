@@ -26,11 +26,17 @@ export class MedicineOffered extends Medicine {
     private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
         new ValidationError('MO-006', 'The parameter medicine_batch cannot be empty or null');
 
-    private static ERROR_EMPTY_COMERCIAL_NAME: ValidationError =
-        new ValidationError('MO-007', 'The parameter comercial_name cannot be empty or null');
+    private static ERROR_EMPTY_COMMERCIAL_NAME: ValidationError =
+        new ValidationError('MO-007', 'The parameter commercial_name cannot be empty or null');
+
+    private static ERROR_EMPTY_AMOUNT: ValidationError =
+        new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
+
+    private static ERROR_EMPTY_REF_VALUE: ValidationError =
+        new ValidationError('MO-008', 'The parameter ref_value cannot be empty or null');
 
     //#endregion
-
+    public amount: string;
     public pharmaIndustry: string;
     public classification: string;
     public refValue: number;
@@ -52,8 +58,9 @@ export class MedicineOffered extends Medicine {
 
         }
 
+        this.amount = medicineOffered.amount;
         this.activeIngredient = medicineOffered.active_ingredient;
-        this.comercialName = medicineOffered.comercial_name;
+        this.commercialName = medicineOffered.commercial_name;
         this.pharmaForm = medicineOffered.pharma_form;
         this.concentration = medicineOffered.concentration;
         this.classification = medicineOffered.classification;
@@ -80,8 +87,9 @@ export class MedicineOffered extends Medicine {
 
         const json: IMedicineOfferedJson = {
             active_ingredient: this.activeIngredient,
+            amount: this.amount,
             classification: this.classification,
-            comercial_name: this.comercialName,
+            commercial_name: this.commercialName,
             concentration: this.concentration,
             medicine_batch: medicineBatchJson,
             pharma_form: this.pharmaForm,
@@ -95,12 +103,17 @@ export class MedicineOffered extends Medicine {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
 
+        if (!this.amount) {
+            validationResult.addError(MedicineOffered.ERROR_EMPTY_AMOUNT);
+
+        }
+
         if (!this.activeIngredient) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
-        if (!this.comercialName) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_COMERCIAL_NAME);
+        if (!this.commercialName) {
+            validationResult.addError(MedicineOffered.ERROR_EMPTY_COMMERCIAL_NAME);
         }
 
         if (!this.pharmaForm) {
@@ -117,6 +130,10 @@ export class MedicineOffered extends Medicine {
 
         if (!this.pharmaIndustry) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_INDUSTRY);
+        }
+
+        if (!this.refValue) {
+            validationResult.addError(MedicineOffered.ERROR_EMPTY_REF_VALUE);
         }
 
         if (!this.medicineBatch || this.medicineBatch.length < 1) {

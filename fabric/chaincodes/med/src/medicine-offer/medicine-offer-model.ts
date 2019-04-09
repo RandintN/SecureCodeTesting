@@ -22,7 +22,7 @@ export class MedicineOffer extends Medicine {
     public fromJson(medicineOffer: IMedicineOfferJson): void {
         this.activeIngredient = medicineOffer.active_ingredient;
         this.classification = medicineOffer.classification;
-        this.comercialName = medicineOffer.comercial_name;
+        this.commercialName = medicineOffer.commercial_name;
         this.concentration = medicineOffer.concentration;
         this.pharmaForm = medicineOffer.pharma_form;
         this.pharmaIndustry = medicineOffer.pharma_industry;
@@ -32,7 +32,7 @@ export class MedicineOffer extends Medicine {
         const json: IMedicineOfferJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
-            comercial_name: this.comercialName,
+            commercial_name: this.commercialName,
             concentration: this.concentration,
             pharma_form: this.pharmaForm,
             pharma_industry: this.pharmaIndustry,

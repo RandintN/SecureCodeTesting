@@ -8,7 +8,8 @@ import { IMedicineRequestJson } from '../medicine-request/medicine-request-json'
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
-import { MedicineOfferedStatusEnum, MedicineRequestStatusEnum } from '../utils/enums';
+import { DateExtension } from '../utils/date-extension';
+import { MedicineOfferedStatusEnum, MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineOfferedRequestService } from './medicine-offered-request-interface';
@@ -32,7 +33,11 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
 
     private static ERROR_REQUESTED_TYPE_NOT_EQUAL_PROPOSED_TYPE: ValidationError =
         new ValidationError('MORD-004',
-            'The requested type is not the same of the proposed');
+            'The requested type is not the same of the proposed.');
+
+    private static ERROR_NEW_RETURN_DATE_EQUAL_RETURN_DATE: ValidationError =
+        new ValidationError('MORD-005',
+            'The new return date can not equal the medicine request return date.');
 
     public async offerMedicineRequest(ctx: Context, medicineOfferedRequestJson: string): Promise<ChaincodeResponse> {
         try {
@@ -55,7 +60,6 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
             medicineOfferedRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
             const offerId: string = Guid.create().toString();
-
             await ctx.stub.putState(offerId, Buffer.from(JSON.stringify(medicineOfferedRequestToLedger)));
 
             const result: Result = new Result();
@@ -103,10 +107,18 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
                 return validationResult;
             }
 
-            if (!medicineRequest.amount.includes(medicineOfferedRequest.amount)) {
-                validationResult.addError(
-                    MedicineOfferedRequestDomain.ERROR_AMOUNT_MEDICINE_OFFER_IS_NOT_EQUAL_AMOUNT_MEDICINE_REQUEST);
-                return validationResult;
+            if (medicineOfferedRequest.type.toLocaleLowerCase() === RequestMode.LOAN) {
+                if (medicineOfferedRequest.newReturnDate) {
+                    const dateExtension: DateExtension = new DateExtension();
+                    if (!dateExtension.validateDate(medicineOfferedRequest.newReturnDate, validationResult)) {
+                        return validationResult;
+                    }
+                    if (Date.parse(medicineOfferedRequest.newReturnDate) === Date.parse(medicineRequest.return_date)) {
+                        validationResult.addError(
+                            MedicineOfferedRequestDomain.ERROR_NEW_RETURN_DATE_EQUAL_RETURN_DATE);
+                        return validationResult;
+                    }
+                }
             }
 
             const medicineOfferedDomain: MedicineOfferedDomain = new MedicineOfferedDomain();
@@ -121,6 +133,12 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
             if (!this.validateMedicineOffered(medicineOfferedRequest.medicine, medicineRequest.medicine)) {
                 validationResult.addError(
                     MedicineOfferedRequestDomain.ERROR_MEDICINE_OFFER_IS_NOT_EQUAL_MEDICINE_REQUEST);
+            }
+
+            if (!medicineRequest.amount.includes(medicineOfferedRequest.medicine.amount)) {
+                validationResult.addError(
+                    MedicineOfferedRequestDomain.ERROR_AMOUNT_MEDICINE_OFFER_IS_NOT_EQUAL_AMOUNT_MEDICINE_REQUEST);
+                return validationResult;
             }
 
             validationResult.isValid = validationResult.errors.length < 1;
@@ -143,8 +161,8 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
             return false;
         }
 
-        if (medicineRequest.comercial_name && medicineRequest.comercial_name !== ''
-            && medicineRequest.comercial_name !== medicineOffered.comercialName) {
+        if (medicineRequest.commercial_name && medicineRequest.commercial_name !== ''
+            && medicineRequest.commercial_name !== medicineOffered.commercialName) {
             return false;
         }
 

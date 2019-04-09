@@ -52,7 +52,7 @@ export class MedicineExchange extends Medicine {
 
         this.activeIngredient = medicineExchange.active_ingredient;
         this.classification = medicineExchange.classification;
-        this.comercialName = medicineExchange.comercial_name;
+        this.commercialName = medicineExchange.commercial_name;
         this.concentration = medicineExchange.concentration;
         this.pharmaForm = medicineExchange.pharma_form;
         this.pharmaIndustry = medicineExchange.pharma_industry;
@@ -78,7 +78,7 @@ export class MedicineExchange extends Medicine {
         const json: IMedicineExchangeJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
-            comercial_name: this.comercialName,
+            commercial_name: this.commercialName,
             concentration: this.concentration,
             medicine_batch: medicineBatchJson,
             pharma_form: this.pharmaForm,

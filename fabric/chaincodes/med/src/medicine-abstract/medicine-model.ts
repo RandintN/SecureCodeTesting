@@ -7,7 +7,7 @@ import { IValidator } from '../validation/validator-interface';
  */
 export abstract class Medicine implements IValidator {
         public activeIngredient: string;
-        public comercialName: string;
+        public commercialName: string;
         public pharmaForm: string;
         public concentration: string;
 
