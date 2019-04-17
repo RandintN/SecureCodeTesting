@@ -88,6 +88,78 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         }
     }
 
+    public async addMedicineRequestInBatch(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
+        console.log("entered addMedicineRequestInBatch ");
+        try {
+            const medicineRequest: MedicineRequest = new MedicineRequest();
+            medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
+
+            console.log("0" + medicineRequest);
+
+            var sizeOfRequest = Object.keys(medicineRequest).length;
+            var qtyChecked = 0;
+            console.log("1" + qtyChecked);
+            const idRequest: string = Guid.create().toString();
+
+            for (var loopCount = 0; loopCount < sizeOfRequest; loopCount++){
+                if (!medicineRequest.amount || !medicineRequest.status || !medicineRequest.medicine.activeIngredient || !medicineRequest.type 
+                    || !medicineRequest.returnDate || !medicineRequest || !medicineRequest.medicine.classification || !medicineRequest.medicine.commercialName
+                    || !medicineRequest.medicine.pharmaForm || !medicineRequest.medicine.pharmaIndustry || !medicineRequest.medicine.concentration){
+
+                    qtyChecked++;
+                    console.log("2" + qtyChecked);
+                }
+            }
+
+            const validationResult: ValidationResult = await
+            this.validateMedicineRequestRules(ctx, medicineRequest);
+            console.log("3" + validationResult);
+
+            if (qtyChecked === sizeOfRequest) {
+                console.log("4");
+                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequest)));
+
+            } else {
+                console.log("5" + "else");
+                if (!validationResult.isValid) {
+                    return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                        Buffer.from(JSON.stringify(validationResult.errors)));
+                    }
+            }
+                       
+            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+
+                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+
+                await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
+                    idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+
+            } else {
+                medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+
+                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+
+                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+
+                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+
+            }
+
+            const timestamp: number = new Date().getTime();
+            const result: Result = new Result();
+
+            result.request_id = idRequest;
+            result.timestamp = timestamp;
+
+            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
     /** Check the documentation of IMedicineRequestService */
     public async approveMedicinePendingRequest(ctx: Context, medReqApproveStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;

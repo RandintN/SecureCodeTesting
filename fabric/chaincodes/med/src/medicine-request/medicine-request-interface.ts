@@ -24,6 +24,20 @@ export interface IMedicineRequestService {
      */
     addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse>;
 
+        /**
+     * Method to add a new medicine request.
+     *
+     * @param ctx Context of transaction
+     * @param medRequestBatchJson Medicine request json, thats must have to implement the interface IMedicineRequestJson
+     * @returns If success, returns 201 (created) and the timestamp of transaction, otherwise, will return one of the
+     * following status and a list of errors:
+     * - 400 (bad request)
+     * - 401 (forbidden)
+     * - 404 (not found)
+     * - 500 (internal error)
+     */
+    addMedicineRequestInBatch(ctx: Context, medRequestBatchJson: string): Promise<ChaincodeResponse>;
+
     /**
      * Method to approve a pending medicine request (requests are pending when their types are equals 'exchange').
      *
