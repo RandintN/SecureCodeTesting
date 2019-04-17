@@ -209,7 +209,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
         if (medicineRequest.active_ingredient !== medicineOffered.activeIngredient) {
             return false;
         }
-        if (medicineRequest.classification.length > 0
+        if (medicineRequest.classification && medicineRequest.classification.length > 0
             && !medicineRequest.classification.includes(medicineOffered.classification)) {
             return false;
         }
@@ -219,7 +219,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
             return false;
         }
 
-        if (medicineRequest.pharma_industry.length > 0
+        if (medicineRequest.pharma_industry && medicineRequest.pharma_industry.length > 0
             && !medicineRequest.pharma_industry.includes(medicineOffered.pharmaIndustry)) {
             return false;
         }

@@ -75,7 +75,7 @@ export class MedicineRequest implements IValidator {
             amount: this.amount,
             exchange: exchangesJson,
             medicine: medicineOfferJson,
-            return_date: this.returnDate,
+            return_date: this.returnDate ? this.returnDate : undefined,
             status: this.status,
             type: this.type,
 
@@ -109,6 +109,8 @@ export class MedicineRequest implements IValidator {
                 const dateExtension: DateExtension = new DateExtension();
                 dateExtension.validateDate(this.returnDate, validationResult);
             }
+        } else {
+            this.returnDate = null;
         }
         if (!this.exchange) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_EXCHANGE);
