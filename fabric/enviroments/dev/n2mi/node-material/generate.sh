@@ -43,3 +43,10 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to generate anchor peer update for N2miMSP..."
   exit 1
 fi
+
+# verify keys file
+new_file=`ls -1 crypto-config/peerOrganizations/n2mi.n2med.com/ca/ | grep _sk`
+old_file=`grep _sk docker-compose.yml | awk -F "/" '{print $5}'`
+
+# update docker-compose file
+sed -i -- "s/${old_file}/${new_file}/g" docker-compose.yml
