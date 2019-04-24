@@ -42,8 +42,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
 
         try {
+            console.log("JJJson ", medRequestJson);
+
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
+
+            console.log("medicineRequest ", medicineRequest);
 
             const validationResult: ValidationResult = await
                 this.validateMedicineRequestRules(ctx, medicineRequest);
@@ -89,72 +93,58 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     }
 
     public async addMedicineRequestInBatch(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
-        console.log("entered addMedicineRequestInBatch ");
         try {
-            const medicineRequest: MedicineRequest = new MedicineRequest();
-            medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
-
-            console.log("0" + medicineRequest);
-
+            const medicineRequest = JSON.parse(medRequestJson);
             var sizeOfRequest = Object.keys(medicineRequest).length;
-            var qtyChecked = 0;
-            console.log("1" + qtyChecked);
-            const idRequest: string = Guid.create().toString();
+            
+            let validationResult: ValidationResult;
+            const medicineRequestArray: MedicineRequest [] = new Array<MedicineRequest>();
+            let objectRequest: MedicineRequest;
 
-            for (var loopCount = 0; loopCount < sizeOfRequest; loopCount++){
-                if (!medicineRequest.amount || !medicineRequest.status || !medicineRequest.medicine.activeIngredient || !medicineRequest.type 
-                    || !medicineRequest.returnDate || !medicineRequest || !medicineRequest.medicine.classification || !medicineRequest.medicine.commercialName
-                    || !medicineRequest.medicine.pharmaForm || !medicineRequest.medicine.pharmaIndustry || !medicineRequest.medicine.concentration){
-
-                    qtyChecked++;
-                    console.log("2" + qtyChecked);
-                }
-            }
-
-            const validationResult: ValidationResult = await
-            this.validateMedicineRequestRules(ctx, medicineRequest);
-            console.log("3" + validationResult);
-
-            if (qtyChecked === sizeOfRequest) {
-                console.log("4");
-                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequest)));
-
-            } else {
-                console.log("5" + "else");
-                if (!validationResult.isValid) {
-                    return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                        Buffer.from(JSON.stringify(validationResult.errors)));
+            for (var i = 0; i < sizeOfRequest; i++){
+    
+                    objectRequest = new MedicineRequest();
+                    objectRequest.fromJson(medicineRequest[i]);
+                    validationResult = await this.validateMedicineRequestRules(ctx, objectRequest);
+                    
+                    if (!validationResult.isValid) {
+                        return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                            Buffer.from(JSON.stringify(validationResult)));
                     }
+                    medicineRequestArray.push(objectRequest);
             }
-                       
-            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
-                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+
+            const resultArray: Result[] = new Array<Result>();
+
+            for (const medicineRequest of medicineRequestArray){
+                const idRequest: string = Guid.create().toString();
+                const timestamp: number = new Date().getTime();
+                const result: Result = new Result();
+
+                result.request_id = idRequest;
+                result.timestamp = timestamp;
+                if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+                    
+                    const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
-
-                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
-
-                await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
+                    medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+    
+                    await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
                     idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
-
-            } else {
-                medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
-
-                const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    resultArray.push(result);
+    
+                } else {
+                    medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+                    const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
+                    medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+    
+                    await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    resultArray.push(result);
+                    }
+                }
 
-                medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
-
-                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
-
-            }
-
-            const timestamp: number = new Date().getTime();
-            const result: Result = new Result();
-
-            result.request_id = idRequest;
-            result.timestamp = timestamp;
-
-            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(resultArray)));
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
@@ -386,12 +376,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
      * ValidationResult with status 'false' and doesnt will verify the rules.
      *
      * @param ctx Context of transaction
-     * @param medicineRequest MedicineRequest that will ve verified
+     * @param medicineRequest MedicineRequest that will be verified
      * @returns ValidationResult
      */
     private async validateMedicineRequestRules(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
-
+    
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
