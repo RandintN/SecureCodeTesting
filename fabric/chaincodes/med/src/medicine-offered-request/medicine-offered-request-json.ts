@@ -8,4 +8,5 @@ export interface IMedicineOfferedRequestJson {
     new_return_date: string;
     status: MedicineOfferedStatusEnum;
     observations: string;
+    offer_id: string;
 }

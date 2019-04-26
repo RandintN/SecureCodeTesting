@@ -20,6 +20,8 @@ export class MedicineOfferedRequest implements IValidator {
     private static ERROR_TYPE_IS_NOT_IMPLEMENTED: ValidationError =
         new ValidationError('MOR-004', 'The request type exchange is not implemented.');
 
+    private static ERROR_EMPTY_OFFER_ID: ValidationError =
+        new ValidationError('MOR-004', 'The parameter offer_id cannot be empty or null.');
     //#endregion
 
     public requestId: string;
@@ -28,12 +30,14 @@ export class MedicineOfferedRequest implements IValidator {
     public newReturnDate: string;
     public status: MedicineOfferedStatusEnum;
     public observations: string;
+    public offerId : string;
 
     public fromJson(medicineOfferedRequestJson: IMedicineOfferedRequestJson): void {
         this.requestId = medicineOfferedRequestJson.request_id;
         this.type = medicineOfferedRequestJson.type;
         this.newReturnDate = medicineOfferedRequestJson.new_return_date;
         this.observations = medicineOfferedRequestJson.observations;
+        this.offerId = medicineOfferedRequestJson.offer_id;
 
         this.medicine = new MedicineOffered();
         if (medicineOfferedRequestJson.medicine) {
@@ -50,7 +54,7 @@ export class MedicineOfferedRequest implements IValidator {
             request_id: this.requestId,
             status: this.status,
             type: this.type,
-
+            offer_id: this.offerId
         };
 
         return medicineOfferedRequestJson;
@@ -68,6 +72,10 @@ export class MedicineOfferedRequest implements IValidator {
 
         if (!this.requestId) {
             validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_REQUEST_ID);
+        }
+
+        if (!this.offerId) {
+            validationResult.addError(MedicineOfferedRequest.ERROR_EMPTY_OFFER_ID);
         }
 
         if (!this.medicine || Object.keys(this.medicine).length === 0) {

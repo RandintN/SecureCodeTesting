@@ -53,7 +53,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     Buffer.from(JSON.stringify(validationResult.errors)));
             }
 
-            const idRequest: string = Guid.create().toString();
+            //const idRequest: string = Guid.create().toString();
+            const idRequest: string = medicineRequest.request_id;
 
             if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
