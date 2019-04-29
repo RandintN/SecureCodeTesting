@@ -9,5 +9,5 @@ export interface IMedicineRequestJson {
     return_date: string;
     exchange: IExchangeJson[];
     status: MedicineRequestStatusEnum;
-
+    request_id: string;
 }

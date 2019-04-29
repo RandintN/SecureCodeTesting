@@ -26,14 +26,16 @@ export class MedicineOffered extends Medicine {
     private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
         new ValidationError('MO-006', 'The parameter medicine_batch cannot be empty or null');
 
-    private static ERROR_EMPTY_COMMERCIAL_NAME: ValidationError =
-        new ValidationError('MO-007', 'The parameter commercial_name cannot be empty or null');
+    //COMMERCIAL_NAME IS AN OPTIONAL PARAMETER IN N2MI
+    //private static ERROR_EMPTY_COMMERCIAL_NAME: ValidationError =
+    //    new ValidationError('MO-007', 'The parameter commercial_name cannot be empty or null');
 
     private static ERROR_EMPTY_AMOUNT: ValidationError =
         new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
 
-    private static ERROR_EMPTY_REF_VALUE: ValidationError =
-        new ValidationError('MO-008', 'The parameter ref_value cannot be empty or null');
+    //REF_VALUE IS AN OPTIONAL PARAMETER IN N2MI
+    //private static ERROR_EMPTY_REF_VALUE: ValidationError =
+    //    new ValidationError('MO-008', 'The parameter ref_value cannot be empty or null');
 
     //#endregion
     public amount: string;
@@ -112,9 +114,10 @@ export class MedicineOffered extends Medicine {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
-        if (!this.commercialName) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_COMMERCIAL_NAME);
-        }
+        //COMMERCIAL_NAME IS AN OPTIONAL PARAMETER IN N2MI
+        //if (!this.commercialName) {
+        //    validationResult.addError(MedicineOffered.ERROR_EMPTY_COMMERCIAL_NAME);
+        //}
 
         if (!this.pharmaForm) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_FORM);
@@ -132,9 +135,10 @@ export class MedicineOffered extends Medicine {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_INDUSTRY);
         }
 
-        if (!this.refValue) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_REF_VALUE);
-        }
+        //REF_VALUE IS AN OPTIONAL PARAMETER IN N2MI
+        //if (!this.refValue) {
+        //    validationResult.addError(MedicineOffered.ERROR_EMPTY_REF_VALUE);
+        //}
 
         if (!this.medicineBatch || this.medicineBatch.length < 1) {
             validationResult.addError(MedicineOffered.ERROR_EMPTY_MEDICINE_BATCH);

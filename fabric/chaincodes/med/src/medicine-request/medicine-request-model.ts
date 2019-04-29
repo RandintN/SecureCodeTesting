@@ -23,6 +23,9 @@ export class MedicineRequest implements IValidator {
     private static ERROR_EMPTY_RETURN_DATE: ValidationError = new ValidationError
         ('MR-004', 'The parameter return_date cannot be empty or null when the medicine request type is loan');
 
+    private static ERROR_EMPTY_REQUEST_ID: ValidationError = new ValidationError
+        ('MR-005', 'The parameter request_id cannot be empty or null');
+
     //#endregion
     public amount: string;
     public medicine: MedicineOffer;
@@ -30,6 +33,7 @@ export class MedicineRequest implements IValidator {
     public returnDate: string;
     public exchange: Exchange[];
     public status: any;
+    public request_id : string;
 
     public fromJson(medicineRequestJson: IMedicineRequestJson): void {
         this.amount = medicineRequestJson.amount;
@@ -59,6 +63,7 @@ export class MedicineRequest implements IValidator {
 
         this.exchange = exchanges;
 
+        this.request_id = medicineRequestJson.request_id;
     }
 
     public toJson(): IMedicineRequestJson {
@@ -75,9 +80,10 @@ export class MedicineRequest implements IValidator {
             amount: this.amount,
             exchange: exchangesJson,
             medicine: medicineOfferJson,
-            return_date: this.returnDate,
+            return_date: this.returnDate ? this.returnDate : undefined,
             status: this.status,
             type: this.type,
+            request_id: this.request_id
 
         };
 
@@ -109,6 +115,8 @@ export class MedicineRequest implements IValidator {
                 const dateExtension: DateExtension = new DateExtension();
                 dateExtension.validateDate(this.returnDate, validationResult);
             }
+        } else {
+            this.returnDate = null;
         }
         if (!this.exchange) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_EXCHANGE);
@@ -123,6 +131,9 @@ export class MedicineRequest implements IValidator {
 
             }
 
+        }
+        if(!this.request_id){
+            validationResult.errors.push(MedicineRequest.ERROR_EMPTY_REQUEST_ID);
         }
 
         validationResult.isValid = validationResult.errors.length < 1;

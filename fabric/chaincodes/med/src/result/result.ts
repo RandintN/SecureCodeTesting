@@ -4,5 +4,7 @@ export class Result {
     public request_id: string;
 // tslint:disable-next-line: variable-name
     public offer_id: string;
+// tslint:disable-next-line: variable-name
+    public rejected_offers: string[];
 
 }

@@ -1,4 +1,5 @@
 import { Context } from 'fabric-contract-api';
+
 import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
@@ -65,14 +66,16 @@ export class MedicineOfferDomain extends MedicineDomain {
         const validationResult: ValidationResult = new ValidationResult();
         const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
         try {
-            if (medicineOffer.classification) {
+            if (medicineOffer.classification && medicineOffer.classification.length > 0) {
                 for (const classification of medicineOffer.classification) {
-                    const medicineClassificationValidation: ValidationResult = await
-                        medicineClassificationDomain.validateMedicineClassification(ctx, classification);
+                    if (classification) {
+                        const medicineClassificationValidation: ValidationResult = await
+                            medicineClassificationDomain.validateMedicineClassification(ctx, classification);
 
-                    if (!medicineClassificationValidation.isValid) {
-                        validationResult.addErrors(medicineClassificationValidation.errors);
+                        if (!medicineClassificationValidation.isValid) {
+                            validationResult.addErrors(medicineClassificationValidation.errors);
 
+                        }
                     }
 
                 }

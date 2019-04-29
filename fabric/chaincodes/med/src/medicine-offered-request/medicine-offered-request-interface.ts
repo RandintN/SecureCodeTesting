@@ -24,4 +24,20 @@ export interface IMedicineOfferedRequestService {
      */
     offerMedicineRequest(ctx: Context, offerMedRequestJson: string): Promise<ChaincodeResponse>;
 
+    /**
+     * Method for approving proposed drug offers.
+     *
+     * @param ctx Context of transaction
+     * @param approveOfferMedicineRequest approve offer medicine request json,
+     * thats must have to implement the interface
+     * IMedicineOfferedRequestService
+     * @returns If success, returns 201 (created) and the timestamp of transaction, otherwise, will return one of the
+     * following status and a list of errors:
+     * - 400 (bad request)
+     * - 401 (forbidden)
+     * - 404 (not found)
+     * - 500 (internal error)
+     */
+    approveOfferMedicineRequest(ctx: Context, approveOfferMedicineRequest: string): Promise<ChaincodeResponse>;
+
 }
