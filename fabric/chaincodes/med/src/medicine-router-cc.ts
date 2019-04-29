@@ -15,6 +15,7 @@ import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
 import { ValidationResult } from './validation/validation-model';
+import { MedicineDeliveryDomain} from './medicine-delivery/medicine-delivery-domain';
 
 export class MedicineRouterCC extends Contract implements
     IActiveIngredientService,
@@ -24,6 +25,10 @@ export class MedicineRouterCC extends Contract implements
     IPharmaceuticalFormService,
     INegotiationModalityService,
     IMedicineOfferedRequestService {
+
+    public async medicineDeliveryConfirmation(ctx: Context, requester_id: string): Promise<ChaincodeResponse> {
+        return await new MedicineDeliveryDomain().medicineDeliveryConfirmation(ctx, requester_id);
+    }
 
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
