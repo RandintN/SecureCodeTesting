@@ -15,6 +15,7 @@ import { IPharmaceuticalFormService } from './pharmaceutical-form/pharmaceutical
 import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmaceutical-industry-domain';
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
 import { ValidationResult } from './validation/validation-model';
+import { MedicineDeliveryDomain} from './medicine-delivery/medicine-delivery-domain';
 
 export class MedicineRouterCC extends Contract implements
     IActiveIngredientService,
@@ -24,6 +25,10 @@ export class MedicineRouterCC extends Contract implements
     IPharmaceuticalFormService,
     INegotiationModalityService,
     IMedicineOfferedRequestService {
+
+    public async medicineDeliveryConfirmation(ctx: Context, requester_id: string): Promise<ChaincodeResponse> {
+        return await new MedicineDeliveryDomain().medicineDeliveryConfirmation(ctx, requester_id);
+    }
 
     //#region methods of active-ingredient
     public async addActiveIngredient(ctx: Context, strActiveIngredient: string): Promise<string> {
@@ -47,6 +52,10 @@ export class MedicineRouterCC extends Contract implements
     //#region of methods of IMedicineRequestService
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
         return await new MedicineRequestDomain().addMedicineRequest(ctx, medRequestJson);
+    }
+
+    public async addMedicineRequestInBatch(ctx: Context, medRequestBatchJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineRequestDomain().addMedicineRequestInBatch(ctx, medRequestBatchJson);
     }
 
     public async approveMedicinePendingRequest(ctx: Context, medReqApproveJson: string): Promise<ChaincodeResponse> {

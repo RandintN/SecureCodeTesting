@@ -45,8 +45,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
 
         try {
+            console.log("JJJson ", medRequestJson);
+
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
+
+            console.log("medicineRequest ", medicineRequest);
 
             const validationResult: ValidationResult = await
                 this.validateMedicineRequestRules(ctx, medicineRequest);
@@ -89,6 +93,64 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             console.log('Medicine Request id: ' + result.request_id);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
+    public async addMedicineRequestInBatch(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
+        try {
+            const medicineRequest = JSON.parse(medRequestJson);
+            var sizeOfRequest = Object.keys(medicineRequest).length;
+            
+            let validationResult: ValidationResult;
+            const medicineRequestArray: MedicineRequest [] = new Array<MedicineRequest>();
+            let objectRequest: MedicineRequest;
+
+            for (var i = 0; i < sizeOfRequest; i++){
+    
+                    objectRequest = new MedicineRequest();
+                    objectRequest.fromJson(medicineRequest[i]);
+                    validationResult = await this.validateMedicineRequestRules(ctx, objectRequest);
+                    
+                    if (!validationResult.isValid) {
+                        return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                            Buffer.from(JSON.stringify(validationResult)));
+                    }
+                    medicineRequestArray.push(objectRequest);
+            }
+
+            const resultArray: Result[] = new Array<Result>();
+
+            for (const medicineRequest of medicineRequestArray){
+                const idRequest: string = Guid.create().toString();
+                const timestamp: number = new Date().getTime();
+                const result: Result = new Result();
+
+                result.request_id = idRequest;
+                result.timestamp = timestamp;
+                if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+                    
+                    const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+                    medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+    
+                    await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
+                    idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    resultArray.push(result);
+    
+                } else {
+                    medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+                    const medicineRequestToLedger: IMedicineRequestLedgerJson =
+                    medicineRequest.toJson() as IMedicineRequestLedgerJson;
+                    medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+    
+                    await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    resultArray.push(result);
+                    }
+                }
+
+            return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(resultArray)));
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
@@ -320,12 +382,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
      * ValidationResult with status 'false' and doesnt will verify the rules.
      *
      * @param ctx Context of transaction
-     * @param medicineRequest MedicineRequest that will ve verified
+     * @param medicineRequest MedicineRequest that will be verified
      * @returns ValidationResult
      */
     private async validateMedicineRequestRules(ctx: Context, medicineRequest: MedicineRequest):
         Promise<ValidationResult> {
-
+    
         const validationResult: ValidationResult = new ValidationResult();
         let requestIdAsNumber: number;
 
