@@ -31,6 +31,9 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         new ValidationError('MRD-002',
             'The medicine request is not found.');
 
+    private static ERROR_INVALID_REQUEST_TYPE: ValidationError =
+        new ValidationError('MRD-003', 'request_id is invalid. Please insert a number.');
+
     private static ERROR_INVALID_TYPE: ValidationError =
         new ValidationError('MRD-004', 'Type is invalid. Choose between loan, exchange and donation.');
 
@@ -82,6 +85,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             result.request_id = idRequest;
             result.timestamp = timestamp;
+
+            console.log('Medicine Request id: ' + result.request_id);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
         } catch (error) {
@@ -322,6 +327,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         Promise<ValidationResult> {
 
         const validationResult: ValidationResult = new ValidationResult();
+        let requestIdAsNumber: number;
 
         try {
             // Make basic validations
@@ -355,6 +361,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             ) {
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_TYPE);
 
+            }
+
+            requestIdAsNumber = parseInt(medicineRequest.request_id);
+            if (isNaN(requestIdAsNumber)) {
+                validationResult.addError(MedicineRequestDomain.ERROR_INVALID_REQUEST_TYPE);
             }
 
             if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
