@@ -94,6 +94,7 @@ services:
     restart: always
     volumes:
       - /var/run/:/host/var/run/
+      - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/users/Admin@n2mi.n2med.com/tls/:/etc/hyperledger/fabric/tls/
       - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/peers/peer0.n2mi.n2med.com/msp:/etc/hyperledger/msp/peer
       - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/users:/etc/hyperledger/msp/users
       - ./certificates/config:/etc/hyperledger/configtx
