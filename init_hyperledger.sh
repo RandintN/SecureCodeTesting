@@ -2,7 +2,12 @@
 
 CC_VERSION=600.50
 
-docker network create n2mi_n2med
+if `docker network inspect n2mi_n2med > /dev/null 2>&1` ; then
+    echo "Network n2mi_n2med already exists"
+else
+    echo "Creating network n2mi_n2med ..."
+    docker network create n2mi_n2med
+fi
 
 docker-compose -p n2mi down
 
