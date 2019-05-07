@@ -16,7 +16,7 @@ services:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server-config
       - FABRIC_CA_SERVER_CA_NAME=ca.n2med.com
       - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.n2mi.n2med.com-cert.pem
-      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/1cfd22ebbcd65f345af7e2f45b7b545f44dd02fc577f9c8ac670e5f64d3b4a1c_sk
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/7cc3432da4a987bc5f173ec963003144184adbc2f3a75e7b5b4d237f5a3dd2eb_sk
       - TZ=America/Sao_Paulo
     ports:
       - "7054:7054"
