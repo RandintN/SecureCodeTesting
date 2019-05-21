@@ -42,6 +42,9 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
     private static ERROR_EMPTY_MEDICINE_REQUEST_TO_APPROVE: ValidationError =
         new ValidationError('MRD-006', 'Empty request_id is invaid.');
+
+    private static ERROR_EMPTY_MEDICINE_REQUEST: ValidationError =
+        new ValidationError('MRD-007', 'Empty medicine request is invaid.');
     //#endregion
 
     //#region region of methods to be invoked
@@ -167,6 +170,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         try {
             const medReqApproveJson: IMedicineRequestApproveRejectJson =
                 JSON.parse(medReqApproveStr) as IMedicineRequestApproveRejectJson;
+
+            if(medReqApproveJson==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST)));
+            }
 
             if(medReqApproveJson.request_id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
