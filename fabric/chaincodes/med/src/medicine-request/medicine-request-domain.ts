@@ -37,6 +37,11 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     private static ERROR_INVALID_TYPE: ValidationError =
         new ValidationError('MRD-004', 'Type is invalid. Choose between loan, exchange and donation.');
 
+    private static ERROR_NULL_MEDICINE_REQUEST_TO_APPROVE: ValidationError =
+        new ValidationError('MRD-005', 'You must enter a request_id value.');
+
+    private static ERROR_EMPTY_MEDICINE_REQUEST_TO_APPROVE: ValidationError =
+        new ValidationError('MRD-006', 'Empty request_id is invaid.');
     //#endregion
 
     //#region region of methods to be invoked
@@ -162,6 +167,16 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         try {
             const medReqApproveJson: IMedicineRequestApproveRejectJson =
                 JSON.parse(medReqApproveStr) as IMedicineRequestApproveRejectJson;
+
+            if(medReqApproveJson.request_id==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST_TO_APPROVE)));
+            }
+
+            if(medReqApproveJson.request_id==""){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_TO_APPROVE)));
+            }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
                 medReqApproveJson.request_id);
