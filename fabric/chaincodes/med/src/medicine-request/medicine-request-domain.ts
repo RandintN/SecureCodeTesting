@@ -37,10 +37,10 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     private static ERROR_INVALID_TYPE: ValidationError =
         new ValidationError('MRD-004', 'Type is invalid. Choose between loan, exchange and donation.');
 
-    private static ERROR_NULL_MEDICINE_REQUEST_TO_APPROVE: ValidationError =
+    private static ERROR_NULL_MEDICINE_REQUEST: ValidationError =
         new ValidationError('MRD-005', 'You must enter a request_id value.');
 
-    private static ERROR_EMPTY_MEDICINE_REQUEST_TO_APPROVE: ValidationError =
+    private static ERROR_EMPTY_MEDICINE_REQUEST_ID: ValidationError =
         new ValidationError('MRD-006', 'Empty request_id is invaid.');
 
     private static ERROR_EMPTY_MEDICINE_REQUEST: ValidationError =
@@ -178,12 +178,12 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             if(medReqApproveJson.request_id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST_TO_APPROVE)));
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST)));
             }
 
             if(medReqApproveJson.request_id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_TO_APPROVE)));
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_ID)));
             }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
@@ -230,6 +230,21 @@ export class MedicineRequestDomain implements IMedicineRequestService {
         try {
             const medReqRejectJson: IMedicineRequestApproveRejectJson =
                 JSON.parse(medReqRejectStr) as IMedicineRequestApproveRejectJson;
+
+            if(medReqRejectJson==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST)));
+            }
+
+            if(medReqRejectJson.request_id==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST)));
+            }
+
+            if(medReqRejectJson.request_id==""){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_ID)));
+            }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
                 medReqRejectJson.request_id);
