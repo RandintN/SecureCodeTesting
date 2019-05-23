@@ -122,7 +122,7 @@ services:
     restart: always
     volumes:
       - /var/run/:/host/var/run/
-      - ./fabric/chaincodes/:/opt/gopath/src/github.com/
+      - ../../fabric/chaincodes/:/opt/gopath/src/github.com/
       - ../certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
       - ../certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
