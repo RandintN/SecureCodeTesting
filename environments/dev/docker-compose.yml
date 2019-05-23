@@ -23,7 +23,7 @@ services:
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     restart: always
     volumes:
-      - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ../certificates/crypto-config/peerOrganizations/n2mi.n2med.com/ca/:/etc/hyperledger/fabric-ca-server-config
     networks:
       - n2med
 
@@ -44,9 +44,9 @@ services:
     ports:
       - 7050:7050
     volumes:
-      - ./certificates/config/:/etc/hyperledger/configtx
-      - ./certificates/crypto-config/ordererOrganizations/n2med.com/orderers/orderer.n2med.com/:/etc/hyperledger/msp/orderer
-      - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/peers/peer0.n2mi.n2med.com/:/etc/hyperledger/msp/peerN2mi
+      - ../certificates/config/:/etc/hyperledger/configtx
+      - ../certificates/crypto-config/ordererOrganizations/n2med.com/orderers/orderer.n2med.com/:/etc/hyperledger/msp/orderer
+      - ../certificates/crypto-config/peerOrganizations/n2mi.n2med.com/peers/peer0.n2mi.n2med.com/:/etc/hyperledger/msp/peerN2mi
     depends_on:
       - ca.n2med.com
     networks:
@@ -80,9 +80,9 @@ services:
       - 7053:7053
     volumes:
         - /var/run/:/host/var/run/
-        - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/peers/peer0.n2mi.n2med.com/msp:/etc/hyperledger/msp/peer
-        - ./certificates/crypto-config/peerOrganizations/n2mi.n2med.com/users:/etc/hyperledger/msp/users
-        - ./certificates/config:/etc/hyperledger/configtx
+        - ../certificates/crypto-config/peerOrganizations/n2mi.n2med.com/peers/peer0.n2mi.n2med.com/msp:/etc/hyperledger/msp/peer
+        - ../certificates/crypto-config/peerOrganizations/n2mi.n2med.com/users:/etc/hyperledger/msp/users
+        - ../certificates/config:/etc/hyperledger/configtx
     depends_on:
       - orderer.n2med.com
     networks:
@@ -123,8 +123,8 @@ services:
     volumes:
       - /var/run/:/host/var/run/
       - ./fabric/chaincodes/:/opt/gopath/src/github.com/
-      - ./certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
-      - ./certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ../certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - ../certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
       - couchdb
     networks:
