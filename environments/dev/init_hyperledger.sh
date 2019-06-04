@@ -11,6 +11,18 @@ fi
 
 docker-compose -p n2mi down
 
+resp="none"
+
+while [ $resp != "s" ] && [ $resp != "n" ];
+do
+  echo -n "Desejar apagar os dados salvos em volume no docker? s/n"
+  read resp
+done
+
+if [ $resp == "s" ]; then
+   docker volume prune -f
+fi
+
 docker-compose -p n2mi up --build -d
 
 sleep 10
