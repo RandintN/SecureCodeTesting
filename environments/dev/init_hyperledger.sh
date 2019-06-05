@@ -11,6 +11,18 @@ fi
 
 docker-compose -p n2mi down
 
+resp="none"
+
+while [ $resp != "s" ] && [ $resp != "n" ];
+do
+  echo -n "Desejar apagar os dados salvos em volume no docker? s/n"
+  read resp
+done
+
+if [ $resp == "s" ]; then
+   docker volume prune -f
+fi
+
 docker-compose -p n2mi up --build -d
 
 sleep 10
@@ -32,7 +44,7 @@ sleep ${FABRIC_START_TIMEOUT}
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@n2mi.n2med.com/msp" peer0.n2mi.n2med.com \
     peer channel update -o orderer.n2med.com:7050 -c n2medchannel -f /etc/hyperledger/configtx/N2miMSPanchors.tx
 
-pushd ./fabric/chaincodes/med
+pushd ../../fabric/chaincodes/med
 npm install
 npm run build
 popd
