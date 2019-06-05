@@ -53,12 +53,10 @@ export class MedicineRequestDomain implements IMedicineRequestService {
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
 
         try {
-            console.log("JJJson ", medRequestJson);
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(JSON.parse(medRequestJson) as IMedicineRequestJson);
 
-            console.log("medicineRequest ", medicineRequest);
 
             const validationResult: ValidationResult = await
                 this.validateMedicineRequestRules(ctx, medicineRequest);
@@ -116,22 +114,22 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             let objectRequest: MedicineRequest;
 
             for (var i = 0; i < sizeOfRequest; i++){
-    
-                    objectRequest = new MedicineRequest();
-                    objectRequest.fromJson(medicineRequest[i]);
-                    validationResult = await this.validateMedicineRequestRules(ctx, objectRequest);
-                    
-                    if (!validationResult.isValid) {
-                        return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                            Buffer.from(JSON.stringify(validationResult)));
-                    }
-                    medicineRequestArray.push(objectRequest);
+                objectRequest = new MedicineRequest();
+                objectRequest.fromJson(medicineRequest[i]);
+                validationResult = await this.validateMedicineRequestRules(ctx, objectRequest);
+
+                if (!validationResult.isValid) {
+                    return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                        Buffer.from(JSON.stringify(validationResult)));
+                }
+                medicineRequestArray.push(objectRequest);
             }
 
             const resultArray: Result[] = new Array<Result>();
 
             for (const medicineRequest of medicineRequestArray){
-                const idRequest: string = Guid.create().toString();
+                //const idRequest: string = Guid.create().toString();
+                const idRequest: string = medicineRequest.request_id;
                 const timestamp: number = new Date().getTime();
                 const result: Result = new Result();
 
