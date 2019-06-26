@@ -16,8 +16,9 @@ export class MedicineOffer extends Medicine {
 
     //#endregion
 
-    public classification: string[];
-    public pharmaIndustry: string[];
+    public classification:  string[];
+    public pharmaIndustry:  string[];
+    public offerId:         string;
 
     public fromJson(medicineOffer: IMedicineOfferJson): void {
         this.activeIngredient = medicineOffer.active_ingredient;
@@ -36,6 +37,7 @@ export class MedicineOffer extends Medicine {
             concentration: this.concentration,
             pharma_form: this.pharmaForm,
             pharma_industry: this.pharmaIndustry,
+            offer_id : this.offerId,
         };
 
         return json;
