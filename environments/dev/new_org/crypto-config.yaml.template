@@ -1,0 +1,8 @@
+PeerOrgs:
+  - Name: {organization}
+    Domain: {organization}.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+    Users:
+      Count: 1
