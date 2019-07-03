@@ -26,7 +26,8 @@ done
 
 shift $((OPTIND-1))
 
-if [ -z "${org}" ] || [ -z "${ip_orderer}" ] ; then
+#if [ -z "${org}" ] || [ -z "${ip_orderer}" ] ; then
+if [ -z "${org}" ]; then
     usage
 fi
 
@@ -41,7 +42,9 @@ fi
 
 sed "s/{organization}/$org/g" configtx.yaml.template > org_$org/configtx.yaml
 sed "s/{organization}/$org/g" crypto-config.yaml.template > org_$org/crypto-config.yaml
-
+sed "s/{organization}/$org/g" docker-compose.yaml.template > org_$org/docker-compose.yaml
+sed "s/{organization}/$org/g" init_hyperledger.sh.template > org_$org/init_hyperledger.sh
+chmod +x org_$org/init_hyperledger.sh
 cd org_$org
 
 # Generate crypto material of the organization
@@ -52,13 +55,13 @@ configtxgen -printOrg $org"MSP" > ./certificates/config/org_$org.json
 
 mv crypto-config certificates/crypto-config
 
-#ocker-compose -f docker-compose-hyperledger.yml up -d
+./init_hyperledger.sh
 
 # Buscar o bloco 0 no canal e salvar no <name_channel>.block
-#docker exec cli.org.com peer channel fetch 0 $name_channel.block -o $ip_orderer:7050 -c $name_channel
+docker exec cli peer channel fetch 0 $name_channel.block -o orderer.$org.com:7050 -c $name_channel
 
 # Sincronização dos blocos da rede, a partir do bloco que estou enviando
-#docker exec cli.alphamed.com peer channel join -b $name_channel.block
+docker exec cli peer channel join -b $name_channel.block
 
 echo "-------------------------------"
 echo "Organizacao criada com sucesso!!!"

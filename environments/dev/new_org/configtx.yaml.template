@@ -1,4 +1,8 @@
 Organizations:
+        - &Orderer{organization}
+                Name: Orderer{organization}MSP
+                ID: Orderer{organization}MSP
+                MSPDir: crypto-config/ordererOrganizations/{organization}.com/msp
 
         - &{organization}
                 Name: {organization}MSP
