@@ -1,0 +1,115 @@
+#
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+version: '3.5'
+
+networks:
+  n2med:
+
+services:
+  orderer.{organization}.com:
+    container_name: orderer.{organization}.com
+    image: hyperledger/fabric-orderer:1.4.0
+    environment:
+      - FABRIC_LOGGING_SPEC=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=Orderer{organization}MSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      - TZ=America/Sao_Paulo
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/orderer
+    command: orderer
+    restart: always
+    ports:
+      - 7050:7050
+    volumes:
+      - ../certificates/config/:/etc/hyperledger/configtx
+      - ../certificates/crypto-config/ordererOrganizations/{organization}.com/orderers/orderer.{organization}.com/:/etc/hyperledger/msp/orderer
+      - ../certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/:/etc/hyperledger/msp/peerN2mi
+    networks:
+      - n2med
+
+  peer0.{organization}.com:
+    container_name: peer0.{organization}.com
+    image: hyperledger/fabric-peer:1.4.0
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.{organization}.com
+      - FABRIC_LOGGING_SPEC=debug
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_CHAINCODE_LOGGING_LEVEL=debug
+      - CORE_PEER_LOCALMSPID=N2miMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_ADDRESS=peer0.{organization}.com:7051
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=n2mi_n2med
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+      - TZ=America/Sao_Paulo
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start
+    restart: always
+    ports:
+      - 7051:7051
+      - 7053:7053
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/msp:/etc/hyperledger/msp/peer
+        - ../certificates/crypto-config/peerOrganizations/{organization}.com/users:/etc/hyperledger/msp/users
+        - ../certificates/config:/etc/hyperledger/configtx
+    depends_on:
+      - orderer.{organization}.com
+    networks:
+      - n2med
+
+  couchdb:
+    container_name: couchdb
+    image: hyperledger/fabric-couchdb:0.4.15
+    environment:
+      - COUCHDB_USER=
+      - COUCHDB_PASSWORD=
+      - TZ=America/Sao_Paulo
+    restart: always
+    ports:
+      - 5984:5984
+    depends_on:
+      - peer0.{organization}.com
+    networks:
+      - n2med
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:1.4.0
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=info
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.{organization}.com:7051
+      - CORE_PEER_LOCALMSPID=N2miMSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/{organization}.com/users/Admin@{organization}.com/msp
+      - CORE_CHAINCODE_KEEPALIVE=10
+      - TZ=America/Sao_Paulo
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    restart: always
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../../fabric/chaincodes/:/opt/gopath/src/github.com/
+      - ../certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - ../certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - couchdb
+    networks:
+      - n2med
+
+volumes:
+  db-data:
+    driver: local
