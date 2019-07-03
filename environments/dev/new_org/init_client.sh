@@ -53,6 +53,8 @@ cryptogen generate --config=./crypto-config.yaml
 # Generate channel configs
 configtxgen -printOrg $org"MSP" > ./certificates/config/org_$org.json
 
+configtxgen -profile N2medDevOrdererGenesis -outputBlock ./certificates/config/genesis.block
+
 mv crypto-config certificates/crypto-config
 
 ./init_hyperledger.sh

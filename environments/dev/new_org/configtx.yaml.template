@@ -3,14 +3,76 @@ Organizations:
                 Name: Orderer{organization}MSP
                 ID: Orderer{organization}MSP
                 MSPDir: crypto-config/ordererOrganizations/{organization}.com/msp
-
         - &{organization}
                 Name: {organization}MSP
-
                 ID: {organization}MSP
-
                 MSPDir: crypto-config/peerOrganizations/{organization}.com/msp
-
                 AnchorPeers:
                         - Host: peer0.{organization}.com
                         - Port: 7052
+
+Capabilities:
+    Channel: &ChannelCapabilities
+        V1_3: true
+    Orderer: &OrdererCapabilities
+        V1_1: true
+    Application: &ApplicationCapabilities
+        V1_3: true
+        V1_2: false
+        V1_1: false
+
+Orderer: &OrdererDefaults
+    OrdererType: solo
+    Addresses:
+        - orderer.{organization}.com:7050
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Kafka:
+        Brokers:
+            - 127.0.0.1:9092
+    Organizations:
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+
+Profiles:
+    N2medDevOrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *Orderer{organization}
+                - *{organization}
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            N2medConsortium:
+                Organizations:
+                    - *{organization}

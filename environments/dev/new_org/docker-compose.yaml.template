@@ -26,9 +26,9 @@ services:
     ports:
       - 7050:7050
     volumes:
-      - ../certificates/config/:/etc/hyperledger/configtx
-      - ../certificates/crypto-config/ordererOrganizations/{organization}.com/orderers/orderer.{organization}.com/:/etc/hyperledger/msp/orderer
-      - ../certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/:/etc/hyperledger/msp/peerN2mi
+      - ./certificates/config/:/etc/hyperledger/configtx
+      - ./certificates/crypto-config/ordererOrganizations/{organization}.com/orderers/orderer.{organization}.com/:/etc/hyperledger/msp/orderer
+      - ./certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/:/etc/hyperledger/msp/peerN2mi
     networks:
       - n2med
 
@@ -60,9 +60,9 @@ services:
       - 7053:7053
     volumes:
         - /var/run/:/host/var/run/
-        - ../certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/msp:/etc/hyperledger/msp/peer
-        - ../certificates/crypto-config/peerOrganizations/{organization}.com/users:/etc/hyperledger/msp/users
-        - ../certificates/config:/etc/hyperledger/configtx
+        - ./certificates/crypto-config/peerOrganizations/{organization}.com/peers/peer0.{organization}.com/msp:/etc/hyperledger/msp/peer
+        - ./certificates/crypto-config/peerOrganizations/{organization}.com/users:/etc/hyperledger/msp/users
+        - ./certificates/config:/etc/hyperledger/configtx
     depends_on:
       - orderer.{organization}.com
     networks:
@@ -102,9 +102,9 @@ services:
     restart: always
     volumes:
       - /var/run/:/host/var/run/
-      - ../../fabric/chaincodes/:/opt/gopath/src/github.com/
-      - ../certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
-      - ../certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ../../../fabric/chaincodes/:/opt/gopath/src/github.com/
+      - ./certificates/crypto-config/:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - ./certificates/config:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     depends_on:
       - couchdb
     networks:
