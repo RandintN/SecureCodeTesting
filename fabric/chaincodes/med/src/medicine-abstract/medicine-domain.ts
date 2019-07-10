@@ -2,7 +2,7 @@ import { Context } from 'fabric-contract-api';
 import { ActiveIngredientDomain } from '../active-ingredient/active-ingredient-domain';
 import { PharmaceuticalFormDomain } from '../pharmaceutical-form/pharmaceutical-form-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { Medicine } from './medicine-model';
+import { Medicine } from './medicine';
 
 export abstract class MedicineDomain {
 

@@ -4,7 +4,7 @@ export enum SituationEnum {
 
 }
 
-export enum MedicineRequestStatusEnum {
+export enum MedicineStatusEnum {
     APPROVED = 'APPROVED',
     REJECTED = 'REJECTED',
     WAITING_FOR_APPROVAL = 'WAITING FOR APPROVAL'

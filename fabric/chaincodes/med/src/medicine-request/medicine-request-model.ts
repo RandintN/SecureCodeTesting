@@ -1,9 +1,9 @@
 import { IExchangeJson } from '../exchange/exchange-json';
 import { Exchange } from '../exchange/exchange-model';
-import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
-import { MedicineOffer } from '../medicine-offer/medicine-offer-model';
+import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
+import { MedicineModel } from '../medicine/medicine-model';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
+import { MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -28,7 +28,7 @@ export class MedicineRequest implements IValidator {
 
     //#endregion
     public amount: string;
-    public medicine: MedicineOffer;
+    public medicine: MedicineModel;
     public type: string;
     public returnDate: string;
     public exchange: Exchange[];
@@ -40,9 +40,9 @@ export class MedicineRequest implements IValidator {
         this.returnDate = medicineRequestJson.return_date;
         this.type = medicineRequestJson.type;
         this.status = medicineRequestJson.status ? medicineRequestJson.status
-            : MedicineRequestStatusEnum.WAITING_FOR_APPROVAL;
+            : MedicineStatusEnum.WAITING_FOR_APPROVAL;
 
-        const medicineOffer: MedicineOffer = new MedicineOffer();
+        const medicineOffer: MedicineModel = new MedicineModel();
         if (medicineRequestJson.medicine) {
             medicineOffer.fromJson(medicineRequestJson.medicine);
         }
@@ -67,7 +67,7 @@ export class MedicineRequest implements IValidator {
     }
 
     public toJson(): IMedicineRequestJson {
-        const medicineOfferJson: IMedicineOfferJson = this.medicine.toJson();
+        const medicineInitialJson: IMedicineInitialTransactionJson = this.medicine.toJson();
         const exchangesJson: IExchangeJson[] = [];
 
         for (const exchange of this.exchange) {
@@ -79,7 +79,7 @@ export class MedicineRequest implements IValidator {
         const medicineRequestJson: IMedicineRequestJson = {
             amount: this.amount,
             exchange: exchangesJson,
-            medicine: medicineOfferJson,
+            medicine: medicineInitialJson,
             return_date: this.returnDate ? this.returnDate : undefined,
             status: this.status,
             type: this.type,

@@ -1,4 +1,4 @@
-import { Medicine } from '../medicine-abstract/medicine-model';
+import { Medicine } from '../medicine-abstract/medicine';
 import { IMedicineBatchJson } from '../medicine-batch/medicine-batch-json';
 import { MedicineBatch } from '../medicine-batch/medicine-batch-model';
 import { ValidationError } from '../validation/validation-error-model';

@@ -1,8 +1,5 @@
-import { IMedicineJson } from '../medicine-abstract/medicine-json';
+import { IMedicineBaseJson } from '../medicine/medicine-base-json';
 
-export interface IMedicineOfferJson extends IMedicineJson {
-    classification: string[];
-    pharma_industry: string[];
+export interface IMedicineOfferJson extends IMedicineBaseJson {
     offer_id: string;
-
 }

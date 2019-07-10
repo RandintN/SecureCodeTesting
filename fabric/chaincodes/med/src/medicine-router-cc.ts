@@ -16,6 +16,7 @@ import { PharmaceuticalIndustryDomain } from './pharmaceutical-industry/pharmace
 import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharmaceutical-industry-interface';
 import { ValidationResult } from './validation/validation-model';
 import { MedicineDeliveryDomain} from './medicine-delivery/medicine-delivery-domain';
+import { MedicineOfferDomain } from './medicine-offer/medicine-offer-domain';
 
 export class MedicineRouterCC extends Contract implements
     IActiveIngredientService,
@@ -160,6 +161,10 @@ export class MedicineRouterCC extends Contract implements
         : Promise<ChaincodeResponse> {
         return await new MedicineOfferedRequestDomain()
             .approveOfferMedicineRequest(ctx, approveOfferMedicineRequestJson);
+    }
+
+    public async offerMedicine(ctx: Context, medicineOfferedJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineOfferDomain().addMedicineOffer(ctx, medicineOfferedJson);
     }
 
     //#endregion

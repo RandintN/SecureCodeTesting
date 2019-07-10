@@ -1,9 +1,3 @@
-import { IExchangeJson } from '../exchange/exchange-json';
-import { Exchange } from '../exchange/exchange-model';
-import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
-import { MedicineOffer } from '../medicine-offer/medicine-offer-model';
-import { DateExtension } from '../utils/date-extension';
-import { MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';

@@ -1,13 +1,5 @@
-import { IExchangeJson } from '../exchange/exchange-json';
-import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
-import { MedicineRequestStatusEnum } from '../utils/enums';
+import { IMedicineBaseJson } from '../medicine/medicine-base-json';
 
-export interface IMedicineRequestJson {
-    amount: string;
-    medicine: IMedicineOfferJson;
-    type: string;
-    return_date: string;
-    exchange: IExchangeJson[];
-    status: MedicineRequestStatusEnum;
+export interface IMedicineRequestJson extends IMedicineBaseJson {
     request_id: string;
 }

@@ -7,7 +7,7 @@ import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-m
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
-import { MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
+import { MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineRequestApproveRejectJson } from './medicine-request-approve-reject-json';
@@ -79,7 +79,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             } else {
-                medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+                medicineRequest.status = MedicineStatusEnum.APPROVED;
 
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
@@ -146,7 +146,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                     resultArray.push(result);
     
                 } else {
-                    medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+                    medicineRequest.status = MedicineStatusEnum.APPROVED;
                     const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
                     medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
@@ -196,7 +196,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const medRequestJson: IMedicineRequestJson =
                 JSON.parse(medRequestInBytes.toString()) as IMedicineRequestJson;
 
-            if (!medRequestJson || medRequestJson.status !== MedicineRequestStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medRequestJson || medRequestJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
 
@@ -204,7 +204,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(medRequestJson);
-            medicineRequest.status = MedicineRequestStatusEnum.APPROVED;
+            medicineRequest.status = MedicineStatusEnum.APPROVED;
 
             await ctx.stub.putState(medReqApproveJson.request_id
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
@@ -255,7 +255,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
             const medRequestJson: IMedicineRequestJson =
                 JSON.parse(medRequestInBytes.toString()) as IMedicineRequestJson;
 
-            if (!medRequestJson || medRequestJson.status !== MedicineRequestStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medRequestJson || medRequestJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
 
@@ -263,7 +263,7 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(medRequestJson);
-            medicineRequest.status = MedicineRequestStatusEnum.REJECTED;
+            medicineRequest.status = MedicineStatusEnum.REJECTED;
 
             await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqRejectJson.request_id
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));

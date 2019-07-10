@@ -1,7 +1,7 @@
 import { Context } from 'fabric-contract-api';
-import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
+import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
 import { IMedicineRequestJson } from '../medicine-request/medicine-request-json';
-import { MedicineRequestStatusEnum} from '../utils/enums';
+import { MedicineStatusEnum} from '../utils/enums';
 import { ChaincodeResponse } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';

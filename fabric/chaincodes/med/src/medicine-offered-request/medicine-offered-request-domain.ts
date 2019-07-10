@@ -2,7 +2,7 @@ import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
 
-import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
+import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
 import { MedicineOfferedDomain } from '../medicine-offered/medicine-offered-domain';
 import { MedicineOffered } from '../medicine-offered/medicine-offered-model';
 import { IMedicineRequestJson } from '../medicine-request/medicine-request-json';
@@ -11,7 +11,7 @@ import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineOfferedStatusEnum, MedicineRequestStatusEnum, RequestMode } from '../utils/enums';
+import { MedicineOfferedStatusEnum, MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineOfferedApproveJson } from './medicine-offered-approve-json';
@@ -151,7 +151,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
                 return validationResult;
             }
             const medicineRequest: IMedicineRequestJson = JSON.parse(result.toString());
-            if (medicineRequest.status !== MedicineRequestStatusEnum.APPROVED) {
+            if (medicineRequest.status !== MedicineStatusEnum.APPROVED) {
                 validationResult.addError(MedicineOfferedRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND);
                 return validationResult;
             }
@@ -207,7 +207,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
 
     }
 
-    private validateMedicineOffered(medicineOffered: MedicineOffered, medicineRequest: IMedicineOfferJson): boolean {
+    private validateMedicineOffered(medicineOffered: MedicineOffered, medicineRequest: IMedicineInitialTransactionJson): boolean {
         if (medicineRequest.active_ingredient !== medicineOffered.activeIngredient) {
             return false;
         }
@@ -245,7 +245,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
         }
 
         const medicineRequest: IMedicineRequestLedgerJson = JSON.parse(medicineRequestBuffer.toString());
-        if (medicineRequest.status !== MedicineRequestStatusEnum.APPROVED) {
+        if (medicineRequest.status !== MedicineStatusEnum.APPROVED) {
             return false;
         }
         return true;
