@@ -3,7 +3,6 @@ import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { MedicineModel } from '../medicine/medicine-model';
 import { ChaincodeResponse } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
@@ -13,8 +12,9 @@ import { ExchangeDomain } from '../exchange/exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ValidationError } from '../validation/validation-error-model';
 import { IMedicineOfferLedgerJson } from './medicine-offer-ledger-json';
-import { IMedicineOfferJson } from './medicine-offer-json';
 import { MedicineOffer } from './medicine-offer-model';
+import { MedicineOfferModel } from './medicine-offer-model-base';
+import { IMedicineOfferJson } from './medicine-offer-json';
 
 export class MedicineOfferDomain extends MedicineDomain {
 
@@ -33,10 +33,6 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const medicineOffer: MedicineOffer = new MedicineOffer();
             medicineOffer.fromJson(JSON.parse(medJsonIn) as IMedicineOfferJson);
-
-            console.log(medicineOffer.medicine.activeIngredient);
-            console.log(medicineOffer.medicine.pharmaForm);
-            console.log(medicineOffer.medicine.concentration);
 
             const validationResult: ValidationResult = await
                 this.validateMedicineOfferRules(ctx, medicineOffer);
@@ -63,7 +59,6 @@ export class MedicineOfferDomain extends MedicineDomain {
 
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                 medicineOffer.toJson() as IMedicineOfferLedgerJson;
-
                 medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
                 await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineOfferToLedger)));
@@ -172,7 +167,7 @@ export class MedicineOfferDomain extends MedicineDomain {
         return validationResult;
     }
 
-    public async isValid(ctx: Context, medicine: MedicineModel): Promise<ValidationResult> {
+    public async isValid(ctx: Context, medicine: MedicineOfferModel): Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
@@ -225,23 +220,20 @@ export class MedicineOfferDomain extends MedicineDomain {
         return validationResult;
     }
 
-    private async validateClassification(ctx: Context, medicine: MedicineModel):
+    private async validateClassification(ctx: Context, medicine: MedicineOfferModel):
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
         const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
         try {
             if (medicine.classification && medicine.classification.length > 0) {
-                for (const classification of medicine.classification) {
-                    if (classification) {
-                        const medicineClassificationValidation: ValidationResult = await
-                            medicineClassificationDomain.validateMedicineClassification(ctx, classification);
+                const classification = medicine.classification;
+                if (classification) {
+                    const medicineClassificationValidation: ValidationResult = await
+                        medicineClassificationDomain.validateMedicineClassification(ctx, classification);
 
-                        if (!medicineClassificationValidation.isValid) {
-                            validationResult.addErrors(medicineClassificationValidation.errors);
-
-                        }
+                    if (!medicineClassificationValidation.isValid) {
+                        validationResult.addErrors(medicineClassificationValidation.errors);
                     }
-
                 }
             }
         } catch (error) {
@@ -253,25 +245,22 @@ export class MedicineOfferDomain extends MedicineDomain {
         return validationResult;
     }
 
-    private async validatePharmaceuticalIndustries(ctx: Context, medicine: MedicineModel):
+    private async validatePharmaceuticalIndustries(ctx: Context, medicine: MedicineOfferModel):
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
         const pharmaIndustryDomain: PharmaceuticalIndustryDomain = new PharmaceuticalIndustryDomain();
         try {
             if (medicine.pharmaIndustry && medicine.pharmaIndustry.length > 0) {
-                for (const pharmaIndustry of medicine.pharmaIndustry) {
-                    if (pharmaIndustry) {
-                        const pharmaIndustryValidationResult: ValidationResult =
-                            await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
+                const pharmaIndustry = medicine.pharmaIndustry;
 
-                        if (!pharmaIndustryValidationResult.isValid) {
-                            validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                if (pharmaIndustry) {
+                    const pharmaIndustryValidationResult: ValidationResult =
+                        await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
 
-                        }
+                    if (!pharmaIndustryValidationResult.isValid) {
+                        validationResult.addErrors(pharmaIndustryValidationResult.errors);
                     }
-
                 }
-
             }
 
         } catch (error) {

@@ -1,13 +1,13 @@
 import { IExchangeJson } from '../exchange/exchange-json';
 import { Exchange } from '../exchange/exchange-model';
-import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
-import { MedicineModel } from '../medicine/medicine-model';
+import { MedicineRequestModel } from './medicine-request-model-base';
 import { DateExtension } from '../utils/date-extension';
 import { MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
+import { IMedicineRequestClaPharmIndJson } from '../medicine/medicine-initial-transaction-json';
 
 export class MedicineRequest implements IValidator {
     //#region constants
@@ -28,7 +28,7 @@ export class MedicineRequest implements IValidator {
 
     //#endregion
     public amount: string;
-    public medicine: MedicineModel;
+    public medicine: MedicineRequestModel;
     public type: string;
     public returnDate: string;
     public exchange: Exchange[];
@@ -42,7 +42,7 @@ export class MedicineRequest implements IValidator {
         this.status = medicineRequestJson.status ? medicineRequestJson.status
             : MedicineStatusEnum.WAITING_FOR_APPROVAL;
 
-        const medicineOffer: MedicineModel = new MedicineModel();
+        const medicineOffer: MedicineRequestModel = new MedicineRequestModel();
         if (medicineRequestJson.medicine) {
             medicineOffer.fromJson(medicineRequestJson.medicine);
         }
@@ -67,7 +67,7 @@ export class MedicineRequest implements IValidator {
     }
 
     public toJson(): IMedicineRequestJson {
-        const medicineInitialJson: IMedicineInitialTransactionJson = this.medicine.toJson();
+        const medicineInitialJson: IMedicineRequestClaPharmIndJson = this.medicine.toJson();
         const exchangesJson: IExchangeJson[] = [];
 
         for (const exchange of this.exchange) {

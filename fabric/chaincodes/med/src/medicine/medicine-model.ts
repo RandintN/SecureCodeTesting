@@ -1,8 +1,8 @@
 import { Medicine } from '../medicine-abstract/medicine';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
 import { Exchange } from '../exchange/exchange-model';
+import { IMedicineJson } from '../medicine-abstract/medicine-json';
 
 export class MedicineModel extends Medicine {
     //#region constants
@@ -17,32 +17,15 @@ export class MedicineModel extends Medicine {
 
     //#endregion
 
-    public classification:  string[];
-    public pharmaIndustry:  string[];
     public exchange:        Exchange[];
     public type:            string;
     public status:          any;
 
-    public fromJson(medicineOffer: IMedicineInitialTransactionJson): void {
-        this.activeIngredient = medicineOffer.active_ingredient;
-        this.classification = medicineOffer.classification;
-        this.commercialName = medicineOffer.commercial_name;
-        this.concentration = medicineOffer.concentration;
-        this.pharmaForm = medicineOffer.pharma_form;
-        this.pharmaIndustry = medicineOffer.pharma_industry;
-    }
-
-    public toJson(): IMedicineInitialTransactionJson {
-        const json: IMedicineInitialTransactionJson = {
-            active_ingredient: this.activeIngredient,
-            classification: this.classification,
-            commercial_name: this.commercialName,
-            concentration: this.concentration,
-            pharma_form: this.pharmaForm,
-            pharma_industry: this.pharmaIndustry,
-        };
-
-        return json;
+    public fromJson(medicine: IMedicineJson): void {
+        this.activeIngredient = medicine.active_ingredient;
+        this.commercialName = medicine.commercial_name;
+        this.concentration = medicine.concentration;
+        this.pharmaForm = medicine.pharma_form;
     }
 
     public isValid(): ValidationResult {

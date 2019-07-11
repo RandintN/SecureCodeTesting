@@ -1,13 +1,13 @@
 import { IExchangeJson } from '../exchange/exchange-json';
 import { Exchange } from '../exchange/exchange-model';
-import { IMedicineInitialTransactionJson } from './medicine-initial-transaction-json';
-import { MedicineModel } from '../medicine/medicine-model';
+import { MedicineOfferModel } from './medicine-offer-model-base';
 import { DateExtension } from '../utils/date-extension';
 import { MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IMedicineOfferJson } from './medicine-offer-json';
+import { IMedicineOfferClaPharmIndJson } from './medicine-offer-classification-pharma-industry-json';
 
 export class MedicineOffer implements IValidator {
     //#region constants
@@ -28,31 +28,31 @@ export class MedicineOffer implements IValidator {
 
     //#endregion
     public amount: string;
-    public medicine: MedicineModel;
+    public medicine: MedicineOfferModel;
     public type: string;
     public returnDate: string;
     public exchange: Exchange[];
     public status: any;
     public offer_id : string;
 
-    public fromJson(medicineRequestJson: IMedicineOfferJson): void {
-        this.amount = medicineRequestJson.amount;
-        this.returnDate = medicineRequestJson.return_date;
-        this.type = medicineRequestJson.type;
-        this.status = medicineRequestJson.status ? medicineRequestJson.status
+    public fromJson(medicineOfferJson: IMedicineOfferJson): void {
+        this.amount = medicineOfferJson.amount;
+        this.returnDate = medicineOfferJson.return_date;
+        this.type = medicineOfferJson.type;
+        this.status = medicineOfferJson.status ? medicineOfferJson.status
             : MedicineStatusEnum.WAITING_FOR_APPROVAL;
 
-        const medicineOffer: MedicineModel = new MedicineModel();
-        if (medicineRequestJson.medicine) {
-            medicineOffer.fromJson(medicineRequestJson.medicine);
+        const medicineOffer: MedicineOfferModel = new MedicineOfferModel();
+        if (medicineOfferJson.medicine) {
+            medicineOffer.fromJson(medicineOfferJson.medicine);
         }
 
         this.medicine = medicineOffer;
 
         const exchanges: Exchange[] = [];
 
-        if (medicineRequestJson.exchange) {
-            for (const exchangeJson of medicineRequestJson.exchange) {
+        if (medicineOfferJson.exchange) {
+            for (const exchangeJson of medicineOfferJson.exchange) {
                 const exchange: Exchange = new Exchange();
                 exchange.fromJson(exchangeJson);
                 exchanges.push(exchange);
@@ -63,11 +63,11 @@ export class MedicineOffer implements IValidator {
 
         this.exchange = exchanges;
 
-        this.offer_id = medicineRequestJson.offer_id;
+        this.offer_id = medicineOfferJson.offer_id;
     }
 
     public toJson(): IMedicineOfferJson {
-        const medicineInitialJson: IMedicineInitialTransactionJson = this.medicine.toJson();
+        const medicineInitialJson: IMedicineOfferClaPharmIndJson = this.medicine.toJson();
         const exchangesJson: IExchangeJson[] = [];
 
         for (const exchange of this.exchange) {

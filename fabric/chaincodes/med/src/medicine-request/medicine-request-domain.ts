@@ -2,7 +2,6 @@ import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
 import { ExchangeDomain } from '../exchange/exchange-domain';
-import { MedicineOfferDomain } from '../medicine-offer/medicine-offer-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
@@ -18,8 +17,12 @@ import { MedicineRequest } from './medicine-request-model';
 import { IMedicineRequestPaginationResultJson } from './medicine-request-pagination-result';
 import { IMedicineRequestQuery, QueryType } from './medicine-request-query';
 import { IMedicineRequestQueryResultJson } from './medicine-request-query-result';
+import { MedicineRequestModel } from './medicine-request-model-base';
+import { MedicineDomain } from '../medicine-abstract/medicine-domain';
+import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
+import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 
-export class MedicineRequestDomain implements IMedicineRequestService {
+export class MedicineRequestDomain extends MedicineDomain implements IMedicineRequestService {
 
     //#region constants
 
@@ -435,9 +438,8 @@ export class MedicineRequestDomain implements IMedicineRequestService {
                 return medicineBasicValidation;
             }
 
-            const medicineOfferDomain: MedicineOfferDomain = new MedicineOfferDomain();
             const medicineOfferValidation: ValidationResult =
-                await medicineOfferDomain.isValid(ctx, medicineRequest.medicine);
+                await this.isValid(ctx, medicineRequest.medicine);
 
             if (!medicineOfferValidation.isValid) {
                 validationResult.addErrors(medicineOfferValidation.errors);
@@ -481,6 +483,117 @@ export class MedicineRequestDomain implements IMedicineRequestService {
 
                         }
 
+                    }
+
+                }
+
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+
+        return validationResult;
+    }
+
+    public async isValid(ctx: Context, medicine: MedicineRequestModel): Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            const validationModel: ValidationResult =
+                medicine.isValid();
+
+            if (!validationModel.isValid) {
+                validationResult.addErrors(validationModel.errors);
+
+            }
+
+            const validationActiveIngredient: ValidationResult =
+                await super.validateActiveIngredient(ctx, medicine);
+
+            if (!validationActiveIngredient.isValid) {
+                validationResult.addErrors(validationActiveIngredient.errors);
+
+            }
+
+            const validationPharmaceuticalForm: ValidationResult =
+                await super.validatePharmaceuticalForm(ctx, medicine);
+
+            if (!validationPharmaceuticalForm.isValid) {
+                validationResult.addErrors(validationPharmaceuticalForm.errors);
+
+            }
+
+            const validationClassification: ValidationResult =
+                await this.validateClassification(ctx, medicine);
+
+            if (!validationClassification.isValid) {
+                validationResult.addErrors(validationClassification.errors);
+
+            }
+
+            const validationPharmaceuticalIndustries: ValidationResult =
+                await this.validatePharmaceuticalIndustries(ctx, medicine);
+
+            if (!validationPharmaceuticalIndustries.isValid) {
+                validationResult.addErrors(validationPharmaceuticalIndustries.errors);
+
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+
+        return validationResult;
+    }
+
+    private async validateClassification(ctx: Context, medicine: MedicineRequestModel):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+        const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
+        try {
+            if (medicine.classification && medicine.classification.length > 0) {
+                for (const classification of medicine.classification) {
+                    if (classification) {
+                        const medicineClassificationValidation: ValidationResult = await
+                            medicineClassificationDomain.validateMedicineClassification(ctx, classification);
+
+                        if (!medicineClassificationValidation.isValid) {
+                            validationResult.addErrors(medicineClassificationValidation.errors);
+
+                        }
+                    }
+
+                }
+            }
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+
+        return validationResult;
+    }
+
+    private async validatePharmaceuticalIndustries(ctx: Context, medicine: MedicineRequestModel):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+        const pharmaIndustryDomain: PharmaceuticalIndustryDomain = new PharmaceuticalIndustryDomain();
+        try {
+            if (medicine.pharmaIndustry && medicine.pharmaIndustry.length > 0) {
+                for (const pharmaIndustry of medicine.pharmaIndustry) {
+                    if (pharmaIndustry) {
+                        const pharmaIndustryValidationResult: ValidationResult =
+                            await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
+
+                        if (!pharmaIndustryValidationResult.isValid) {
+                            validationResult.addErrors(pharmaIndustryValidationResult.errors);
+
+                        }
                     }
 
                 }

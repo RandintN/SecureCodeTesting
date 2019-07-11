@@ -1,8 +1,7 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
-
-import { IMedicineInitialTransactionJson } from '../medicine-offer/medicine-initial-transaction-json';
+import { IMedicineRequestClaPharmIndJson } from '../medicine/medicine-initial-transaction-json';
 import { MedicineOfferedDomain } from '../medicine-offered/medicine-offered-domain';
 import { MedicineOffered } from '../medicine-offered/medicine-offered-model';
 import { IMedicineRequestJson } from '../medicine-request/medicine-request-json';
@@ -207,7 +206,7 @@ export class MedicineOfferedRequestDomain implements IMedicineOfferedRequestServ
 
     }
 
-    private validateMedicineOffered(medicineOffered: MedicineOffered, medicineRequest: IMedicineInitialTransactionJson): boolean {
+    private validateMedicineOffered(medicineOffered: MedicineOffered, medicineRequest: IMedicineRequestClaPharmIndJson): boolean {
         if (medicineRequest.active_ingredient !== medicineOffered.activeIngredient) {
             return false;
         }
