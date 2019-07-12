@@ -18,10 +18,12 @@ export class MedicineOfferModel extends MedicineModel {
         this.classification = medicineOffer.classification;
         this.pharmaIndustry = medicineOffer.pharma_industry;
         this.ref_value = medicineOffer.ref_value;
-        for (const batchJson of medicineOffer.medicine_batch) {
-            const medicineBatch: MedicineBatch = new MedicineBatch();
-            medicineBatch.fromJson(batchJson);
-            this.medicineBatch.push(medicineBatch);
+        if (medicineOffer.medicine_batch && medicineOffer.medicine_batch.length > 0) {
+            for (const batchJson of medicineOffer.medicine_batch) {
+                const medicineBatch: MedicineBatch = new MedicineBatch();
+                medicineBatch.fromJson(batchJson);
+                this.medicineBatch.push(medicineBatch);
+            }
         }
     }
 

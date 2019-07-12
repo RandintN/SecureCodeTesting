@@ -26,6 +26,16 @@ export class MedicineOfferDomain extends MedicineDomain {
     private static ERROR_NEGOTIATION_IS_NEEDED: ValidationError =
         new ValidationError('MOD-003',
             'When the negotiation have a type as exchange one or more exchange is necessary.');
+    private static ERROR_CLASSIFICATION_REQUIRED: ValidationError =
+            new ValidationError('MOD-004', 'The parameter classification cannot be empty or null.');
+    private static ERROR_PHARMA_INDUSTRY_REQUIRED: ValidationError =
+    new ValidationError('MOD-005', 'The parameter pharm industry cannot be empty or null.');
+    private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
+    new ValidationError('MOD-006', 'The parameter medicine_batch cannot be empty or null.');
+    private static ERROR_EMPTY_BATCH_EXPIRE_DATE: ValidationError =
+    new ValidationError('MOD-007', 'The parameter expire_date of medicine_batch cannot be empty or null.');
+    private static ERROR_EMPTY_BATCH_AMOUNT: ValidationError =
+    new ValidationError('MOD-008', 'The parameter amount of medicine_batch cannot be empty or null.');
 
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
@@ -211,6 +221,12 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             }
 
+            const validationMedicineBatch: ValidationResult = await this.validateMedicineBatch(medicine);
+
+            if (!validationMedicineBatch.isValid) {
+                validationResult.addErrors(validationMedicineBatch.errors);
+            }
+
         } catch (error) {
             throw error;
         }
@@ -227,14 +243,16 @@ export class MedicineOfferDomain extends MedicineDomain {
         try {
             if (medicine.classification && medicine.classification.length > 0) {
                 const classification = medicine.classification;
-                if (classification) {
-                    const medicineClassificationValidation: ValidationResult = await
-                        medicineClassificationDomain.validateMedicineClassification(ctx, classification);
 
-                    if (!medicineClassificationValidation.isValid) {
-                        validationResult.addErrors(medicineClassificationValidation.errors);
-                    }
+                const medicineClassificationValidation: ValidationResult = await
+                    medicineClassificationDomain.validateMedicineClassification(ctx, classification);
+
+                if (!medicineClassificationValidation.isValid) {
+                    validationResult.addErrors(medicineClassificationValidation.errors);
                 }
+            }
+            else{
+                validationResult.addError(MedicineOfferDomain.ERROR_CLASSIFICATION_REQUIRED);
             }
         } catch (error) {
             throw error;
@@ -253,16 +271,47 @@ export class MedicineOfferDomain extends MedicineDomain {
             if (medicine.pharmaIndustry && medicine.pharmaIndustry.length > 0) {
                 const pharmaIndustry = medicine.pharmaIndustry;
 
-                if (pharmaIndustry) {
-                    const pharmaIndustryValidationResult: ValidationResult =
-                        await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
+                const pharmaIndustryValidationResult: ValidationResult =
+                    await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, pharmaIndustry);
 
-                    if (!pharmaIndustryValidationResult.isValid) {
-                        validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                if (!pharmaIndustryValidationResult.isValid) {
+                    validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                }
+            }
+            else{
+                validationResult.addError(MedicineOfferDomain.ERROR_PHARMA_INDUSTRY_REQUIRED);
+            }
+
+        } catch (error) {
+            throw error;
+        }
+
+        validationResult.isValid = validationResult.errors.length < 1;
+
+        return validationResult;
+    }
+
+    private async validateMedicineBatch(medicine: MedicineOfferModel):
+        Promise<ValidationResult> {
+        const validationResult: ValidationResult = new ValidationResult();
+
+        try {
+            if (!medicine.medicineBatch) {
+                validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_BATCH);
+            }
+            else if(medicine.medicineBatch.length < 1){
+                validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_BATCH);
+            }
+            else {
+                for(const medicineBatchItem of medicine.medicineBatch){
+                    if(!medicineBatchItem.amount){
+                        validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_AMOUNT);
+                    }
+                    if(!medicineBatchItem.expireDate){
+                        validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_EXPIRE_DATE);
                     }
                 }
             }
-
         } catch (error) {
             throw error;
         }
