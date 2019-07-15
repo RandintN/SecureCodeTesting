@@ -15,6 +15,7 @@ import { IMedicineOfferLedgerJson } from './medicine-offer-ledger-json';
 import { MedicineOffer } from './medicine-offer-model';
 import { MedicineOfferModel } from './medicine-offer-model-base';
 import { IMedicineOfferJson } from './medicine-offer-json';
+import moment = require('moment');
 
 export class MedicineOfferDomain extends MedicineDomain {
 
@@ -36,6 +37,16 @@ export class MedicineOfferDomain extends MedicineDomain {
     new ValidationError('MOD-007', 'The parameter expire_date of medicine_batch cannot be empty or null.');
     private static ERROR_EMPTY_BATCH_AMOUNT: ValidationError =
     new ValidationError('MOD-008', 'The parameter amount of medicine_batch cannot be empty or null.');
+    private static ERROR_BAD_FORMAT_EXPIRE_DATE: ValidationError =
+        new ValidationError('MOD-009', 'The format of medicine_batch expire_date is not supported. Supported format: MM-YYYY');
+    private static ERROR_DUPLICATE_BATCH: ValidationError =
+    new ValidationError('MOD-010', 'The parameter batch is cannot be repeated.');
+    private static ERROR_YEAR: ValidationError =
+    new ValidationError('MOD-011', 'The year cannot be before the current.');
+    private static ERROR_MONTH: ValidationError =
+    new ValidationError('MOD-012', 'The month must be after the current.');
+    private static ERROR_DUPLICATE_EXPIRE_DATE: ValidationError =
+    new ValidationError('MOD-013', 'The parameter expire_date of medicine_batch cannot be repeated.');
 
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
@@ -55,7 +66,8 @@ export class MedicineOfferDomain extends MedicineDomain {
             //const idRequest: string = Guid.create().toString();
             const idRequest: string = medicineOffer.offer_id;
 
-            if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+            if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE
+            || medicineOffer.type.toLocaleLowerCase() === RequestMode.DONATION) {
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                     medicineOffer.toJson() as IMedicineOfferLedgerJson;
 
@@ -63,7 +75,6 @@ export class MedicineOfferDomain extends MedicineDomain {
 
                 await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD,
                     idRequest, Buffer.from(JSON.stringify(medicineOfferToLedger)));
-
             } else {
                 medicineOffer.status = MedicineStatusEnum.APPROVED;
 
@@ -303,12 +314,41 @@ export class MedicineOfferDomain extends MedicineDomain {
                 validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_BATCH);
             }
             else {
+                let batchList : string[] = [];
+                let expireDateList : string[] = [];
                 for(const medicineBatchItem of medicine.medicineBatch){
+                    if(medicineBatchItem.batch.length>0 && batchList.includes(medicineBatchItem.batch)){
+                        validationResult.addError(MedicineOfferDomain.ERROR_DUPLICATE_BATCH);
+                    }
+                    else{
+                        batchList.push(medicineBatchItem.batch);
+                    }
                     if(!medicineBatchItem.amount){
                         validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_AMOUNT);
                     }
                     if(!medicineBatchItem.expireDate){
                         validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_EXPIRE_DATE);
+                    }
+                    else if (!moment(medicineBatchItem.expireDate, CommonConstants.DATE_FORMAT_OFFER, true).isValid()) {
+                        validationResult.addError(MedicineOfferDomain.ERROR_BAD_FORMAT_EXPIRE_DATE);
+                    }
+                    if(expireDateList.includes(medicineBatchItem.expireDate)){
+                        validationResult.addError(MedicineOfferDomain.ERROR_DUPLICATE_EXPIRE_DATE);
+                    }
+                    else{
+                        expireDateList.push(medicineBatchItem.expireDate);
+                    }
+                    //Expire date must be one month after the current.
+                    let month : string = medicineBatchItem.expireDate.substr(0, 2);
+                    let year : string = medicineBatchItem.expireDate.substr(3, 6);
+                    let today : Date = new Date(moment().format('YYYY-MM-DD HH:mm:ss'));
+
+                    if(today.getUTCFullYear()>Number(year)){
+                        validationResult.addError(MedicineOfferDomain.ERROR_YEAR);
+                    }
+
+                    if(today.getUTCMonth()+1>=Number(month)){
+                        validationResult.addError(MedicineOfferDomain.ERROR_MONTH);
                     }
                 }
             }

@@ -54,7 +54,7 @@ export class MedicineBatch implements IValidator {
         if (!this.expireDate) {
             validationResult.addError(MedicineBatch.ERROR_EMPTY_EXPIRE_DATE);
 
-        } else if (moment(this.expireDate, CommonConstants.DATE_FORMAT, true).isValid()) {
+        } else if (!moment(this.expireDate, CommonConstants.DATE_FORMAT, true).isValid()) {
             validationResult.addError(MedicineBatch.ERROR_BAD_FORMAT_EXPIRE_DATE);
 
         }
