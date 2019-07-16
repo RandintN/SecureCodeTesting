@@ -36,8 +36,8 @@ export class MedicineOfferExchange extends Medicine {
         return json;
     }
 
+    //Este método não faz nada. Você pode apaga-lo, se isso não impactar outras coisas.
     public isValid(): ValidationResult {
-        console.log("Rodou offer.");
         const validationResult: ValidationResult = new ValidationResult();
 
         return validationResult;

@@ -91,7 +91,6 @@ export class MedicineRequestExchange extends Medicine {
     }
 
     public isValid(): ValidationResult {
-        console.log("Rodou request.");
         const validationResult: ValidationResult = new ValidationResult();
 
         if (!this.activeIngredient) {
