@@ -1,7 +1,7 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { Guid } from 'guid-typescript';
-import { ExchangeDomain } from '../exchange/exchange-domain';
+import { RequestExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
@@ -473,7 +473,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
 
                 } else {
-                    const exchangeDomain: ExchangeDomain = new ExchangeDomain();
+                    const exchangeDomain: RequestExchangeDomain = new RequestExchangeDomain();
 
                     for (const exchange of medicineRequest.exchange) {
                         const exchangeValidation: ValidationResult = await exchangeDomain.isValid(ctx, exchange);

@@ -3,11 +3,11 @@ import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { MedicineExchange } from './medicine-exchange-model';
+import { MedicineOfferExchange } from './medicine-exchange-model';
 
-export class MedicineExchangeDomain extends MedicineDomain {
+export class MedicineOfferExchangeDomain extends MedicineDomain {
 
-    public async isValid(ctx: Context, medicine: MedicineExchange): Promise<ValidationResult> {
+    public async isValid(ctx: Context, medicine: MedicineOfferExchange): Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
@@ -34,7 +34,6 @@ export class MedicineExchangeDomain extends MedicineDomain {
                 validationResult.addErrors(validationPharmaceuticalForm.errors);
 
             }
-
             const validationClassification: ValidationResult =
                 await this.validateClassification(ctx, medicine);
 
@@ -60,18 +59,20 @@ export class MedicineExchangeDomain extends MedicineDomain {
         return validationResult;
     }
 
-    private async validateClassification(ctx: Context, medicine: MedicineExchange):
+    private async validateClassification(ctx: Context, medicine: MedicineOfferExchange):
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
         const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
         try {
-            const medicineClassificationValidation: ValidationResult = await
+            if(medicine.classification){
+                const medicineClassificationValidation: ValidationResult = await
                 medicineClassificationDomain.validateMedicineClassification(ctx, medicine.classification);
+                if (!medicineClassificationValidation.isValid) {
+                    validationResult.addErrors(medicineClassificationValidation.errors);
+    
+                }
 
-            if (!medicineClassificationValidation.isValid) {
-                validationResult.addErrors(medicineClassificationValidation.errors);
-
-            }
+            }            
 
         } catch (error) {
             throw error;
@@ -82,17 +83,20 @@ export class MedicineExchangeDomain extends MedicineDomain {
         return validationResult;
     }
 
-    private async validatePharmaceuticalIndustries(ctx: Context, medicine: MedicineExchange):
+    private async validatePharmaceuticalIndustries(ctx: Context, medicine: MedicineOfferExchange):
         Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
         const pharmaIndustryDomain: PharmaceuticalIndustryDomain = new PharmaceuticalIndustryDomain();
 
         try {
-            const pharmaIndustryValidationResult: ValidationResult =
+            if(medicine.pharmaIndustry){
+                const pharmaIndustryValidationResult: ValidationResult =
                 await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, medicine.pharmaIndustry);
 
-            if (!pharmaIndustryValidationResult.isValid) {
-                validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                if (!pharmaIndustryValidationResult.isValid) {
+                    validationResult.addErrors(pharmaIndustryValidationResult.errors);
+
+                }
 
             }
 

@@ -1,7 +1,7 @@
 import { Medicine } from '../medicine-abstract/medicine';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { Exchange } from '../exchange/exchange-model';
+import { RequestExchange } from '../medicine-request/exchange-model';
 import { IMedicineJson } from '../medicine-abstract/medicine-json';
 
 export class MedicineModel extends Medicine {
@@ -17,7 +17,7 @@ export class MedicineModel extends Medicine {
 
     //#endregion
 
-    public exchange:        Exchange[];
+    public exchange:        RequestExchange[];
     public type:            string;
     public status:          any;
 

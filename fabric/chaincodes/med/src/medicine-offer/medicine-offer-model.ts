@@ -1,5 +1,4 @@
-import { IExchangeJson } from '../exchange/exchange-json';
-import { Exchange } from '../exchange/exchange-model';
+import { OfferExchange } from './exchange-model';
 import { MedicineOfferModel } from './medicine-offer-model-base';
 import { DateExtension } from '../utils/date-extension';
 import { MedicineStatusEnum, RequestMode } from '../utils/enums';
@@ -8,6 +7,7 @@ import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IMedicineOfferJson } from './medicine-offer-json';
 import { IMedicineOfferClaPharmIndJson } from './medicine-offer-classification-pharma-industry-json';
+import { IOfferExchangeJson } from './exchange-json';
 
 export class MedicineOffer implements IValidator {
     //#region constants
@@ -31,7 +31,7 @@ export class MedicineOffer implements IValidator {
     public medicine: MedicineOfferModel;
     public type: string;
     public returnDate: string;
-    public exchange: Exchange[];
+    public exchange: OfferExchange[];
     public status: any;
     public offer_id : string;
 
@@ -49,11 +49,11 @@ export class MedicineOffer implements IValidator {
 
         this.medicine = medicineOffer;
 
-        const exchanges: Exchange[] = [];
+        const exchanges: OfferExchange[] = [];
 
         if (medicineOfferJson.exchange) {
             for (const exchangeJson of medicineOfferJson.exchange) {
-                const exchange: Exchange = new Exchange();
+                const exchange: OfferExchange = new OfferExchange();
                 exchange.fromJson(exchangeJson);
                 exchanges.push(exchange);
 
@@ -68,10 +68,10 @@ export class MedicineOffer implements IValidator {
 
     public toJson(): IMedicineOfferJson {
         const medicineInitialJson: IMedicineOfferClaPharmIndJson = this.medicine.toJson();
-        const exchangesJson: IExchangeJson[] = [];
+        const exchangesJson: IOfferExchangeJson[] = [];
 
         for (const exchange of this.exchange) {
-            const exchangeJson: IExchangeJson = exchange.toJson();
+            const exchangeJson: IOfferExchangeJson = exchange.toJson();
             exchangesJson.push(exchangeJson);
 
         }

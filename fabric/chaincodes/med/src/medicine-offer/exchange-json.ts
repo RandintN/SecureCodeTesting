@@ -5,7 +5,7 @@ import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-js
  *
  * Interface that's used as interface to data transfer json objects
  */
-export interface IExchangeJson {
+export interface IOfferExchangeJson {
 
     /**
      * Amount of exchange

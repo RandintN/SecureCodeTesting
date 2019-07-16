@@ -1,11 +1,11 @@
 import { Context } from 'fabric-contract-api';
-import { MedicineExchangeDomain } from '../medicine-exchange/medicine-exchange-domain';
+import { MedicineRequestExchangeDomain } from './medicine-exchange-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { Exchange } from './exchange-model';
+import { RequestExchange } from './exchange-model';
 
-export class ExchangeDomain {
+export class RequestExchangeDomain {
 
-    public async isValid(ctx: Context, exchange: Exchange) {
+    public async isValid(ctx: Context, exchange: RequestExchange) {
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
@@ -18,7 +18,7 @@ export class ExchangeDomain {
                 return validationResult;
             }
 
-            const medicineExchangeDomain: MedicineExchangeDomain = new MedicineExchangeDomain();
+            const medicineExchangeDomain: MedicineRequestExchangeDomain = new MedicineRequestExchangeDomain();
 
             const validationMedicineDomain: ValidationResult =
                 await medicineExchangeDomain.isValid(ctx, exchange.medicine);

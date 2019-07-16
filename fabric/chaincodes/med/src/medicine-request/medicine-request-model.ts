@@ -1,5 +1,5 @@
-import { IExchangeJson } from '../exchange/exchange-json';
-import { Exchange } from '../exchange/exchange-model';
+import { IRequestExchangeJson } from './exchange-json';
+import { RequestExchange } from './exchange-model';
 import { MedicineRequestModel } from './medicine-request-model-base';
 import { DateExtension } from '../utils/date-extension';
 import { MedicineStatusEnum, RequestMode } from '../utils/enums';
@@ -31,7 +31,7 @@ export class MedicineRequest implements IValidator {
     public medicine: MedicineRequestModel;
     public type: string;
     public returnDate: string;
-    public exchange: Exchange[];
+    public exchange: RequestExchange[];
     public status: any;
     public request_id : string;
 
@@ -49,11 +49,11 @@ export class MedicineRequest implements IValidator {
 
         this.medicine = medicineOffer;
 
-        const exchanges: Exchange[] = [];
+        const exchanges: RequestExchange[] = [];
 
         if (medicineRequestJson.exchange) {
             for (const exchangeJson of medicineRequestJson.exchange) {
-                const exchange: Exchange = new Exchange();
+                const exchange: RequestExchange = new RequestExchange();
                 exchange.fromJson(exchangeJson);
                 exchanges.push(exchange);
 
@@ -68,10 +68,10 @@ export class MedicineRequest implements IValidator {
 
     public toJson(): IMedicineRequestJson {
         const medicineInitialJson: IMedicineRequestClaPharmIndJson = this.medicine.toJson();
-        const exchangesJson: IExchangeJson[] = [];
+        const exchangesJson: IRequestExchangeJson[] = [];
 
         for (const exchange of this.exchange) {
-            const exchangeJson: IExchangeJson = exchange.toJson();
+            const exchangeJson: IRequestExchangeJson = exchange.toJson();
             exchangesJson.push(exchangeJson);
 
         }

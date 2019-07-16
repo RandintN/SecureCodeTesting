@@ -8,7 +8,7 @@ import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
 import { RequestMode, MedicineStatusEnum } from '../utils/enums';
 import { Result } from '../result/result';
-import { ExchangeDomain } from '../exchange/exchange-domain';
+import { OfferExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ValidationError } from '../validation/validation-error-model';
 import { IMedicineOfferLedgerJson } from './medicine-offer-ledger-json';
@@ -24,9 +24,6 @@ export class MedicineOfferDomain extends MedicineDomain {
         new ValidationError('MOD-001', 'Type is invalid. Choose between loan, exchange and donation.');
     private static ERROR_INVALID_OFFER: ValidationError =
         new ValidationError('MOD-002', 'offer_id is invalid. Please insert a number.');
-    private static ERROR_NEGOTIATION_IS_NEEDED: ValidationError =
-        new ValidationError('MOD-003',
-            'When the negotiation have a type as exchange one or more exchange is necessary.');
     private static ERROR_CLASSIFICATION_REQUIRED: ValidationError =
             new ValidationError('MOD-004', 'The parameter classification cannot be empty or null.');
     private static ERROR_PHARMA_INDUSTRY_REQUIRED: ValidationError =
@@ -159,19 +156,13 @@ export class MedicineOfferDomain extends MedicineDomain {
             }
 
             if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
-                if (!medicineOffer.exchange || medicineOffer.exchange.length < 1) {
-                    validationResult.addError(MedicineOfferDomain.ERROR_NEGOTIATION_IS_NEEDED);
+                const exchangeDomain: OfferExchangeDomain = new OfferExchangeDomain();
 
-                } else {
-                    const exchangeDomain: ExchangeDomain = new ExchangeDomain();
+                for (const exchange of medicineOffer.exchange) {
+                    const exchangeValidation: ValidationResult = await exchangeDomain.isValid(ctx, exchange);
 
-                    for (const exchange of medicineOffer.exchange) {
-                        const exchangeValidation: ValidationResult = await exchangeDomain.isValid(ctx, exchange);
-
-                        if (!exchangeValidation.isValid) {
-                            validationResult.addErrors(exchangeValidation.errors);
-
-                        }
+                    if (!exchangeValidation.isValid) {
+                        validationResult.addErrors(exchangeValidation.errors);
 
                     }
 

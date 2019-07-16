@@ -1,11 +1,11 @@
-import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
-import { MedicineExchange } from '../medicine-exchange/medicine-exchange-model';
+import { IMedicineRequestExchangeJson } from './medicine-exchange-json';
+import { MedicineRequestExchange } from './medicine-exchange-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
-import { IExchangeJson } from './exchange-json';
+import { IRequestExchangeJson } from './exchange-json';
 
-export class Exchange implements IValidator {
+export class RequestExchange implements IValidator {
 
     private static ERROR_EMPTY_AMOUNT: ValidationError =
     new ValidationError('EX-001', 'The parameter amount cannot be empty or null');
@@ -14,19 +14,19 @@ export class Exchange implements IValidator {
     new ValidationError('EX-001', 'The parameter medicine cannot be empty or null');
 
     public amount: string;
-    public medicine: MedicineExchange;
+    public medicine: MedicineRequestExchange;
 
-    public fromJson(exchangeJson: IExchangeJson): void {
+    public fromJson(exchangeJson: IRequestExchangeJson): void {
         this.amount = exchangeJson.amount;
-        const medicine: MedicineExchange = new MedicineExchange();
+        const medicine: MedicineRequestExchange = new MedicineRequestExchange();
         medicine.fromJson(exchangeJson.medicine);
         this.medicine = medicine;
 
     }
 
-    public toJson(): IExchangeJson {
-        const medicineJson: IMedicineExchangeJson = this.medicine.toJson();
-        const json: IExchangeJson = {
+    public toJson(): IRequestExchangeJson {
+        const medicineJson: IMedicineRequestExchangeJson = this.medicine.toJson();
+        const json: IRequestExchangeJson = {
             amount: this.amount,
             medicine: medicineJson,
 
@@ -39,12 +39,12 @@ export class Exchange implements IValidator {
         const validationResult: ValidationResult = new ValidationResult();
 
         if (!this.amount) {
-            validationResult.errors.push(Exchange.ERROR_EMPTY_AMOUNT);
+            validationResult.errors.push(RequestExchange.ERROR_EMPTY_AMOUNT);
 
         }
 
         if (!this.medicine) {
-            validationResult.errors.push(Exchange.ERROR_EMPTY_MEDICINE);
+            validationResult.errors.push(RequestExchange.ERROR_EMPTY_MEDICINE);
 
         } else {
             const exchangeValidation: ValidationResult = this.medicine.isValid();

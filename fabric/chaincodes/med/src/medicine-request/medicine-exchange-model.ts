@@ -3,24 +3,24 @@ import { IMedicineBatchJson } from '../medicine-batch/medicine-batch-json';
 import { MedicineBatch } from '../medicine-batch/medicine-batch-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineExchangeJson } from './medicine-exchange-json';
+import { IMedicineRequestExchangeJson } from './medicine-exchange-json';
 
-export class MedicineExchange extends Medicine {
+export class MedicineRequestExchange extends Medicine {
     //#region constants
     private static ERROR_EMPTY_ACTIVE_INGREDIENT: ValidationError =
         new ValidationError('ME-001', 'The parameter active_ingredient cannot be empty or null');
 
     private static ERROR_EMPTY_PHARMA_FORM: ValidationError =
-        new ValidationError('ME-003', 'The parameter pharma_form cannot be empty or null');
+        new ValidationError('ME-002', 'The parameter pharma_form cannot be empty or null');
 
     private static ERROR_EMPTY_CONCENTRATION: ValidationError =
-        new ValidationError('ME-004', 'The parameter concentration cannot be empty or null');
+        new ValidationError('ME-003', 'The parameter concentration cannot be empty or null');
 
     private static ERROR_EMPTY_PHARMA_INDUSTRY: ValidationError =
-        new ValidationError('ME-005', 'The parameter pharma_industry cannot be empty or null');
+        new ValidationError('ME-004', 'The parameter pharma_industry cannot be empty or null');
 
     private static ERROR_EMPTY_CLASSIFICATION: ValidationError =
-        new ValidationError('ME-006', 'The parameter classification cannot be empty or null');
+        new ValidationError('ME-005', 'The parameter classification cannot be empty or null');
 
     private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
         new ValidationError('ME-006', 'The parameter medicine_batch cannot be empty or null');
@@ -32,7 +32,7 @@ export class MedicineExchange extends Medicine {
     public refValue: number;
     public medicineBatch: MedicineBatch[];
 
-    public fromJson(medicineExchange: IMedicineExchangeJson): void {
+    public fromJson(medicineExchange: IMedicineRequestExchangeJson): void {
         this.medicineBatch = [];
 
         try {
@@ -59,7 +59,7 @@ export class MedicineExchange extends Medicine {
 
     }
 
-    public toJson(): IMedicineExchangeJson {
+    public toJson(): IMedicineRequestExchangeJson {
         const medicineBatchJson: IMedicineBatchJson[] = [];
 
         try {
@@ -75,7 +75,7 @@ export class MedicineExchange extends Medicine {
             throw Error(error + ' ME-75');
         }
 
-        const json: IMedicineExchangeJson = {
+        const json: IMedicineRequestExchangeJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
             commercial_name: this.commercialName,
@@ -91,35 +91,36 @@ export class MedicineExchange extends Medicine {
     }
 
     public isValid(): ValidationResult {
+        console.log("Rodou request.");
         const validationResult: ValidationResult = new ValidationResult();
 
         if (!this.activeIngredient) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_ACTIVE_INGREDIENT);
+            validationResult.errors.push(MedicineRequestExchange.ERROR_EMPTY_ACTIVE_INGREDIENT);
 
         }
 
         if (!this.pharmaForm) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_PHARMA_FORM);
+            validationResult.errors.push(MedicineRequestExchange.ERROR_EMPTY_PHARMA_FORM);
 
         }
 
         if (!this.concentration) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_CONCENTRATION);
+            validationResult.errors.push(MedicineRequestExchange.ERROR_EMPTY_CONCENTRATION);
 
         }
 
         if (!this.pharmaIndustry) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_PHARMA_INDUSTRY);
+            validationResult.errors.push(MedicineRequestExchange.ERROR_EMPTY_PHARMA_INDUSTRY);
 
         }
 
         if (!this.classification === null || this.classification === undefined) {
-            validationResult.errors.push(MedicineExchange.ERROR_EMPTY_CLASSIFICATION);
+            validationResult.errors.push(MedicineRequestExchange.ERROR_EMPTY_CLASSIFICATION);
 
         }
 
         if (!this.medicineBatch || this.medicineBatch.length < 1) {
-            validationResult.addError(MedicineExchange.ERROR_EMPTY_MEDICINE_BATCH);
+            validationResult.addError(MedicineRequestExchange.ERROR_EMPTY_MEDICINE_BATCH);
 
         } else {
             const medicineBatch = new MedicineBatch();
