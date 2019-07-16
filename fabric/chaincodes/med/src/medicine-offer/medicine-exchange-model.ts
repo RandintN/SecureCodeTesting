@@ -1,16 +1,16 @@
 import { Medicine } from '../medicine-abstract/medicine';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
+import { IMedicineOfferExchangeJson } from './medicine-exchange-json';
 
 export class MedicineOfferExchange extends Medicine {
     //#region constants
     //#endregion
 
-    public classification: string;
-    public pharmaIndustry: string;
+    public classification: string[];
+    public pharmaIndustry: string[];
     
 
-    public fromJson(medicineExchange: IMedicineExchangeJson): void {
+    public fromJson(medicineExchange: IMedicineOfferExchangeJson): void {
 
         this.activeIngredient = medicineExchange.active_ingredient;
         this.classification = medicineExchange.classification;
@@ -21,9 +21,9 @@ export class MedicineOfferExchange extends Medicine {
 
     }
 
-    public toJson(): IMedicineExchangeJson {
+    public toJson(): IMedicineOfferExchangeJson {
 
-        const json: IMedicineExchangeJson = {
+        const json: IMedicineOfferExchangeJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
             commercial_name: this.commercialName,

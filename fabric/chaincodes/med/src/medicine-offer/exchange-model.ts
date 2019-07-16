@@ -1,8 +1,8 @@
-import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
 import { MedicineOfferExchange } from './medicine-exchange-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IOfferExchangeJson } from './exchange-json';
+import { IMedicineOfferExchangeJson } from './medicine-exchange-json';
 
 export class OfferExchange implements IValidator {
 
@@ -18,7 +18,7 @@ export class OfferExchange implements IValidator {
     }
 
     public toJson(): IOfferExchangeJson {
-        const medicineJson: IMedicineExchangeJson = this.medicine.toJson();
+        const medicineJson: IMedicineOfferExchangeJson = this.medicine.toJson();
         const json: IOfferExchangeJson = {
             amount: this.amount,
             medicine: medicineJson,

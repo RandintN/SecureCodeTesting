@@ -1,4 +1,5 @@
 import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
+import { IMedicineOfferExchangeJson } from './medicine-exchange-json';
 
 /**
  * @author fmarino - CPqD
@@ -15,5 +16,5 @@ export interface IOfferExchangeJson {
     /**
      * Medicine offered to exchange
      */
-    medicine: IMedicineExchangeJson;
+    medicine: IMedicineOfferExchangeJson;
 }

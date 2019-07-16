@@ -65,11 +65,13 @@ export class MedicineOfferExchangeDomain extends MedicineDomain {
         const medicineClassificationDomain: MedicineClassificationDomain = new MedicineClassificationDomain();
         try {
             if(medicine.classification){
-                const medicineClassificationValidation: ValidationResult = await
-                medicineClassificationDomain.validateMedicineClassification(ctx, medicine.classification);
-                if (!medicineClassificationValidation.isValid) {
-                    validationResult.addErrors(medicineClassificationValidation.errors);
-    
+                for(const medicineClassificationItem of medicine.classification){
+                    const medicineClassificationValidation: ValidationResult = await
+                    medicineClassificationDomain.validateMedicineClassification(ctx, medicineClassificationItem);
+                    if (!medicineClassificationValidation.isValid) {
+                        validationResult.addErrors(medicineClassificationValidation.errors);
+
+                    }
                 }
 
             }            
@@ -90,11 +92,13 @@ export class MedicineOfferExchangeDomain extends MedicineDomain {
 
         try {
             if(medicine.pharmaIndustry){
-                const pharmaIndustryValidationResult: ValidationResult =
-                await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, medicine.pharmaIndustry);
+                for(const medicinePharmaIndustryItem of medicine.pharmaIndustry){
+                    const pharmaIndustryValidationResult: ValidationResult =
+                    await pharmaIndustryDomain.validatePharmaceuticalIndustry(ctx, medicinePharmaIndustryItem);
 
-                if (!pharmaIndustryValidationResult.isValid) {
-                    validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                    if (!pharmaIndustryValidationResult.isValid) {
+                        validationResult.addErrors(pharmaIndustryValidationResult.errors);
+                    }
 
                 }
 

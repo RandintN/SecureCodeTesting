@@ -10,7 +10,7 @@ export class MedicineBatch implements IValidator {
         new ValidationError('MB-001', 'The parameter expire_date cannot be empty or null');
 
     private static ERROR_BAD_FORMAT_EXPIRE_DATE: ValidationError =
-        new ValidationError('MB-002', 'The format of expire_date is not supported. Supported format: yyyy-MM-dd');
+        new ValidationError('MB-002', 'The format of expire_date is not supported. Supported format: yyyy-MM');
 
     private static ERROR_EMPTY_AMOUNT: ValidationError =
         new ValidationError('MB-003', 'The parameter amount cannot be empty or null');
