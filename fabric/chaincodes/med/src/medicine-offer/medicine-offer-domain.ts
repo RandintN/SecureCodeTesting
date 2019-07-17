@@ -44,6 +44,8 @@ export class MedicineOfferDomain extends MedicineDomain {
     new ValidationError('MOD-012', 'The month must be after the current.');
     private static ERROR_DUPLICATE_EXPIRE_DATE: ValidationError =
     new ValidationError('MOD-013', 'The parameter expire_date of medicine_batch cannot be repeated.');
+    private static ERROR_INVALID_AMOUNT: ValidationError =
+    new ValidationError('MOD-014', 'The parameter amount must be greater than zero.');
 
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
@@ -316,6 +318,9 @@ export class MedicineOfferDomain extends MedicineDomain {
                     }
                     if(!medicineBatchItem.amount){
                         validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_AMOUNT);
+                    }
+                    else if(medicineBatchItem.amount<=0){
+                        validationResult.addError(MedicineOfferDomain.ERROR_INVALID_AMOUNT);
                     }
                     if(!medicineBatchItem.expireDate){
                         validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_EXPIRE_DATE);
