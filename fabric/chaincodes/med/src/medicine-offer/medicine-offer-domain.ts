@@ -46,6 +46,15 @@ export class MedicineOfferDomain extends MedicineDomain {
     new ValidationError('MOD-013', 'The parameter expire_date of medicine_batch cannot be repeated.');
     private static ERROR_INVALID_AMOUNT: ValidationError =
     new ValidationError('MOD-014', 'The parameter amount must be greater than zero.');
+    private static ERROR_EMPTY_MEDICINE_OFFER: ValidationError =
+        new ValidationError('MRD-015', 'Empty medicine offer is invaid.');
+        private static ERROR_NULL_MEDICINE_OFFER: ValidationError =
+        new ValidationError('MRD-016', 'You must enter a offer_id value.');
+    private static ERROR_EMPTY_MEDICINE_OFFER_ID: ValidationError =
+        new ValidationError('MRD-017', 'Empty offer_id is invaid.');
+    private static ERROR_MEDICINE_OFFER_NOT_FOUND: ValidationError =
+        new ValidationError('MRD-018',
+            'The medicine offer is not found.');
 
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
@@ -94,6 +103,66 @@ export class MedicineOfferDomain extends MedicineDomain {
             console.log('Medicine Offer Id: ' + result.offer_id);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
+    /** Check the documentation of IMedicineOfferService */
+    public async approveMedicinePendingOffer(ctx: Context, medOfferApproveStr: string): Promise<ChaincodeResponse> {
+        let medRequestInBytes: Buffer = null;
+        try {
+            const medReqApproveJson: IMedicineOfferJson =
+                JSON.parse(medOfferApproveStr) as IMedicineOfferJson;
+
+            if(medReqApproveJson==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER)));
+            }
+
+            if(medReqApproveJson.offer_id==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_NULL_MEDICINE_OFFER)));
+            }
+
+            if(medReqApproveJson.offer_id==""){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER_ID)));
+            }
+
+            medRequestInBytes = await ctx.stub.getPrivateData(MedicineOfferDomain.MED_OFFER_PD,
+                medReqApproveJson.offer_id);
+
+            if (!medRequestInBytes || medRequestInBytes.length < 1) {
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+
+            }
+
+            const medOfferJson: IMedicineOfferJson =
+                JSON.parse(medRequestInBytes.toString()) as IMedicineOfferJson;
+
+            if (!medOfferJson || medOfferJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+
+            }
+
+            const medicineOffer: MedicineOffer = new MedicineOffer();
+            medicineOffer.fromJson(medOfferJson);
+            medicineOffer.status = MedicineStatusEnum.APPROVED;
+
+            await ctx.stub.putState(medReqApproveJson.offer_id
+                , Buffer.from(JSON.stringify(medicineOffer.toJson())));
+            await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medReqApproveJson.offer_id);
+
+            const result: Result = new Result();
+
+            result.request_id = medReqApproveJson.offer_id;
+            result.timestamp = new Date().getTime();
+
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }

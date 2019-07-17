@@ -167,5 +167,8 @@ export class MedicineRouterCC extends Contract implements
         return await new MedicineOfferDomain().addMedicineOffer(ctx, medicineOfferedJson);
     }
 
+    public async approveMedicinePendingOffer(ctx: Context, medOfferApproveJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineOfferDomain().approveMedicinePendingOffer(ctx, medOfferApproveJson);
+    }
     //#endregion
 }
