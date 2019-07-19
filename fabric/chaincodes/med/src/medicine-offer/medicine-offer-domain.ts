@@ -245,6 +245,64 @@ export class MedicineOfferDomain extends MedicineDomain {
         }
     }
 
+    /** Check the documentation of IMedicineOfferService */
+    public async rejectMedicinePendingOffer(ctx: Context, medOfferRejectStr: string): Promise<ChaincodeResponse> {
+        let medOfferInBytes: Buffer = null;
+        try {
+            const medOfferRejectJson: IMedicineOfferJson =
+                JSON.parse(medOfferRejectStr) as IMedicineOfferJson;
+
+            if(medOfferRejectJson==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER)));
+            }
+
+            if(medOfferRejectJson.offer_id==null){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_NULL_MEDICINE_OFFER)));
+            }
+
+            if(medOfferRejectJson.offer_id==""){
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER_ID)));
+            }
+
+            medOfferInBytes = await ctx.stub.getPrivateData(MedicineOfferDomain.MED_OFFER_PD,
+                medOfferRejectJson.offer_id);
+
+            if (!medOfferInBytes || medOfferInBytes.length < 1) {
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+
+            }
+            const medOfferJson: IMedicineOfferJson =
+                JSON.parse(medOfferInBytes.toString()) as IMedicineOfferJson;
+
+            if (!medOfferJson || medOfferJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+
+            }
+
+            const medicineOffer: MedicineOffer = new MedicineOffer();
+            medicineOffer.fromJson(medOfferJson);
+            medicineOffer.status = MedicineStatusEnum.REJECTED;
+
+            await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD, medOfferRejectJson.offer_id
+                , Buffer.from(JSON.stringify(medicineOffer.toJson())));
+
+            const result: Result = new Result();
+
+            result.offer_id = medOfferRejectJson.offer_id;
+            result.timestamp = new Date().getTime();
+
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
     /**
      * Method used to validate a MedicineOffer.
      *
