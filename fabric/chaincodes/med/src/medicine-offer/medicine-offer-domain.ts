@@ -3,7 +3,7 @@ import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { ChaincodeResponse } from 'fabric-shim';
+import { ChaincodeResponse, Iterators } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
 import { RequestMode, MedicineStatusEnum } from '../utils/enums';
@@ -16,6 +16,8 @@ import { MedicineOffer } from './medicine-offer-model';
 import { MedicineOfferModel } from './medicine-offer-model-base';
 import { IMedicineOfferJson } from './medicine-offer-json';
 import moment = require('moment');
+import { IMedicineOfferQueryResultJson } from './medicine-offer-query-result';
+import { IMedicineOfferQuery } from './medicine-offer-query';
 
 export class MedicineOfferDomain extends MedicineDomain {
 
@@ -108,6 +110,81 @@ export class MedicineOfferDomain extends MedicineDomain {
         }
     }
 
+    /** Check the documentation of IMedicineRequestService */
+    public async queryMedicineOfferPrivateData(ctx: Context, queryParams: string): Promise<ChaincodeResponse> {
+
+        try {
+            // Retrieves query from string
+            const query: IMedicineOfferQuery = JSON.parse(queryParams) as IMedicineOfferQuery;
+
+            // Creates the query of couchdb
+            const queryJson = {
+                selector: query.selector,
+            };
+
+            const filter: string = JSON.stringify(queryJson);
+
+            // Get Query
+            // TODO: alterar aqui para quando o jira FAB-14216 for fechado
+            const queryIterator: any = await ctx.stub.getPrivateDataQueryResult
+                (MedicineOfferDomain.MED_OFFER_PD, filter);
+
+            const records: IMedicineOfferJson[] = await this.getMedicineOffers(queryIterator.iterator);
+            if (!records || records.length < 1) {
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+            }
+
+            const result: IMedicineOfferQueryResultJson = {
+                medicine_offers: records,
+                timestamp: new Date().getTime(),
+
+            };
+
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
+    /**
+     * Auxiliar method that iterates over an interator of MedicineRequest and mount the query result.
+     * @param iterator iterator
+     * @returns query results
+     */
+    private async getMedicineOffers(iterator: Iterators.StateQueryIterator): Promise<IMedicineOfferJson[]> {
+        const results: IMedicineOfferJson[] = new Array<IMedicineOfferJson>();
+
+        if (!iterator || typeof iterator.next !== 'function') {
+            return results;
+        }
+
+        while (true) {
+
+            const result = await iterator.next();
+
+            let medicineRequestJson: IMedicineOfferJson;
+
+            if (result.value && result.value.value.toString()) {
+                medicineRequestJson = JSON.parse(result.value.value.toString('utf8')) as IMedicineOfferJson;
+
+            }
+
+            if (medicineRequestJson) {
+                results.push(medicineRequestJson);
+
+            }
+
+            if (result.done) {
+                break;
+            }
+
+        }
+
+        return results;
+    }
+    //#endregion
+
     /** Check the documentation of IMedicineOfferService */
     public async approveMedicinePendingOffer(ctx: Context, medOfferApproveStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
@@ -158,7 +235,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const result: Result = new Result();
 
-            result.request_id = medReqApproveJson.offer_id;
+            result.offer_id = medReqApproveJson.offer_id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
