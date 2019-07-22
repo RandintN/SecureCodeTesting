@@ -58,6 +58,9 @@ export class MedicineOfferDomain extends MedicineDomain {
     private static ERROR_MEDICINE_OFFER_NOT_FOUND: ValidationError =
         new ValidationError('MRD-018',
             'The medicine offer is not found.');
+    private static ERROR_BATCH_NOT_FOUND: ValidationError =
+            new ValidationError('MRD-019',
+            'The parameter batch cannot be empty or null.');
 
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
@@ -531,6 +534,9 @@ export class MedicineOfferDomain extends MedicineDomain {
                     }
                     else{
                         expireDateList.push(medicineBatchItem.expireDate);
+                    }
+                    if(!medicineBatchItem.batch){
+                        validationResult.addError(MedicineOfferDomain.ERROR_BATCH_NOT_FOUND);
                     }
                     //Expire date must be one month after the current.
                     let month : string = medicineBatchItem.expireDate.substr(0, 2);
