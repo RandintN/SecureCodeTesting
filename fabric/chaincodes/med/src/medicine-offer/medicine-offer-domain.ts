@@ -38,6 +38,7 @@ export class MedicineOfferDomain extends MedicineDomain {
     new ValidationError('MOD-008', 'The parameter amount of medicine_batch cannot be empty or null.');
     private static ERROR_BAD_FORMAT_EXPIRE_DATE: ValidationError =
         new ValidationError('MOD-009', 'The format of medicine_batch expire_date is not supported. Supported format: MM-YYYY');
+    //This rule is not been used due to business decisions in N2MI.
     private static ERROR_DUPLICATE_BATCH: ValidationError =
     new ValidationError('MOD-010', 'The parameter batch is cannot be repeated.');
     private static ERROR_YEAR: ValidationError =
@@ -511,15 +512,8 @@ export class MedicineOfferDomain extends MedicineDomain {
                 validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_BATCH);
             }
             else {
-                let batchList : string[] = [];
                 let expireDateList : string[] = [];
                 for(const medicineBatchItem of medicine.medicineBatch){
-                    if(medicineBatchItem.batch.length>0 && batchList.includes(medicineBatchItem.batch)){
-                        validationResult.addError(MedicineOfferDomain.ERROR_DUPLICATE_BATCH);
-                    }
-                    else{
-                        batchList.push(medicineBatchItem.batch);
-                    }
                     if(!medicineBatchItem.amount){
                         validationResult.addError(MedicineOfferDomain.ERROR_EMPTY_BATCH_AMOUNT);
                     }
