@@ -3,7 +3,7 @@ import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { ChaincodeResponse, Iterators } from 'fabric-shim';
+import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
 import { RequestMode, MedicineStatusEnum } from '../utils/enums';
@@ -17,7 +17,8 @@ import { MedicineOfferModel } from './medicine-offer-model-base';
 import { IMedicineOfferJson } from './medicine-offer-json';
 import moment = require('moment');
 import { IMedicineOfferQueryResultJson } from './medicine-offer-query-result';
-import { IMedicineOfferQuery } from './medicine-offer-query';
+import { IMedicineOfferQuery, QueryType } from './medicine-offer-query';
+import { IMedicineOfferPaginationResultJson } from './medicine-offer-pagination-result';
 
 export class MedicineOfferDomain extends MedicineDomain {
 
@@ -62,6 +63,57 @@ export class MedicineOfferDomain extends MedicineDomain {
             new ValidationError('MRD-019',
             'The parameter batch cannot be empty or null.');
 
+    /** Check the documentation of IMedicineOfferService */
+    public async queryMedicineOffersWithPagination(ctx: Context, queryParams: string, pageSize: string, bookmark: string): Promise<ChaincodeResponse | PromiseLike<ChaincodeResponse>> {
+        try {
+            // Retrieves query from string
+            const query: IMedicineOfferQuery = JSON.parse(queryParams) as IMedicineOfferQuery;
+
+            // When the kind of query is own the MSP_ID is setted in endogenous way,
+            // to assurance that is the trust identity
+            if (query.query_type === QueryType.MY_OWN_OFFERS) {
+                query.selector.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
+            }
+
+            // Creates the query of couchdb
+            const queryJson = {
+                selector: query.selector,
+            };
+
+            const filter: string = JSON.stringify(queryJson);
+
+            // Get Query
+            const stateQuery: StateQueryResponse<Iterators.StateQueryIterator> =
+                await ctx.stub.getQueryResultWithPagination(
+                    filter,
+                    Number(pageSize),
+                    bookmark);
+
+            const records: IMedicineOfferJson[] = await this.getMedicineOffers(stateQuery.iterator);
+
+            // Checking if some records were founding...
+            if (!records || records.length < 1) {
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
+            }
+
+            const result: IMedicineOfferPaginationResultJson = {
+                bookmark: stateQuery.metadata.bookmark,
+                fetched_records_count: records.length,
+                //Mudança na estratégia de contagem dos elementos
+                //stateQuery.metadata.fetched_records_count,
+                medicine_offers: records,
+                timestamp: new Date().getTime(),
+
+            };
+
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
+        } catch (error) {
+            console.log(error);
+            return ResponseUtil.ResponseError(error.toString(), undefined);
+        }
+    }
+
     public async addMedicineOffer(ctx: Context, medJsonIn: string): Promise<ChaincodeResponse> {
 
         try {
@@ -78,7 +130,7 @@ export class MedicineOfferDomain extends MedicineDomain {
             }
 
             //const idRequest: string = Guid.create().toString();
-            const idRequest: string = medicineOffer.offer_id;
+            const idOffer: string = medicineOffer.offer_id;
 
             if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE
             || medicineOffer.type.toLocaleLowerCase() === RequestMode.DONATION) {
@@ -88,7 +140,7 @@ export class MedicineOfferDomain extends MedicineDomain {
                     medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
                 await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                    idRequest, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                    idOffer, Buffer.from(JSON.stringify(medicineOfferToLedger)));
             } else {
                 medicineOffer.status = MedicineStatusEnum.APPROVED;
 
@@ -96,14 +148,14 @@ export class MedicineOfferDomain extends MedicineDomain {
                 medicineOffer.toJson() as IMedicineOfferLedgerJson;
                 medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
-                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                await ctx.stub.putState("offer_"+idOffer, Buffer.from(JSON.stringify(medicineOfferToLedger)));
 
             }
 
             const timestamp: number = new Date().getTime();
             const result: Result = new Result();
 
-            result.offer_id = idRequest;
+            result.offer_id = idOffer;
             result.timestamp = timestamp;
 
             console.log('Medicine Offer Id: ' + result.offer_id);
@@ -167,15 +219,15 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const result = await iterator.next();
 
-            let medicineRequestJson: IMedicineOfferJson;
+            let medicineOfferJson: IMedicineOfferJson;
 
             if (result.value && result.value.value.toString()) {
-                medicineRequestJson = JSON.parse(result.value.value.toString('utf8')) as IMedicineOfferJson;
+                medicineOfferJson = JSON.parse(result.value.value.toString('utf8')) as IMedicineOfferJson;
 
             }
 
-            if (medicineRequestJson) {
-                results.push(medicineRequestJson);
+            if (medicineOfferJson && medicineOfferJson.offer_id) {
+                results.push(medicineOfferJson);
 
             }
 
@@ -233,7 +285,7 @@ export class MedicineOfferDomain extends MedicineDomain {
             medicineOffer.fromJson(medOfferJson);
             medicineOffer.status = MedicineStatusEnum.APPROVED;
 
-            await ctx.stub.putState(medReqApproveJson.offer_id
+            await ctx.stub.putState("offer_"+medReqApproveJson.offer_id
                 , Buffer.from(JSON.stringify(medicineOffer.toJson())));
             await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medReqApproveJson.offer_id);
 

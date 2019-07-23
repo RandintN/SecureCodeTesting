@@ -89,7 +89,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
                 medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
-                await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                await ctx.stub.putState("request_"+idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             }
 
@@ -154,7 +154,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
                     medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
     
-                    await ctx.stub.putState(idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    await ctx.stub.putState("request_"+idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
                     resultArray.push(result);
                     }
                 }
@@ -209,7 +209,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             medicineRequest.fromJson(medRequestJson);
             medicineRequest.status = MedicineStatusEnum.APPROVED;
 
-            await ctx.stub.putState(medReqApproveJson.request_id
+            await ctx.stub.putState("request_"+medReqApproveJson.request_id
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
             await ctx.stub.deletePrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqApproveJson.request_id);
 
@@ -293,7 +293,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
         try {
             let requestAsByte = null;
-            requestAsByte = await ctx.stub.getState(key);
+            requestAsByte = await ctx.stub.getState("request_"+key);
             if (!requestAsByte || requestAsByte.length < 1) {
                 requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
                 if (!requestAsByte || requestAsByte.length < 1) {
