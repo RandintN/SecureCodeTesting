@@ -33,7 +33,7 @@ pipeline {
          steps {
             script {
                sh ''' 
-                  cd $WORKSPACE/environments/dev/
+                  cd $WORKSPACE/hyperledger/environments/dev/
                   echo -e "\nStarting Core Hyperledger\n"
                   echo -e "\nCreating network n2mi_n2med ..."
                   docker network create n2mi_n2med
