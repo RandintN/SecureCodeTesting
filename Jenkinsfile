@@ -23,7 +23,7 @@ pipeline {
                docker volume prune -f
                docker network prune -f
                container=`docker container ls | awk 'FNR==2{print $0}'`
-               if test -z "$container"; then
+               if [ ! -z $container ]; then
                   docker rm -f $(docker ps -aq)
                fi
             '''
