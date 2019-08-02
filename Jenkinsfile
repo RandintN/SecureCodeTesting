@@ -18,7 +18,7 @@ pipeline {
       stage('Remove Containers'){
          steps {
             sh '''
-               cd $WORKSPACE/hyperledger/environment/dev
+               cd $WORKSPACE/hyperledger/environments/dev
                docker-compose -p n2mi down --remove-orphans
                docker volume prune -f
                docker network prune -f
@@ -33,7 +33,7 @@ pipeline {
          steps {
             script {
                sh ''' 
-                  cd $WORKSPACE/hyperledger/environments/dev/
+                  cd $WORKSPACE/environments/dev/
                   echo -e "\nStarting Core Hyperledger\n"
                   echo -e "\nCreating network n2mi_n2med ..."
                   docker network create n2mi_n2med
