@@ -33,6 +33,11 @@ export class MedicineOffered extends Medicine {
     private static ERROR_EMPTY_AMOUNT: ValidationError =
         new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
 
+    private static ERROR_DUPLICATE_EXPIRE_DATE: ValidationError =
+        new ValidationError('MO-009', 'The parameter expire_date of medicine_batch cannot be repeated.');
+
+        
+
     //REF_VALUE IS AN OPTIONAL PARAMETER IN N2MI
     //private static ERROR_EMPTY_REF_VALUE: ValidationError =
     //    new ValidationError('MO-008', 'The parameter ref_value cannot be empty or null');
@@ -146,9 +151,15 @@ export class MedicineOffered extends Medicine {
         } else {
             const medicineBatch = new MedicineBatch();
             let validationMedicineBatch: ValidationResult;
-
+            let expireDateList : string[] = [];
             const error: boolean = this.medicineBatch.some((batch) => {
                 validationMedicineBatch = batch.isValid();
+                if(expireDateList.includes(batch.expireDate)){
+                    validationResult.addError(MedicineOffered.ERROR_DUPLICATE_EXPIRE_DATE);
+                }
+                else{
+                    expireDateList.push(batch.expireDate);
+                }
                 if (!validationMedicineBatch.isValid) {
                     validationResult.addErrors(validationMedicineBatch.errors);
                     return true;

@@ -24,6 +24,15 @@ export class MedicineBatch implements IValidator {
     private static ERROR_DUPLICATED_UNDEFINED_BATCH: ValidationError =
         new ValidationError('MB-006', 'Unidentifieds medicine_batch cannot have the same expirate_date');
 
+    private static ERROR_YEAR: ValidationError =
+        new ValidationError('MB-007', 'The year cannot be before the current.');
+    private static ERROR_MONTH: ValidationError =
+        new ValidationError('MB-008', 'The month must be after the current.');
+
+    private static ERROR_BATCH_NOT_FOUND: ValidationError =
+        new ValidationError('MB-009',
+        'The parameter batch cannot be empty or null.');
+
     public batch: string;
     public expireDate: string;
     public amount: number;
@@ -57,6 +66,23 @@ export class MedicineBatch implements IValidator {
         } else if (!moment(this.expireDate, CommonConstants.DATE_FORMAT, true).isValid()) {
             validationResult.addError(MedicineBatch.ERROR_BAD_FORMAT_EXPIRE_DATE);
 
+        }
+        else{
+            //Expire date must be one month after the current.
+            let year : string = this.expireDate.substr(0, 4);
+            let month : string = this.expireDate.substr(5, 6);
+            let today : Date = new Date(moment().format('YYYY-MM-DD HH:mm:ss'));
+            if(today.getUTCFullYear()>Number(year)){
+                validationResult.addError(MedicineBatch.ERROR_YEAR);
+            }
+
+            //Year is the current, so let us compare the month
+            if(today.getUTCFullYear()==Number(year) && today.getUTCMonth()+1>=Number(month)){
+                validationResult.addError(MedicineBatch.ERROR_MONTH);
+            }
+        }
+        if(!this.batch){
+            validationResult.addError(MedicineBatch.ERROR_BATCH_NOT_FOUND);
         }
 
         // Validatin amount value
