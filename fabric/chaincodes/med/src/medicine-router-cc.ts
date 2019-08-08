@@ -4,8 +4,8 @@ import { ActiveIngredientDomain } from './active-ingredient/active-ingredient-do
 import { IActiveIngredientService } from './active-ingredient/active-ingredient-interface';
 import { MedicineClassificationDomain } from './medicine-classification/medicine-classification-domain';
 import { IMedicineClassificationService } from './medicine-classification/medicine-classification-interface';
-import { MedicineOfferedRequestDomain } from './medicine-offered-request/medicine-offered-request-domain';
-import { IMedicineOfferedRequestService } from './medicine-offered-request/medicine-offered-request-interface';
+import { MedicineProposeDomain } from './propose/medicine-propose-domain';
+import { IMedicineProposedService } from './propose/medicine-propose-interface';
 import { MedicineRequestDomain } from './medicine-request/medicine-request-domain';
 import { IMedicineRequestService } from './medicine-request/medicine-request-interface';
 import { NegotiationModalityDomain } from './negotiation-modality/negotiation-modality-domain';
@@ -25,7 +25,7 @@ export class MedicineRouterCC extends Contract implements
     IMedicineRequestService,
     IPharmaceuticalFormService,
     INegotiationModalityService,
-    IMedicineOfferedRequestService {
+    IMedicineProposedService {
 
     public async medicineDeliveryConfirmation(ctx: Context, requester_id: string): Promise<ChaincodeResponse> {
         return await new MedicineDeliveryDomain().medicineDeliveryConfirmation(ctx, requester_id);
@@ -153,13 +153,13 @@ export class MedicineRouterCC extends Contract implements
     //#endregion
 
     //#region methods of IMedicineOfferedRequestService
-    public async offerMedicineRequest(ctx: Context, medicineOfferedRequestJson: string): Promise<ChaincodeResponse> {
-        return await new MedicineOfferedRequestDomain().offerMedicineRequest(ctx, medicineOfferedRequestJson);
+    public async proposeMedicine(ctx: Context, medicineOfferedRequestJson: string): Promise<ChaincodeResponse> {
+        return await new MedicineProposeDomain().proposeMedicine(ctx, medicineOfferedRequestJson);
     }
 
     public async approveOfferMedicineRequest(ctx: Context, approveOfferMedicineRequestJson: string)
         : Promise<ChaincodeResponse> {
-        return await new MedicineOfferedRequestDomain()
+        return await new MedicineProposeDomain()
             .approveOfferMedicineRequest(ctx, approveOfferMedicineRequestJson);
     }
 
