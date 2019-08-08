@@ -1,7 +1,7 @@
 import { OfferExchange } from './exchange-model';
 import { MedicineOfferModel } from './medicine-offer-model-base';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineStatusEnum, RequestMode } from '../utils/enums';
+import { MedicineStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -24,7 +24,7 @@ export class MedicineOffer implements IValidator {
         ('MO-004', 'The parameter return_date cannot be empty or null when the medicine type is loan');
 
     private static ERROR_EMPTY_OFFER_ID: ValidationError = new ValidationError
-        ('MO-005', 'The parameter offer_id cannot be empty or null');
+        ('MO-005', 'The parameter id cannot be empty or null');
 
     //#endregion
     public amount: string;
@@ -33,7 +33,8 @@ export class MedicineOffer implements IValidator {
     public returnDate: string;
     public exchange: OfferExchange[];
     public status: any;
-    public offer_id : string;
+    public foreignId : string;
+    public internalId : string;
 
     public fromJson(medicineOfferJson: IMedicineOfferJson): void {
         this.amount = medicineOfferJson.amount;
@@ -63,7 +64,8 @@ export class MedicineOffer implements IValidator {
 
         this.exchange = exchanges;
 
-        this.offer_id = medicineOfferJson.offer_id;
+        this.foreignId = medicineOfferJson.id;
+        this.internalId = medicineOfferJson.internal_id;
     }
 
     public toJson(): IMedicineOfferJson {
@@ -83,7 +85,9 @@ export class MedicineOffer implements IValidator {
             return_date: this.returnDate ? this.returnDate : undefined,
             status: this.status,
             type: this.type,
-            offer_id: this.offer_id
+            id: this.foreignId,
+            operation: MedicineOperationEnum.OFFER,
+            internal_id: this.internalId
 
         };
 
@@ -132,7 +136,7 @@ export class MedicineOffer implements IValidator {
             }
 
         }
-        if(!this.offer_id){
+        if(!this.foreignId){
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_OFFER_ID);
         }
 

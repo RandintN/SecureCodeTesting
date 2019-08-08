@@ -21,7 +21,7 @@ export class MedicineDelivery implements IValidator {
         ('MDEL-005', 'The parameter offer_id cannot be empty or null');
 
     //#endregion
-    offerId: string;
+    proposeId: string;
     consumerIdNumber: string;
     consumerIdType: string;
     consumerName : string;
@@ -29,10 +29,9 @@ export class MedicineDelivery implements IValidator {
     consumerDdd: string;
     consumerPhoneNumber: string;
     withdrawalDate: string;
-    medication_delivered: boolean;
 
     public fromJson(medicineDeliveryJson: IMedicineDeliveryJson): void {
-        this.offerId = medicineDeliveryJson.offer_id;
+        this.proposeId = medicineDeliveryJson.propose_id;
         this.consumerIdNumber = medicineDeliveryJson.consumer_id.number;
         this.consumerIdType = medicineDeliveryJson.consumer_id.type;
         this.consumerName = medicineDeliveryJson.consumer_name;
@@ -45,7 +44,7 @@ export class MedicineDelivery implements IValidator {
     public toJson(): IMedicineDeliveryJson {
         
         const medicineDeliveryJson: IMedicineDeliveryJson = {
-            offer_id: this.offerId,
+            propose_id: this.proposeId,
             consumer_id: {
                 "number": this.consumerIdNumber, 
                 "type": this.consumerIdType},
@@ -65,7 +64,7 @@ export class MedicineDelivery implements IValidator {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
         
-        if(!this.offerId){
+        if(!this.proposeId){
             validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_OFFER_ID);
         }
 

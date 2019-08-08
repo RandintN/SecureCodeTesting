@@ -129,8 +129,8 @@ export class MedicineOfferDomain extends MedicineDomain {
                     Buffer.from(JSON.stringify(validationResult.errors)));
             }
 
-            //const idRequest: string = Guid.create().toString();
-            const idOffer: string = medicineOffer.offer_id;
+            //Internal generation of transaction id, to be stored on the ledger.
+            medicineOffer.internalId = ctx.stub.getTxID();
 
             if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE
             || medicineOffer.type.toLocaleLowerCase() === RequestMode.DONATION) {
@@ -139,8 +139,10 @@ export class MedicineOfferDomain extends MedicineDomain {
 
                     medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
+                //Writing the new offer, using internalId as key.
+                //Wating for aproval.
                 await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                    idOffer, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                    medicineOffer.internalId, Buffer.from(JSON.stringify(medicineOfferToLedger)));
             } else {
                 medicineOffer.status = MedicineStatusEnum.APPROVED;
 
@@ -148,17 +150,18 @@ export class MedicineOfferDomain extends MedicineDomain {
                 medicineOffer.toJson() as IMedicineOfferLedgerJson;
                 medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
-                await ctx.stub.putState("offer_"+idOffer, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                //Writing the new offer, using internalId as key.
+                await ctx.stub.putState(medicineOffer.internalId, Buffer.from(JSON.stringify(medicineOfferToLedger)));
 
             }
 
             const timestamp: number = new Date().getTime();
             const result: Result = new Result();
 
-            result.offer_id = idOffer;
+            result.id = medicineOffer.internalId;
             result.timestamp = timestamp;
 
-            console.log('Medicine Offer Id: ' + result.offer_id);
+            console.log('Medicine Offer Id: ' + result.id);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
         } catch (error) {
@@ -166,7 +169,7 @@ export class MedicineOfferDomain extends MedicineDomain {
         }
     }
 
-    /** Check the documentation of IMedicineRequestService */
+    /** Check the documentation of IMedicineOfferService */
     public async queryMedicineOfferPrivateData(ctx: Context, queryParams: string): Promise<ChaincodeResponse> {
 
         try {
@@ -204,7 +207,7 @@ export class MedicineOfferDomain extends MedicineDomain {
     }
 
     /**
-     * Auxiliar method that iterates over an interator of MedicineRequest and mount the query result.
+     * Auxiliar method that iterates over an interator of MedicineOffer and mount the query result.
      * @param iterator iterator
      * @returns query results
      */
@@ -226,7 +229,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             }
 
-            if (medicineOfferJson && medicineOfferJson.offer_id) {
+            if (medicineOfferJson && medicineOfferJson.id) {
                 results.push(medicineOfferJson);
 
             }
@@ -253,18 +256,18 @@ export class MedicineOfferDomain extends MedicineDomain {
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER)));
             }
 
-            if(medReqApproveJson.offer_id==null){
+            if(medReqApproveJson.id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_NULL_MEDICINE_OFFER)));
             }
 
-            if(medReqApproveJson.offer_id==""){
+            if(medReqApproveJson.id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER_ID)));
             }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                medReqApproveJson.offer_id);
+                medReqApproveJson.id);
 
             if (!medRequestInBytes || medRequestInBytes.length < 1) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -285,13 +288,15 @@ export class MedicineOfferDomain extends MedicineDomain {
             medicineOffer.fromJson(medOfferJson);
             medicineOffer.status = MedicineStatusEnum.APPROVED;
 
-            await ctx.stub.putState("offer_"+medReqApproveJson.offer_id
+            console.log("getTxID: " + medicineOffer.internalId);
+
+            await ctx.stub.putState(medicineOffer.internalId
                 , Buffer.from(JSON.stringify(medicineOffer.toJson())));
-            await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medReqApproveJson.offer_id);
+            await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medicineOffer.internalId);
 
             const result: Result = new Result();
 
-            result.offer_id = medReqApproveJson.offer_id;
+            result.id = medReqApproveJson.id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -313,18 +318,18 @@ export class MedicineOfferDomain extends MedicineDomain {
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER)));
             }
 
-            if(medOfferRejectJson.offer_id==null){
+            if(medOfferRejectJson.id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_NULL_MEDICINE_OFFER)));
             }
 
-            if(medOfferRejectJson.offer_id==""){
+            if(medOfferRejectJson.id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER_ID)));
             }
 
             medOfferInBytes = await ctx.stub.getPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                medOfferRejectJson.offer_id);
+                medOfferRejectJson.id);
 
             if (!medOfferInBytes || medOfferInBytes.length < 1) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -344,12 +349,12 @@ export class MedicineOfferDomain extends MedicineDomain {
             medicineOffer.fromJson(medOfferJson);
             medicineOffer.status = MedicineStatusEnum.REJECTED;
 
-            await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD, medOfferRejectJson.offer_id
+            await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD, medOfferRejectJson.id
                 , Buffer.from(JSON.stringify(medicineOffer.toJson())));
 
             const result: Result = new Result();
 
-            result.offer_id = medOfferRejectJson.offer_id;
+            result.id = medOfferRejectJson.id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -369,7 +374,7 @@ export class MedicineOfferDomain extends MedicineDomain {
      * ValidationResult with status 'false' and doesnt will verify the rules.
      *
      * @param ctx Context of transaction
-     * @param medicineOffer MedicineRequest that will be verified
+     * @param medicineOffer MedicineOffer that will be verified
      * @returns validationResult
      */
     private async validateMedicineOfferRules(ctx: Context, medicineOffer: MedicineOffer):
@@ -412,7 +417,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             }
 
-            offerIdAsNumber = parseInt(medicineOffer.offer_id);
+            offerIdAsNumber = parseInt(medicineOffer.foreignId);
             if (isNaN(offerIdAsNumber)) {
                 validationResult.addError(MedicineOfferDomain.ERROR_INVALID_OFFER);
             }

@@ -1,11 +1,13 @@
 import { Context } from 'fabric-contract-api';
-import { ChaincodeResponse } from 'fabric-shim';
+import { ChaincodeResponse, Iterators } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
 import { ValidationError } from '../validation/validation-error-model';
 import { Result } from '../result/result';
 import { MedicineDelivery } from './medicine-delivery-model';
 import { IMedicineDeliveryJson } from './medicine-delivery-json';
+import { IMedicineProposedLedgerJson } from '../propose/medicine-proposed-ledger-json';
+import { MedicineProposedStatusEnum } from '../utils/enums';
 
 export class MedicineDeliveryDomain {
 
@@ -25,17 +27,20 @@ export class MedicineDeliveryDomain {
             const medicineDelivery: MedicineDelivery = new MedicineDelivery();
             medicineDelivery.fromJson(JSON.parse(deliveryJson) as IMedicineDeliveryJson);
 
-            let requestAsByte = null;
-            requestAsByte = await ctx.stub.getState(medicineDelivery.offerId);
+            const medicineToDeliver: IMedicineProposedLedgerJson
+                = await this.searchProposedMedicineByProposeId(ctx, medicineDelivery.proposeId
+                    , MedicineProposedStatusEnum.ACCEPTED);
 
-            if (!requestAsByte || requestAsByte.length < 1) {
+            if (!medicineToDeliver) {
                 return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
             }
 
-            if (!medicineDelivery.medication_delivered){
-                medicineDelivery.medication_delivered = true;
-                await ctx.stub.putState(deliveryJson, Buffer.from(JSON.stringify(medicineDelivery)));
+            if (medicineToDeliver.status != MedicineProposedStatusEnum.DELIVERED){
+                medicineToDeliver.status = MedicineProposedStatusEnum.DELIVERED;
+                await ctx.stub.putState(medicineToDeliver.key, Buffer.from(JSON.stringify(medicineToDeliver)));
+                console.log("Medicine Delivered id: "+medicineToDeliver.key);
+                console.log('Medicine Status: '      +medicineToDeliver.status);
                 const result: Result = new Result();
                 result.timestamp = new Date().getTime();
                 return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -48,5 +53,41 @@ export class MedicineDeliveryDomain {
             console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
+    }
+
+    private async searchProposedMedicineByProposeId(ctx: Context, requestId: string, statusOffer: string)
+        : Promise<IMedicineProposedLedgerJson> {
+
+        // Creates QueryJson of couchDB index query
+        const queryJson = {
+            selector: {
+                propose_id: requestId,
+                status: statusOffer,
+            },
+        };
+
+        // Getting query result
+        const iterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult(JSON.stringify(queryJson));
+        const result: IMedicineProposedLedgerJson = await this.getOfferMedicineByRequesId(iterator);
+        return result;
+    }
+
+    /**
+     * Auxiliar method that's iterate over an interator of offer medicine request to retrieve the query result.
+     * @param iterator iterator
+     */
+    private async getOfferMedicineByRequesId(iterator: Iterators.StateQueryIterator)
+        : Promise<IMedicineProposedLedgerJson> {
+
+        let offer: IMedicineProposedLedgerJson;
+
+        const result = await iterator.next();
+
+        if (result.value && result.value.value.toString()) {
+            offer = JSON.parse(result.value.value.toString('utf8')) as IMedicineProposedLedgerJson;
+            offer.key = result.value.getKey();
+        }
+
+        return offer;
     }
 }
