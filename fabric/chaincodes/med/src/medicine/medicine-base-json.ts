@@ -1,8 +1,11 @@
-import { MedicineStatusEnum } from '../utils/enums';
+import { MedicineStatusEnum, MedicineOperationEnum } from '../utils/enums';
 
 export interface IMedicineBaseJson {
-    amount: string;
-    type: string;
-    return_date: string;
-    status: MedicineStatusEnum;
+    id:             string;
+    internal_id:    string;
+    amount:         string;
+    type:           string;
+    return_date:    string;
+    status:         MedicineStatusEnum;
+    operation:      MedicineOperationEnum;
 }

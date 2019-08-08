@@ -2,7 +2,7 @@ import { IRequestExchangeJson } from './exchange-json';
 import { RequestExchange } from './exchange-model';
 import { MedicineRequestModel } from './medicine-request-model-base';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineStatusEnum, RequestMode } from '../utils/enums';
+import { MedicineStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -24,7 +24,7 @@ export class MedicineRequest implements IValidator {
         ('MR-004', 'The parameter return_date cannot be empty or null when the medicine request type is loan');
 
     private static ERROR_EMPTY_REQUEST_ID: ValidationError = new ValidationError
-        ('MR-005', 'The parameter request_id cannot be empty or null');
+        ('MR-005', 'The parameter id cannot be empty or null');
 
     //#endregion
     public amount: string;
@@ -33,7 +33,8 @@ export class MedicineRequest implements IValidator {
     public returnDate: string;
     public exchange: RequestExchange[];
     public status: any;
-    public request_id : string;
+    public foreignId : string;
+    public internalId : string;
 
     public fromJson(medicineRequestJson: IMedicineRequestJson): void {
         this.amount = medicineRequestJson.amount;
@@ -63,7 +64,7 @@ export class MedicineRequest implements IValidator {
 
         this.exchange = exchanges;
 
-        this.request_id = medicineRequestJson.request_id;
+        this.foreignId = medicineRequestJson.id;
     }
 
     public toJson(): IMedicineRequestJson {
@@ -83,7 +84,9 @@ export class MedicineRequest implements IValidator {
             return_date: this.returnDate ? this.returnDate : undefined,
             status: this.status,
             type: this.type,
-            request_id: this.request_id
+            id: this.foreignId,
+            internal_id: this.internalId,
+            operation: MedicineOperationEnum.REQUEST
 
         };
 
@@ -132,7 +135,7 @@ export class MedicineRequest implements IValidator {
             }
 
         }
-        if(!this.request_id){
+        if(!this.foreignId){
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_REQUEST_ID);
         }
 

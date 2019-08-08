@@ -3,7 +3,6 @@ import { IMedicineRequestClaPharmIndJson } from '../medicine/medicine-initial-tr
 import { IRequestExchangeJson } from './exchange-json';
 
 export interface IMedicineRequestJson extends IMedicineBaseJson {
-    request_id: string;
-    medicine:   IMedicineRequestClaPharmIndJson;
-    exchange:   IRequestExchangeJson[];
+    medicine:       IMedicineRequestClaPharmIndJson;
+    exchange:       IRequestExchangeJson[];
 }

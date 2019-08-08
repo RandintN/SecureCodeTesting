@@ -11,6 +11,11 @@ export enum MedicineStatusEnum {
 
 }
 
+export enum MedicineOperationEnum {
+    REQUEST = 'REQUEST',
+    OFFER = 'OFFER',
+}
+
 export enum ResponseCodes {
     OK = 200,
     CREATED = 201,
@@ -28,8 +33,9 @@ export enum RequestMode {
 
 }
 
-export enum MedicineOfferedStatusEnum {
+export enum MedicineProposedStatusEnum {
     PROPOSED = 'proposed',
     ACCEPTED = 'accepted',
     REJECTED = 'rejected',
+    DELIVERED = 'delivered'
 }
