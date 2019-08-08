@@ -1,6 +1,5 @@
 import { Context } from 'fabric-contract-api';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
-import { Guid } from 'guid-typescript';
 import { RequestExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ResponseUtil } from '../result/response-util';
@@ -21,6 +20,7 @@ import { MedicineRequestModel } from './medicine-request-model-base';
 import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
+import { Guid } from 'guid-typescript';
 
 export class MedicineRequestDomain extends MedicineDomain implements IMedicineRequestService {
 
@@ -48,6 +48,9 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
     private static ERROR_EMPTY_MEDICINE_REQUEST: ValidationError =
         new ValidationError('MRD-007', 'Empty medicine request is invaid.');
+
+    private static ERROR_DUPLICATE_REQUEST_ID: ValidationError =
+        new ValidationError('MRD-008', 'Id is already used. Please insert another one.');
     //#endregion
 
     //#region region of methods to be invoked
@@ -70,7 +73,8 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             }
 
             //const idRequest: string = Guid.create().toString();
-            const idRequest: string = medicineRequest.request_id;
+            //const idRequest: string = medicineRequest.foreignId;
+            medicineRequest.internalId = ctx.stub.getTxID();
 
             if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
@@ -79,7 +83,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                 medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
                 await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                    idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             } else {
                 medicineRequest.status = MedicineStatusEnum.APPROVED;
@@ -89,23 +93,61 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
                 medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
-                await ctx.stub.putState("request_"+idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                await ctx.stub.putState(medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             }
 
             const timestamp: number = new Date().getTime();
             const result: Result = new Result();
 
-            result.request_id = idRequest;
+            result.id = medicineRequest.internalId;
             result.timestamp = timestamp;
 
-            console.log('Medicine Request id: ' + result.request_id);
+            console.log('Medicine Request id: ' + result.id);
+            console.log('Medicine Status:  ' + medicineRequest.status);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
         } catch (error) {
             return ResponseUtil.ResponseError(error.toString(), undefined);
         }
     }
+
+    private async searchMedicineRequest(ctx: Context, requestId: string){
+
+        // Creates the query of couchdb
+        const queryJson = {
+            selector:{
+                id: requestId,
+            }
+        };
+
+        const filter: string = JSON.stringify(queryJson);
+
+        // Get Query
+        const queryIterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult
+        (filter);
+
+        const medOfferJson: IMedicineRequestJson = await this.getMedicine(queryIterator);
+
+        return medOfferJson;
+    }
+
+    /**
+     * Auxiliar method that iterates over an interator of MedicineOffer and mount the query result.
+     * @param iterator iterator
+     * @returns query results
+     */
+    private async getMedicine(iterator: Iterators.StateQueryIterator): Promise<IMedicineRequestJson> {
+
+        const result = await iterator.next();
+        let medicineOfferJson: IMedicineRequestJson;
+
+        if (result.value && result.value.value.toString()) {
+            medicineOfferJson = JSON.parse(result.value.value.toString('utf8')) as IMedicineRequestJson;
+        }
+
+    return medicineOfferJson;
+}
 
     public async addMedicineRequestInBatch(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
         try {
@@ -131,12 +173,25 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             const resultArray: Result[] = new Array<Result>();
 
             for (const medicineRequest of medicineRequestArray){
-                //const idRequest: string = Guid.create().toString();
-                const idRequest: string = medicineRequest.request_id;
+
+                //medicineRequest.internalId = ctx.stub.getTxID();
+                /*
+                    BUG:            getTxID generates only a unique value per                   transaction.
+                                    But here we are doing many writes on the ledger,so it is needed more that one id generated. 
+
+                    WORKAROUND:     Guid.create() will be used.
+
+                    PROBLEM:        When we work with more than one peer,
+                                    this will result in error, because
+                                    different peers will generate
+                                    different interalId's and, therefore,
+                                    not a valid transaction.
+                */
+                medicineRequest.internalId = Guid.create().toString();
                 const timestamp: number = new Date().getTime();
                 const result: Result = new Result();
 
-                result.request_id = idRequest;
+                result.id = medicineRequest.internalId;
                 result.timestamp = timestamp;
                 if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
                     
@@ -145,7 +200,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
     
                     await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                    idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                        medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
                     resultArray.push(result);
     
                 } else {
@@ -153,8 +208,8 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
                     medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
-    
-                    await ctx.stub.putState("request_"+idRequest, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+
+                    await ctx.stub.putState(medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
                     resultArray.push(result);
                     }
                 }
@@ -215,7 +270,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             const result: Result = new Result();
 
-            result.request_id = medReqApproveJson.request_id;
+            result.id = medReqApproveJson.request_id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -273,7 +328,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             const result: Result = new Result();
 
-            result.request_id = medReqRejectJson.request_id;
+            result.id = medReqRejectJson.request_id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -293,7 +348,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
         try {
             let requestAsByte = null;
-            requestAsByte = await ctx.stub.getState("request_"+key);
+            requestAsByte = await ctx.stub.getState(key);
             if (!requestAsByte || requestAsByte.length < 1) {
                 requestAsByte = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD, key);
                 if (!requestAsByte || requestAsByte.length < 1) {
@@ -432,6 +487,13 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
         try {
             // Make basic validations
+
+            const IdTest : IMedicineRequestJson = await this.searchMedicineRequest(ctx, medicineRequest.foreignId);
+            if(IdTest){
+                //Duplicated Id - Error
+                validationResult.addError(MedicineRequestDomain.ERROR_DUPLICATE_REQUEST_ID);
+
+            }
             const medicineBasicValidation: ValidationResult = medicineRequest.isValid();
 
             if (!medicineBasicValidation.isValid) {
@@ -463,7 +525,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             }
 
-            requestIdAsNumber = parseInt(medicineRequest.request_id);
+            requestIdAsNumber = parseInt(medicineRequest.foreignId);
             if (isNaN(requestIdAsNumber)) {
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_REQUEST_TYPE);
             }
