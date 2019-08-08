@@ -3,9 +3,9 @@ import { IMedicineBatchJson } from '../medicine-batch/medicine-batch-json';
 import { MedicineBatch } from '../medicine-batch/medicine-batch-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineOfferedJson } from './medicine-offered-json';
+import { IMedicineProposedRequestJson } from './medicine-proposed-request-json';
 
-export class MedicineOffered extends Medicine {
+export class MedicineProposedToRequest extends Medicine {
 
     //#region constants
     private static ERROR_EMPTY_ACTIVE_INGREDIENT: ValidationError =
@@ -26,21 +26,13 @@ export class MedicineOffered extends Medicine {
     private static ERROR_EMPTY_MEDICINE_BATCH: ValidationError =
         new ValidationError('MO-006', 'The parameter medicine_batch cannot be empty or null');
 
-    //COMMERCIAL_NAME IS AN OPTIONAL PARAMETER IN N2MI
-    //private static ERROR_EMPTY_COMMERCIAL_NAME: ValidationError =
-    //    new ValidationError('MO-007', 'The parameter commercial_name cannot be empty or null');
-
     private static ERROR_EMPTY_AMOUNT: ValidationError =
         new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
 
     private static ERROR_DUPLICATE_EXPIRE_DATE: ValidationError =
         new ValidationError('MO-009', 'The parameter expire_date of medicine_batch cannot be repeated.');
 
-        
 
-    //REF_VALUE IS AN OPTIONAL PARAMETER IN N2MI
-    //private static ERROR_EMPTY_REF_VALUE: ValidationError =
-    //    new ValidationError('MO-008', 'The parameter ref_value cannot be empty or null');
 
     //#endregion
     public amount: string;
@@ -49,7 +41,7 @@ export class MedicineOffered extends Medicine {
     public refValue: number;
     public medicineBatch: MedicineBatch[];
 
-    public fromJson(medicineOffered: IMedicineOfferedJson): void {
+    public fromJson(medicineOffered: IMedicineProposedRequestJson): void {
         this.medicineBatch = new Array<MedicineBatch>();
 
         try {
@@ -76,7 +68,7 @@ export class MedicineOffered extends Medicine {
 
     }
 
-    public toJson(): IMedicineOfferedJson {
+    public toJson(): IMedicineProposedRequestJson {
         const medicineBatchJson: IMedicineBatchJson[] = new Array<IMedicineBatchJson>();
 
         try {
@@ -92,7 +84,7 @@ export class MedicineOffered extends Medicine {
             throw Error(error + ' ME-75');
         }
 
-        const json: IMedicineOfferedJson = {
+        const json: IMedicineProposedRequestJson = {
             active_ingredient: this.activeIngredient,
             amount: this.amount,
             classification: this.classification,
@@ -111,42 +103,32 @@ export class MedicineOffered extends Medicine {
         const validationResult: ValidationResult = new ValidationResult();
 
         if (!this.amount) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_AMOUNT);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_AMOUNT);
 
         }
 
         if (!this.activeIngredient) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_ACTIVE_INGREDIENT);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_ACTIVE_INGREDIENT);
         }
 
-        //COMMERCIAL_NAME IS AN OPTIONAL PARAMETER IN N2MI
-        //if (!this.commercialName) {
-        //    validationResult.addError(MedicineOffered.ERROR_EMPTY_COMMERCIAL_NAME);
-        //}
-
         if (!this.pharmaForm) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_FORM);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_PHARMA_FORM);
         }
 
         if (!this.concentration) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_CONCENTRATION);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_CONCENTRATION);
         }
 
         if (!this.classification) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_CLASSIFICATION);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_CLASSIFICATION);
         }
 
         if (!this.pharmaIndustry) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_PHARMA_INDUSTRY);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_PHARMA_INDUSTRY);
         }
 
-        //REF_VALUE IS AN OPTIONAL PARAMETER IN N2MI
-        //if (!this.refValue) {
-        //    validationResult.addError(MedicineOffered.ERROR_EMPTY_REF_VALUE);
-        //}
-
         if (!this.medicineBatch || this.medicineBatch.length < 1) {
-            validationResult.addError(MedicineOffered.ERROR_EMPTY_MEDICINE_BATCH);
+            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_MEDICINE_BATCH);
 
         } else {
             const medicineBatch = new MedicineBatch();
@@ -155,7 +137,7 @@ export class MedicineOffered extends Medicine {
             const error: boolean = this.medicineBatch.some((batch) => {
                 validationMedicineBatch = batch.isValid();
                 if(expireDateList.includes(batch.expireDate)){
-                    validationResult.addError(MedicineOffered.ERROR_DUPLICATE_EXPIRE_DATE);
+                    validationResult.addError(MedicineProposedToRequest.ERROR_DUPLICATE_EXPIRE_DATE);
                 }
                 else{
                     expireDateList.push(batch.expireDate);

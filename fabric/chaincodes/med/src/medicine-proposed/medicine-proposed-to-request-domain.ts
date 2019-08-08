@@ -3,11 +3,11 @@ import { MedicineDomain } from '../medicine-abstract/medicine-domain';
 import { MedicineClassificationDomain } from '../medicine-classification/medicine-classification-domain';
 import { PharmaceuticalIndustryDomain } from '../pharmaceutical-industry/pharmaceutical-industry-domain';
 import { ValidationResult } from '../validation/validation-model';
-import { MedicineOffered } from './medicine-offered-model';
+import { MedicineProposedToRequest } from './medicine-proposed-to-request-model';
 
-export class MedicineOfferedDomain extends MedicineDomain {
+export class MedicineProposedToRequestDomain extends MedicineDomain {
 
-    public async isValid(ctx: Context, medicine: MedicineOffered): Promise<ValidationResult> {
+    public async isValid(ctx: Context, medicine: MedicineProposedToRequest): Promise<ValidationResult> {
         const validationResult: ValidationResult = new ValidationResult();
 
         try {
