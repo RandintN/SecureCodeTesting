@@ -3,7 +3,6 @@ import { IMedicineOfferClaPharmIndJson } from './medicine-offer-classification-p
 import { IOfferExchangeJson } from './exchange-json';
 
 export interface IMedicineOfferJson extends IMedicineBaseJson {
-    offer_id: string;
-    medicine: IMedicineOfferClaPharmIndJson;
-    exchange: IOfferExchangeJson[];
+    medicine:       IMedicineOfferClaPharmIndJson;
+    exchange:       IOfferExchangeJson[];
 }
