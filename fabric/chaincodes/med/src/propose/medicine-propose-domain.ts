@@ -8,7 +8,7 @@ import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineProposedStatusEnum, MedicineStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
+import { MedicineProposedStatusEnum, MedicineStatusEnum, RequestMode as Mode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IProposeApprovalJson } from './propose-approval-json';
@@ -226,9 +226,9 @@ export class MedicineProposeDomain implements IMedicineProposedService {
      * Method specific to medicine offer to validate if the proposed
      * information is equal to the available offer.
      * @param ctx Context of operation
-     * @param medicineProposed the informations of the proposed medicine
+     * @param propose the informations of the proposed medicine
      */
-    private async validateOfferProposedMedicineRules(ctx: Context, medicineProposed: ProposeToOffer)
+    private async validateOfferProposedMedicineRules(ctx: Context, propose: ProposeToOffer)
         : Promise<ValidationResult> {
 
         const validationResult: ValidationResult = new ValidationResult();
@@ -238,35 +238,35 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             // Make basic validations
             //----------------------------
             //*Empty type
-            //*If the operation is exchange
+            //*Empty exchange - type = exchange
             //*Empty id
             //*Empty propose id
             //*Empty medicine
             // ---------------------------
-            const medicineOfferedBasicValidation: ValidationResult = medicineProposed.isValid();
+            const basicValidation: ValidationResult = propose.isValid();
 
-            if (!medicineOfferedBasicValidation.isValid) {
-                return medicineOfferedBasicValidation;
+            if (!basicValidation.isValid) {
+                return basicValidation;
             }
 
             //Try to get data with the trade id - internalId
-            const result: Buffer = await ctx.stub.getState(medicineProposed.internalId);
+            const result: Buffer = await ctx.stub.getState(propose.internalId);
             if (!result || result.length < 1) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
 
-            //The medicine trade can be both request or offer
-            const medicineTrade: any = JSON.parse(result.toString());
+            //The trade can be request or offer
+            const trade: any = JSON.parse(result.toString());
 
             //Verify is the medicine is approved or waiting for approved
-            if (medicineTrade.status !== MedicineStatusEnum.APPROVED) {
+            if (trade.status !== MedicineStatusEnum.APPROVED) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
 
             //Comparing type
-            if (medicineProposed.type !== medicineTrade.type) {
+            if (propose.type !== trade.type) {
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_OFFERED_TYPE_NOT_EQUAL_PROPOSED_TYPE);
                 
@@ -274,13 +274,13 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Comparing return date
-            if (medicineProposed.type.toLocaleLowerCase() === RequestMode.LOAN) {
-                if (medicineProposed.newReturnDate) {
+            if (propose.type.toLocaleLowerCase() === Mode.LOAN) {
+                if (propose.newReturnDate) {
                     const dateExtension: DateExtension = new DateExtension();
-                    if (!dateExtension.validateDate(medicineProposed.newReturnDate, validationResult)) {
+                    if (!dateExtension.validateDate(propose.newReturnDate, validationResult)) {
                         return validationResult;
                     }
-                    if (Date.parse(medicineProposed.newReturnDate) === Date.parse(medicineTrade.return_date)) {
+                    if (Date.parse(propose.newReturnDate) === Date.parse(trade.return_date)) {
                         validationResult.addError(
                             MedicineProposeDomain.ERROR_NEW_RETURN_DATE_EQUAL_RETURN_DATE);
                         return validationResult;
@@ -292,19 +292,19 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             const medicineProposedDomain: MedicineProposedToOfferDomain = new MedicineProposedToOfferDomain();
             
             const medicineProposedValidation: ValidationResult =
-                await medicineProposedDomain.isValid(ctx, medicineProposed.medicine);
+                await medicineProposedDomain.isValid(ctx, propose.medicine);
 
             if (!medicineProposedValidation.isValid) {
                 validationResult.addErrors(medicineProposedValidation.errors);
                 return validationResult;
             }
 
-            if (!this.validateProposedMedicine(medicineProposed.medicine, medicineTrade.medicine)) {
+            if (!this.validateProposedMedicine(propose.medicine, trade.medicine)) {
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_MEDICINE_PROPOSE_IS_NOT_EQUAL_MEDICINE_OFFER);
             }
 
-            if (!medicineTrade.amount.includes(medicineProposed.medicine.amount)) {
+            if (!trade.amount.includes(propose.medicine.amount)) {
                 
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_OFFER);
@@ -375,7 +375,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Comparing return date
-            if (medicineProposed.type.toLocaleLowerCase() === RequestMode.LOAN) {
+            if (medicineProposed.type.toLocaleLowerCase() === Mode.LOAN) {
                 if (medicineProposed.newReturnDate) {
                     const dateExtension: DateExtension = new DateExtension();
                     if (!dateExtension.validateDate(medicineProposed.newReturnDate, validationResult)) {

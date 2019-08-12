@@ -5,6 +5,8 @@ import { IValidator } from '../validation/validator-interface';
 import { IMedicineProposedJson } from './medicine-proposed-json';
 import { MedicineProposedToRequest } from '../medicine-proposed/medicine-proposed-to-request-model';
 import { IProposeToRequestJson } from './propose-to-request-json';
+import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
+import { IMedicineProposeExchangeJson } from './medicine-propose-exchange-json';
 
 export class ProposeToRequest implements IValidator {
 
@@ -35,6 +37,7 @@ export class ProposeToRequest implements IValidator {
     public status: MedicineProposedStatusEnum;
     public observations: string;
     public operation:      MedicineOperationEnum;
+    public exchange:    IMedicineProposeExchangeJson;
     
 
     public fromJson(medicineOfferedRequestJson: IProposeToRequestJson): void {
@@ -60,7 +63,8 @@ export class ProposeToRequest implements IValidator {
             status: this.status,
             type: this.type,
             propose_id: this.proposeId,
-            operation: this.operation
+            operation: this.operation,
+            exchange: this.exchange
         };
 
         return medicineOfferedRequestJson;
