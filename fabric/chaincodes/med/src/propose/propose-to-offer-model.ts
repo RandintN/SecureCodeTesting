@@ -4,7 +4,7 @@ import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IMedicineProposedJson } from './medicine-proposed-json';
-import { IMedicineProposeExchangeJson } from './medicine-propose-exchange-json';
+import { MedicineProposeExchange } from './medicine-exchange-model';
 
 export class ProposeToOffer implements IValidator {
 
@@ -39,7 +39,7 @@ export class ProposeToOffer implements IValidator {
     public status: MedicineProposedStatusEnum;
     public observations: string;
     public operation:      MedicineOperationEnum;
-    public exchange:    IMedicineProposeExchangeJson;
+    public exchange:    MedicineProposeExchange;
     
 
     public fromJson(proposeToOfferJson: IMedicineProposedJson): void {
@@ -54,7 +54,10 @@ export class ProposeToOffer implements IValidator {
             this.medicine.fromJson(proposeToOfferJson.medicine);
         }
         this.operation = MedicineOperationEnum.OFFER;
-        this.exchange = proposeToOfferJson.exchange;
+        this.exchange = new MedicineProposeExchange();
+        if(proposeToOfferJson.exchange) {
+            this.exchange.fromJson(proposeToOfferJson.exchange);
+        }
 
     }
 
@@ -68,7 +71,7 @@ export class ProposeToOffer implements IValidator {
             type: this.type,
             propose_id: this.proposeId,
             operation: this.operation,
-            exchange: this.exchange
+            exchange: this.exchange.toJson()
         };
 
         return medicineOfferedRequestJson;
@@ -80,7 +83,7 @@ export class ProposeToOffer implements IValidator {
         if (!this.type) {
             validationResult.addError(ProposeToOffer.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE && !this.exchange) {
+        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE && !this.exchange || Object.keys(this.exchange).length === 0) {
             validationResult.addError(ProposeToOffer.ERROR_NEGOTIATION_IS_NEEDED);
         }
 

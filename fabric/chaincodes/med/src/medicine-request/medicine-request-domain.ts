@@ -114,6 +114,10 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
     private async searchMedicineRequest(ctx: Context, requestId: string){
 
+        if(requestId) {
+            console.log("Foreign id: " + requestId);
+        }
+
         // Creates the query of couchdb
         const queryJson = {
             selector:{

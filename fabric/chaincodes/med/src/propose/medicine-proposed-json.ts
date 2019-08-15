@@ -1,6 +1,6 @@
 import { IMedicineProposedBaseJson } from '../medicine-proposed/medicine-proposed-base-json';
 import { MedicineProposedStatusEnum, MedicineOperationEnum } from '../utils/enums';
-import { IMedicineProposeExchangeJson } from './medicine-propose-exchange-json';
+import { IProposedExchangeJson } from './medicine-propose-exchange-json';
 
 export interface IMedicineProposedJson {
     id: string;
@@ -11,5 +11,5 @@ export interface IMedicineProposedJson {
     observations:       string;
     propose_id:         string;
     operation:          MedicineOperationEnum;
-    exchange:           IMedicineProposeExchangeJson;
+    exchange:           IProposedExchangeJson;
 }

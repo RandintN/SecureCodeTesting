@@ -19,6 +19,10 @@ import { ProposeToOffer } from './propose-to-offer-model';
 import { IMedicineQueryKey } from '../medicine/medicine-query-key';
 import { MedicineProposedToRequestDomain } from '../medicine-proposed/medicine-proposed-to-request-domain';
 import { ProposeToRequest } from './propose-to-request-model';
+import { MedicineProposeExchange } from './medicine-exchange-model';
+import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
+import { IOfferExchangeJson } from '../medicine-offer/exchange-json';
+import { IMedicineOfferClaPharmIndJson } from '../medicine-offer/medicine-offer-classification-pharma-industry-json';
 
 export class MedicineProposeDomain implements IMedicineProposedService {
 
@@ -65,6 +69,8 @@ export class MedicineProposeDomain implements IMedicineProposedService {
     private static ERROR_DUPLICATED_PROPOSE_ID: ValidationError =
             new ValidationError('MPD-010',
                 'Propose id is already used. Please insert another one.');
+
+    private static ERROR_TRADE_EXGHANGE_NOT_EQUAL_PROPOSED_TYPE: ValidationError = new ValidationError('MPD-11', 'The medicine in exchange is not the same of the proposed.');
 
     /**
      * Method to send a medicine propose to the ledger.
@@ -256,17 +262,17 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 return validationResult;
             }
 
-            //The trade can be request or offer
-            const trade: any = JSON.parse(result.toString());
+            //The offer
+            const offer: IMedicineOfferJson = JSON.parse(result.toString());
 
             //Verify is the medicine is approved or waiting for approved
-            if (trade.status !== MedicineStatusEnum.APPROVED) {
+            if (offer.status !== MedicineStatusEnum.APPROVED) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
 
             //Comparing type
-            if (propose.type !== trade.type) {
+            if (propose.type !== offer.type) {
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_OFFERED_TYPE_NOT_EQUAL_PROPOSED_TYPE);
                 
@@ -280,10 +286,32 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                     if (!dateExtension.validateDate(propose.newReturnDate, validationResult)) {
                         return validationResult;
                     }
-                    if (Date.parse(propose.newReturnDate) === Date.parse(trade.return_date)) {
+                    if (Date.parse(propose.newReturnDate) === Date.parse(offer.return_date)) {
                         validationResult.addError(
                             MedicineProposeDomain.ERROR_NEW_RETURN_DATE_EQUAL_RETURN_DATE);
                         return validationResult;
+                    }
+                }
+            }
+
+            //Detect if it's a exchange operation
+            if (propose.type.toLocaleLowerCase() === Mode.EXCHANGE) {
+                //Detect if the trade specified one or more itens
+                //to give in exchange. Otherwise, it is not necessary
+                //to validate the proposed exchange.
+                if(offer.exchange && offer.exchange.length > 0) {
+                    let hasExchange : boolean;
+                    for(let exchangeItem of offer.exchange){
+                        if(this.validateProposedExchange(propose.exchange, exchangeItem)) {
+                            hasExchange = true;
+                            break;
+                        }
+                    }
+                    if(!hasExchange) {
+                        validationResult.addError(
+                            MedicineProposeDomain.ERROR_TRADE_EXGHANGE_NOT_EQUAL_PROPOSED_TYPE);
+
+                    return validationResult;
                     }
                 }
             }
@@ -299,12 +327,12 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 return validationResult;
             }
 
-            if (!this.validateProposedMedicine(propose.medicine, trade.medicine)) {
+            if (!this.validateProposedOfferMedicine(propose.medicine, offer.medicine)) {
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_MEDICINE_PROPOSE_IS_NOT_EQUAL_MEDICINE_OFFER);
             }
 
-            if (!trade.amount.includes(propose.medicine.amount)) {
+            if (!offer.amount.includes(propose.medicine.amount)) {
                 
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_OFFER);
@@ -547,12 +575,89 @@ export class MedicineProposeDomain implements IMedicineProposedService {
     }
 
     /**
+     * Auxiliar method that goes inside the exchange and validate its fields,
+     * comparing the inicial trade and the proposed medicine
+     * @param proposedExchange the proposed medicine
+     * @param originalExchange the initial trade - request or offer
+     */
+    private validateProposedExchange(proposedExchange: MedicineProposeExchange, originalExchange: IOfferExchangeJson): boolean {
+
+
+        if (originalExchange.medicine.active_ingredient !== proposedExchange.activeIngredient) {
+            return false;
+        }
+        if (originalExchange.medicine.classification && originalExchange.medicine.classification && !originalExchange.medicine.classification.includes(proposedExchange.classification)) {
+            return false;
+        } else {
+            console.log("Classifications found equality.")
+        }
+
+        //Optional atribute
+        if (originalExchange.medicine.commercial_name && originalExchange.medicine.commercial_name !== proposedExchange.commercialName) {
+            return false;
+        }
+
+        if (originalExchange.medicine.pharma_industry && originalExchange.medicine.pharma_industry.length > 0
+            && !originalExchange.medicine.pharma_industry.includes(proposedExchange.pharmaIndustry)) {
+            return false;
+        } else {
+            console.log("Pharma Industries found equality.")
+        }
+
+        if (originalExchange.medicine.concentration !== proposedExchange.concentration) {
+            return false;
+        }
+
+        if (originalExchange.medicine.pharma_form !== proposedExchange.pharmaForm) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Auxiliar method that goes inside the medicine and validate its fields,
      * comparing the inicial trade and the proposed medicine
      * @param proposedMedicine the proposed medicine
      * @param originalMedicine the initial trade - request or offer
      */
     private validateProposedMedicine(proposedMedicine: MedicineProposedToOffer, originalMedicine: IMedicineRequestClaPharmIndJson): boolean {
+        if (originalMedicine.active_ingredient !== proposedMedicine.activeIngredient) {
+            return false;
+        }
+        if (originalMedicine.classification && originalMedicine.classification.length > 0
+            && !originalMedicine.classification.includes(proposedMedicine.classification)) {
+            return false;
+        }
+
+        if (originalMedicine.commercial_name && originalMedicine.commercial_name !== ''
+            && originalMedicine.commercial_name !== proposedMedicine.commercialName) {
+            return false;
+        }
+
+        if (originalMedicine.pharma_industry && originalMedicine.pharma_industry.length > 0
+            && !originalMedicine.pharma_industry.includes(proposedMedicine.pharmaIndustry)) {
+            return false;
+        }
+
+        if (originalMedicine.concentration !== proposedMedicine.concentration) {
+            return false;
+        }
+
+        if (originalMedicine.pharma_form !== proposedMedicine.pharmaForm) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Auxiliar method that goes inside the medicine and validate its fields,
+     * comparing the inicial offer and the proposed medicine
+     * @param proposedMedicine the proposed medicine
+     * @param originalMedicine the initial trade - request or offer
+     */
+    private validateProposedOfferMedicine(proposedMedicine: MedicineProposedToOffer, originalMedicine: IMedicineOfferClaPharmIndJson): boolean {
         if (originalMedicine.active_ingredient !== proposedMedicine.activeIngredient) {
             return false;
         }
