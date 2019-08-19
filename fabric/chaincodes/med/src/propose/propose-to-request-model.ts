@@ -56,6 +56,7 @@ export class ProposeToRequest implements IValidator {
         }
         this.operation = MedicineOperationEnum.REQUEST;
         this.exchange = new ProposedExchange();
+        this.exchange.medicine = new MedicineProposeExchange();
         if(medicineOfferedRequestJson.exchange) {
             this.exchange.fromJson(medicineOfferedRequestJson.exchange);
         }
