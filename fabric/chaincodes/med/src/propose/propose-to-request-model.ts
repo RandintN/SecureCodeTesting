@@ -2,11 +2,13 @@ import { MedicineProposedStatusEnum, RequestMode, MedicineOperationEnum } from '
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
-import { IMedicineProposedJson } from './medicine-proposed-json';
+import { IProposedJson } from './medicine-proposed-json';
 import { MedicineProposedToRequest } from '../medicine-proposed/medicine-proposed-to-request-model';
 import { IProposeToRequestJson } from './propose-to-request-json';
 import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
-import { IProposedExchangeJson } from './medicine-propose-exchange-json';
+import { IProposedExchangeJson } from './proposed-exchange-json';
+import { MedicineProposeExchange } from './medicine-exchange-model';
+import { ProposedExchange } from './exchange-model';
 
 export class ProposeToRequest implements IValidator {
 
@@ -31,13 +33,14 @@ export class ProposeToRequest implements IValidator {
     public internalId: string;
     public proposeId : string;
     public internalProposeId : string;
+    public amount: string;
     public medicine: MedicineProposedToRequest;
     public type: string;
     public newReturnDate: string;
     public status: MedicineProposedStatusEnum;
     public observations: string;
     public operation:      MedicineOperationEnum;
-    public exchange:    IProposedExchangeJson;
+    public exchange:    ProposedExchange;
     
 
     public fromJson(medicineOfferedRequestJson: IProposeToRequestJson): void {
@@ -46,16 +49,21 @@ export class ProposeToRequest implements IValidator {
         this.newReturnDate = medicineOfferedRequestJson.new_return_date;
         this.observations = medicineOfferedRequestJson.observations;
         this.proposeId = medicineOfferedRequestJson.propose_id;
-
+        this.amount = medicineOfferedRequestJson.amount;
         this.medicine = new MedicineProposedToRequest();
         if (medicineOfferedRequestJson.medicine) {
             this.medicine.fromJson(medicineOfferedRequestJson.medicine);
         }
         this.operation = MedicineOperationEnum.REQUEST;
+        this.exchange = new ProposedExchange();
+        if(medicineOfferedRequestJson.exchange) {
+            this.exchange.fromJson(medicineOfferedRequestJson.exchange);
+        }
     }
 
-    public toJson(): IMedicineProposedJson {
-        const medicineOfferedRequestJson: IMedicineProposedJson = {
+    public toJson(): IProposedJson {
+        const medicineOfferedRequestJson: IProposedJson = {
+            amount: this.amount,
             medicine: this.medicine.toJson(),
             new_return_date: this.newReturnDate,
             observations: this.observations,
@@ -64,7 +72,7 @@ export class ProposeToRequest implements IValidator {
             type: this.type,
             propose_id: this.proposeId,
             operation: this.operation,
-            exchange: this.exchange
+            exchange: this.exchange.toJson()
         };
 
         return medicineOfferedRequestJson;
@@ -76,8 +84,6 @@ export class ProposeToRequest implements IValidator {
         if (!this.type) {
             validationResult.addError(ProposeToRequest.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
-            validationResult.addError(ProposeToRequest.ERROR_TYPE_IS_NOT_IMPLEMENTED);
         }
 
         if (!this.id) {

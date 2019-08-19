@@ -4,7 +4,8 @@ import { MedicineBatch } from '../medicine-batch/medicine-batch-model';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IMedicineRequestExchangeJson } from '../medicine-request/medicine-exchange-json';
-import { IProposedExchangeJson } from './medicine-propose-exchange-json';
+import { IProposedExchangeJson } from './proposed-exchange-json';
+import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
 
 export class MedicineProposeExchange extends Medicine {
     //#region constants
@@ -33,7 +34,7 @@ export class MedicineProposeExchange extends Medicine {
     public refValue: number;
     public medicineBatch: MedicineBatch[];
 
-    public fromJson(proposedExchange: IProposedExchangeJson): void {
+    public fromJson(proposedExchange: IMedicineExchangeJson): void {
         this.medicineBatch = [];
 
         try {
@@ -59,7 +60,7 @@ export class MedicineProposeExchange extends Medicine {
         this.pharmaIndustry = proposedExchange.pharma_industry;
     }
 
-    public toJson(): IProposedExchangeJson {
+    public toJson(): IMedicineExchangeJson {
         const medicineBatchJson: IMedicineBatchJson[] = [];
 
         try {
@@ -75,7 +76,7 @@ export class MedicineProposeExchange extends Medicine {
             throw Error(error + ' ME-75');
         }
 
-        const json: IProposedExchangeJson = {
+        const json: IMedicineExchangeJson = {
             active_ingredient: this.activeIngredient,
             classification: this.classification,
             commercial_name: this.commercialName,

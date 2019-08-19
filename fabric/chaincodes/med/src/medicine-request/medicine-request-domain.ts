@@ -8,7 +8,7 @@ import { CommonConstants } from '../utils/common-messages';
 import { MedicineStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
-import { IMedicineRequestApproveRejectJson } from './medicine-request-approve-reject-json';
+import { IApproveRejectJson } from '../approve-reject/approve-reject-json';
 import { IMedicineRequestService } from './medicine-request-interface';
 import { IMedicineRequestJson } from './medicine-request-json';
 import { IMedicineRequestLedgerJson } from './medicine-request-ledger-json';
@@ -228,26 +228,26 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
     public async approveMedicinePendingRequest(ctx: Context, medReqApproveStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
         try {
-            const medReqApproveJson: IMedicineRequestApproveRejectJson =
-                JSON.parse(medReqApproveStr) as IMedicineRequestApproveRejectJson;
+            const reqApproveJson: IApproveRejectJson =
+                JSON.parse(medReqApproveStr) as IApproveRejectJson;
 
-            if(medReqApproveJson==null){
+            if(reqApproveJson==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST)));
             }
 
-            if(medReqApproveJson.request_id==null){
+            if(reqApproveJson.id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST)));
             }
 
-            if(medReqApproveJson.request_id==""){
+            if(reqApproveJson.id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_ID)));
             }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                medReqApproveJson.request_id);
+                reqApproveJson.id);
 
             if (!medRequestInBytes || medRequestInBytes.length < 1) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -268,13 +268,15 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             medicineRequest.fromJson(medRequestJson);
             medicineRequest.status = MedicineStatusEnum.APPROVED;
 
-            await ctx.stub.putState("request_"+medReqApproveJson.request_id
+            console.log("getTxID: " + medicineRequest.internalId);
+
+            await ctx.stub.putState(medicineRequest.internalId
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
-            await ctx.stub.deletePrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqApproveJson.request_id);
+            await ctx.stub.deletePrivateData(MedicineRequestDomain.MED_REQUEST_PD, medicineRequest.internalId);
 
             const result: Result = new Result();
 
-            result.id = medReqApproveJson.request_id;
+            result.id = reqApproveJson.id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
@@ -288,26 +290,26 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
     public async rejectMedicinePendingRequest(ctx: Context, medReqRejectStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
         try {
-            const medReqRejectJson: IMedicineRequestApproveRejectJson =
-                JSON.parse(medReqRejectStr) as IMedicineRequestApproveRejectJson;
+            const medReqRejectJson: IApproveRejectJson =
+                JSON.parse(medReqRejectStr) as IApproveRejectJson;
 
             if(medReqRejectJson==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST)));
             }
 
-            if(medReqRejectJson.request_id==null){
+            if(medReqRejectJson.id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_NULL_MEDICINE_REQUEST)));
             }
 
-            if(medReqRejectJson.request_id==""){
+            if(medReqRejectJson.id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_EMPTY_MEDICINE_REQUEST_ID)));
             }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                medReqRejectJson.request_id);
+                medReqRejectJson.id);
 
             if (!medRequestInBytes || medRequestInBytes.length < 1) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -327,12 +329,12 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             medicineRequest.fromJson(medRequestJson);
             medicineRequest.status = MedicineStatusEnum.REJECTED;
 
-            await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqRejectJson.request_id
+            await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqRejectJson.id
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
 
             const result: Result = new Result();
 
-            result.id = medReqRejectJson.request_id;
+            result.id = medReqRejectJson.id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));

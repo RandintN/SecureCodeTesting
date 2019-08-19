@@ -3,7 +3,7 @@ import { ChaincodeResponse, Iterators } from 'fabric-shim';
 import { IMedicineRequestClaPharmIndJson } from '../medicine/medicine-initial-transaction-json';
 import { MedicineProposedToOfferDomain } from '../medicine-proposed/medicine-proposed-to-offer-domain';
 import { MedicineProposedToOffer } from '../medicine-proposed/medicine-proposed-to-offer-model';
-import { IMedicineRequestJson as IMedicineBaseJson } from '../medicine-request/medicine-request-json';
+import { IMedicineRequestJson as IMedicineBaseJson, IMedicineRequestJson } from '../medicine-request/medicine-request-json';
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
@@ -13,7 +13,7 @@ import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IProposeApprovalJson } from './propose-approval-json';
 import { IMedicineProposedService } from './medicine-propose-interface';
-import { IMedicineProposedJson } from './medicine-proposed-json';
+import { IProposedJson } from './medicine-proposed-json';
 import { IMedicineProposedLedgerJson } from './medicine-proposed-ledger-json';
 import { ProposeToOffer } from './propose-to-offer-model';
 import { IMedicineQueryKey } from '../medicine/medicine-query-key';
@@ -23,6 +23,10 @@ import { MedicineProposeExchange } from './medicine-exchange-model';
 import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
 import { IOfferExchangeJson } from '../medicine-offer/exchange-json';
 import { IMedicineOfferClaPharmIndJson } from '../medicine-offer/medicine-offer-classification-pharma-industry-json';
+import { IRequestExchangeJson } from '../medicine-request/exchange-json';
+import { ProposedExchange } from './exchange-model';
+import { IMedicineBatchJson } from '../medicine-batch/medicine-batch-json';
+import { MedicineBatch } from '../medicine-batch/medicine-batch-model';
 
 export class MedicineProposeDomain implements IMedicineProposedService {
 
@@ -75,13 +79,13 @@ export class MedicineProposeDomain implements IMedicineProposedService {
     /**
      * Method to send a medicine propose to the ledger.
      * @param ctx Context of operation
-     * @param medicineProposedJson Data of the proposed medicine
+     * @param proposedJson Data of the proposed medicine
      */
-    public async proposeMedicine(ctx: Context, medicineProposedJson: string): Promise<ChaincodeResponse> {
+    public async proposeMedicine(ctx: Context, proposedJson: string): Promise<ChaincodeResponse> {
         try {
 
             let validationTradeId: ValidationResult;
-            validationTradeId = await this.loadTradeAndValidateId(ctx, medicineProposedJson
+            validationTradeId = await this.loadTradeAndValidateId(ctx, proposedJson
                 );
             if (!validationTradeId.isValid) {
                 //Entrou no erro do isValid
@@ -90,7 +94,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             let validationProposeId: ValidationResult;
-            validationProposeId = await this.identifyAndValidatePropose(ctx, medicineProposedJson);
+            validationProposeId = await this.identifyAndValidatePropose(ctx, proposedJson);
             if (!validationProposeId.isValid) {
                 //Entrou no erro do isValid
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -159,7 +163,6 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
         };
 
-        console.log("Propose Id da busca: " + proposeId)
         const filter: string = JSON.stringify(queryJson);
 
         // Get Query
@@ -296,13 +299,13 @@ export class MedicineProposeDomain implements IMedicineProposedService {
 
             //Detect if it's a exchange operation
             if (propose.type.toLocaleLowerCase() === Mode.EXCHANGE) {
-                //Detect if the trade specified one or more itens
+                //Detect if the offer specified one or more itens
                 //to give in exchange. Otherwise, it is not necessary
                 //to validate the proposed exchange.
                 if(offer.exchange && offer.exchange.length > 0) {
                     let hasExchange : boolean;
                     for(let exchangeItem of offer.exchange){
-                        if(this.validateProposedExchange(propose.exchange, exchangeItem)) {
+                        if(this.validateProposedOfferExchange(propose.exchange, exchangeItem)) {
                             hasExchange = true;
                             break;
                         }
@@ -314,6 +317,14 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                     return validationResult;
                     }
                 }
+            }
+
+            if (!offer.amount.includes(propose.amount)) {
+
+                validationResult.addError(
+                MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_OFFER);
+
+                return validationResult;
             }
 
             //The medicine of the propose offer
@@ -332,14 +343,6 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 MedicineProposeDomain.ERROR_MEDICINE_PROPOSE_IS_NOT_EQUAL_MEDICINE_OFFER);
             }
 
-            if (!offer.amount.includes(propose.medicine.amount)) {
-                
-                validationResult.addError(
-                MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_OFFER);
-
-                return validationResult;
-            }
-
             validationResult.isValid = validationResult.errors.length < 1;
 
             return validationResult;
@@ -355,9 +358,9 @@ export class MedicineProposeDomain implements IMedicineProposedService {
      * Method specific to medicine request to validate if the proposed
      * information is equal to the available request.
      * @param ctx Context of operation
-     * @param medicineProposed the informations of the proposed medicine
+     * @param propose the informations of the propose to request
      */
-    private async validateRequestProposedMedicineRules(ctx: Context, medicineProposed: ProposeToRequest)
+    private async validateRequestProposedMedicineRules(ctx: Context, propose: ProposeToRequest)
         : Promise<ValidationResult> {
 
         const validationResult: ValidationResult = new ValidationResult();
@@ -367,35 +370,34 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             // Make basic validations
             //----------------------------
             //*Empty type
-            //*If the operation is exchange
             //*Empty id
             //*Empty propose id
             //*Empty medicine
             // ---------------------------
-            const medicineOfferedBasicValidation: ValidationResult = medicineProposed.isValid();
+            const proposeBasicValidation: ValidationResult = propose.isValid();
 
-            if (!medicineOfferedBasicValidation.isValid) {
-                return medicineOfferedBasicValidation;
+            if (!proposeBasicValidation.isValid) {
+                return proposeBasicValidation;
             }
 
             //Try to get data with the trade id - internalId
-            const result: Buffer = await ctx.stub.getState(medicineProposed.internalId);
+            const result: Buffer = await ctx.stub.getState(propose.internalId);
             if (!result || result.length < 1) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
 
-            //The medicine trade can be both request or offer
-            const medicineTrade: any = JSON.parse(result.toString());
+            //The request
+            const request: IMedicineRequestJson = JSON.parse(result.toString());
 
             //Verify is the medicine is approved or waiting for approved
-            if (medicineTrade.status !== MedicineStatusEnum.APPROVED) {
+            if (request.status !== MedicineStatusEnum.APPROVED) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
 
             //Comparing type
-            if (medicineProposed.type !== medicineTrade.type) {
+            if (propose.type !== request.type) {
                 validationResult.addError(
                         MedicineProposeDomain.ERROR_REQUESTED_TYPE_NOT_EQUAL_PROPOSED_TYPE);
                 
@@ -403,13 +405,13 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Comparing return date
-            if (medicineProposed.type.toLocaleLowerCase() === Mode.LOAN) {
-                if (medicineProposed.newReturnDate) {
+            if (propose.type.toLocaleLowerCase() === Mode.LOAN) {
+                if (propose.newReturnDate) {
                     const dateExtension: DateExtension = new DateExtension();
-                    if (!dateExtension.validateDate(medicineProposed.newReturnDate, validationResult)) {
+                    if (!dateExtension.validateDate(propose.newReturnDate, validationResult)) {
                         return validationResult;
                     }
-                    if (Date.parse(medicineProposed.newReturnDate) === Date.parse(medicineTrade.return_date)) {
+                    if (Date.parse(propose.newReturnDate) === Date.parse(request.return_date)) {
                         validationResult.addError(
                             MedicineProposeDomain.ERROR_NEW_RETURN_DATE_EQUAL_RETURN_DATE);
                         return validationResult;
@@ -417,27 +419,49 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 }
             }
 
+            //Detect if it's a exchange operation
+            if (propose.type.toLocaleLowerCase() === Mode.EXCHANGE) {
+                //Verify if the exchange propose is equal to some of
+                //request exchange itens.
+                let hasExchange : boolean;
+                for(let exchangeItem of request.exchange){
+                    //console.log("--------------------------")
+                    //console.log(exchangeItem);
+                    //console.log("--------------------------")
+                    if(this.validateProposedRequestExchange(propose.exchange, exchangeItem)) {
+                        hasExchange = true;
+                        break;
+                    }
+                }
+                if(!hasExchange) {
+                    validationResult.addError(
+                        MedicineProposeDomain.ERROR_TRADE_EXGHANGE_NOT_EQUAL_PROPOSED_TYPE);
+
+                return validationResult;
+                }
+            }
+
+            if (!request.amount.includes(propose.amount)) {
+                validationResult.addError(
+                MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_REQUEST);
+
+                return validationResult;
+            }
+
             //The medicine of the propose request
             const medicineProposedDomain: MedicineProposedToRequestDomain= new MedicineProposedToRequestDomain();
             
             const medicineProposedValidation: ValidationResult =
-                await medicineProposedDomain.isValid(ctx, medicineProposed.medicine);
+                await medicineProposedDomain.isValid(ctx, propose.medicine);
 
             if (!medicineProposedValidation.isValid) {
                 validationResult.addErrors(medicineProposedValidation.errors);
                 return validationResult;
             }
 
-            if (!this.validateProposedMedicine(medicineProposed.medicine, medicineTrade.medicine)) {
+            if (!this.validateProposedMedicine(propose.medicine, request.medicine)) {
                 validationResult.addError(
                 MedicineProposeDomain.ERROR_MEDICINE_PROPOSE_IS_NOT_EQUAL_MEDICINE_REQUEST);
-            }
-
-            if (!medicineTrade.amount.includes(medicineProposed.medicine.amount)) {
-                validationResult.addError(
-                MedicineProposeDomain.ERROR_AMOUNT_MEDICINE_PROPOSE_IS_NOT_EQUAL_AMOUNT_MEDICINE_REQUEST); 
-
-                return validationResult;
             }
 
             validationResult.isValid = validationResult.errors.length < 1;
@@ -508,7 +532,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Next, populate the proposed medicine object acording to the operation (request or offer)
-            this.medicineProposed.fromJson(JSON.parse(medicineProposedJson) as IMedicineProposedJson);
+            this.medicineProposed.fromJson(JSON.parse(medicineProposedJson) as IProposedJson);
 
             console.log("Foreign Propose id: " + this.medicineProposed.proposeId);
             
@@ -578,39 +602,190 @@ export class MedicineProposeDomain implements IMedicineProposedService {
      * Auxiliar method that goes inside the exchange and validate its fields,
      * comparing the inicial trade and the proposed medicine
      * @param proposedExchange the proposed medicine
-     * @param originalExchange the initial trade - request or offer
+     * @param originalExchange the initial offer
      */
-    private validateProposedExchange(proposedExchange: MedicineProposeExchange, originalExchange: IOfferExchangeJson): boolean {
+    private validateProposedOfferExchange(proposedExchange: ProposedExchange, originalExchange: IOfferExchangeJson): boolean {
 
 
-        if (originalExchange.medicine.active_ingredient !== proposedExchange.activeIngredient) {
-            return false;
-        }
-        if (originalExchange.medicine.classification && originalExchange.medicine.classification && !originalExchange.medicine.classification.includes(proposedExchange.classification)) {
+        //AMOUNT
+        if (originalExchange.amount !== proposedExchange.amount) {
+            console.log("Different amounts:");
+            console.log("Sugested amount: " + originalExchange.amount);
+            console.log("Proposed amount: " + proposedExchange.amount);
             return false;
         } else {
-            console.log("Classifications found equality.")
+            //console.log("Amounts found equality.");
         }
 
-        //Optional atribute
-        if (originalExchange.medicine.commercial_name && originalExchange.medicine.commercial_name !== proposedExchange.commercialName) {
+        //ACTIVE INGREDIENT
+        if (originalExchange.medicine.active_ingredient !== proposedExchange.medicine.activeIngredient) {
+            console.log("Different active ingredients:");
+            console.log("Sugested active ingredient: " + originalExchange.medicine.active_ingredient);
+            console.log("Proposed active ingredient: " + proposedExchange.activeIngredient);
             return false;
+        } else {
+         //   console.log("Equals");
+        }
+        //CLASSIFICATION
+        if (originalExchange.medicine.classification && originalExchange.medicine.classification && !originalExchange.medicine.classification.includes(proposedExchange.medicine.classification)) {
+            console.log("Different classifications:");
+            console.log("Sugested classification: " + originalExchange.medicine.classification);
+            console.log("Proposed classification: " + proposedExchange.medicine.classification);
+            return false;
+        } else {
+            //console.log("Classifications found equality.");
         }
 
+        //COMMERCIAL NAME - Optional atribute
+        if (originalExchange.medicine.commercial_name && originalExchange.medicine.commercial_name !== proposedExchange.medicine.commercialName) {
+            console.log("Different commercial name:");
+            console.log("Sugested amount: " + originalExchange.medicine.commercial_name);
+            console.log("Proposed amount: " + proposedExchange.medicine.commercialName);
+            return false;
+        } else {
+            //console.log("Equals");
+        }
+        //PHARMA INDUSTRY
         if (originalExchange.medicine.pharma_industry && originalExchange.medicine.pharma_industry.length > 0
-            && !originalExchange.medicine.pharma_industry.includes(proposedExchange.pharmaIndustry)) {
+            && !originalExchange.medicine.pharma_industry.includes(proposedExchange.medicine.pharmaIndustry)) {
             return false;
         } else {
-            console.log("Pharma Industries found equality.")
+            //console.log("Pharma Industries found equality.")
         }
 
-        if (originalExchange.medicine.concentration !== proposedExchange.concentration) {
+        //CONCENTRATION
+        if (originalExchange.medicine.concentration !== proposedExchange.medicine.concentration) {
+            console.log("Different concentrations:");
+            console.log("Sugested concentration: " + originalExchange.medicine.concentration);
+            console.log("Proposed concentration: " + proposedExchange.medicine.concentration);
             return false;
+        } else {
+            //console.log("Concentrations found equality.");
         }
 
-        if (originalExchange.medicine.pharma_form !== proposedExchange.pharmaForm) {
+        //PHARMA FORM
+        if (originalExchange.medicine.pharma_form !== proposedExchange.medicine.pharmaForm) {
+            console.log("Different pharma forms:");
+            console.log("Sugested pharma form: " + originalExchange.medicine.pharma_form);
+            console.log("Proposed pharma form: " + proposedExchange.medicine.pharmaForm);
             return false;
+        } else {
+            //console.log("Pharma forms found equality.");
         }
+
+        return true;
+    }
+
+    /**
+     * Auxiliar method that goes inside the exchange and validate its fields,
+     * comparing the inicial trade and the proposed medicine
+     * @param proposedExchange the proposed medicine
+     * @param originalExchange the initial offer
+     */
+    private validateProposedRequestExchange(proposedExchange: ProposedExchange, originalExchange: IRequestExchangeJson): boolean {
+
+        //AMOUNT
+        if (originalExchange.amount !== proposedExchange.amount) {
+            console.log("Different amounts:");
+            console.log("Sugested amount: " + originalExchange.amount);
+            console.log("Proposed amount: " + proposedExchange.amount);
+            return false;
+        } else {
+            //console.log("Amounts found equality.");
+        }
+
+        //ACTIVE INGREDIENT
+        if (originalExchange.medicine.active_ingredient !== proposedExchange.medicine.activeIngredient) {
+            console.log("Different active ingredients:");
+            console.log("Sugested active ingredient: " + originalExchange.medicine.active_ingredient);
+            console.log("Proposed active ingredient: " + proposedExchange.activeIngredient);
+            return false;
+        } else {
+            //console.log("Equals");
+        }
+        //CLASSIFICATION
+        if (originalExchange.medicine.classification && originalExchange.medicine.classification && !originalExchange.medicine.classification.includes(proposedExchange.medicine.classification)) {
+            console.log("Different classifications:");
+            console.log("Sugested classification: " + originalExchange.medicine.classification);
+            console.log("Proposed classification: " + proposedExchange.medicine.classification);
+            return false;
+        } else {
+            //console.log("Classifications found equality.");
+        }
+
+        //COMMERCIAL NAME - Optional atribute
+        if (originalExchange.medicine.commercial_name && originalExchange.medicine.commercial_name !== proposedExchange.medicine.commercialName) {
+            console.log("Different commercial name:");
+            console.log("Sugested amount: " + originalExchange.medicine.commercial_name);
+            console.log("Proposed amount: " + proposedExchange.medicine.commercialName);
+            return false;
+        } else {
+            //console.log("Equals");
+        }
+        //PHARMA INDUSTRY
+        if (originalExchange.medicine.pharma_industry && originalExchange.medicine.pharma_industry.length > 0
+            && !originalExchange.medicine.pharma_industry.includes(proposedExchange.medicine.pharmaIndustry)) {
+            return false;
+        } else {
+            //console.log("Pharma Industries found equality.")
+        }
+
+        //CONCENTRATION
+        if (originalExchange.medicine.concentration !== proposedExchange.medicine.concentration) {
+            console.log("Different concentrations:");
+            console.log("Sugested concentration: " + originalExchange.medicine.concentration);
+            console.log("Proposed concentration: " + proposedExchange.medicine.concentration);
+            return false;
+        } else {
+            //console.log("Concentrations found equality.");
+        }
+
+        //PHARMA FORM
+        if (originalExchange.medicine.pharma_form !== proposedExchange.medicine.pharmaForm) {
+            console.log("Different pharma forms:");
+            console.log("Sugested pharma form: " + originalExchange.medicine.pharma_form);
+            console.log("Proposed pharma form: " + proposedExchange.medicine.pharmaForm);
+            return false;
+        } else {
+            //console.log("Pharma forms found equality.");
+        }
+
+        //REF VALUE
+        if (originalExchange.medicine.ref_value !== proposedExchange.medicine.refValue) {
+            console.log("Different reference values:");
+            console.log("Sugested reference value: " + originalExchange.medicine.ref_value);
+            console.log("Proposed reference value: " + proposedExchange.medicine.refValue);
+            return false;
+        } else {
+            //console.log("Reference values found equality.");
+        }
+
+        //MEDICINE BATCH
+        let originalMedicineBatchItem : IMedicineBatchJson;
+        let proposedMedicineBatchItem : MedicineBatch;
+        let found : boolean;
+        for(originalMedicineBatchItem of originalExchange.medicine.medicine_batch) {
+            found = false;
+            for(proposedMedicineBatchItem of proposedExchange.medicine.medicineBatch) {
+                if(proposedMedicineBatchItem.amount === originalMedicineBatchItem.amount &&
+                    proposedMedicineBatchItem.batch === originalMedicineBatchItem.batch &&
+                    proposedMedicineBatchItem.expireDate === originalMedicineBatchItem.expire_date) {
+                        //console.log("Matched medicine batch itens:")
+                        //console.log(proposedMedicineBatchItem.batch);
+                        //console.log(originalMedicineBatchItem.batch);
+                        //console.log(proposedMedicineBatchItem.amount);
+                        //console.log(originalMedicineBatchItem.amount);
+                        //console.log(proposedMedicineBatchItem.expireDate);
+                        //console.log(originalMedicineBatchItem.expire_date);
+                        found = true;
+                    }
+            }
+            if(!found) {
+                console.log("Different medicine batchs.");
+                return false;
+            }
+        }
+        //console.log("Medicine batchs found equality.");
 
         return true;
     }

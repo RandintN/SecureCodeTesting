@@ -1,6 +1,6 @@
-import { IMedicineProposedJson } from './medicine-proposed-json';
+import { IProposedJson } from './medicine-proposed-json';
 
-export interface IMedicineProposedLedgerJson extends IMedicineProposedJson {
+export interface IMedicineProposedLedgerJson extends IProposedJson {
     key: string;
     msp_id: string;
 }

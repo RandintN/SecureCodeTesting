@@ -3,8 +3,9 @@ import { MedicineProposedStatusEnum, RequestMode, MedicineOperationEnum } from '
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
-import { IMedicineProposedJson } from './medicine-proposed-json';
+import { IProposedJson } from './medicine-proposed-json';
 import { MedicineProposeExchange } from './medicine-exchange-model';
+import { ProposedExchange } from './exchange-model';
 
 export class ProposeToOffer implements IValidator {
 
@@ -27,42 +28,47 @@ export class ProposeToOffer implements IValidator {
     private static ERROR_NEGOTIATION_IS_NEEDED: ValidationError =
         new ValidationError('MOR-005',
             'When the negotiation have a type as exchange, one exchange is necessary.');
+
+    private static ERROR_EMPTY_AMOUNT: ValidationError =
+            new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
     //#endregion
 
     public id: string;
     public internalId: string;
     public proposeId : string;
     public internalProposeId : string;
+    public amount: string;
     public medicine: MedicineProposedToOffer;
     public type: string;
     public newReturnDate: string;
     public status: MedicineProposedStatusEnum;
     public observations: string;
     public operation:      MedicineOperationEnum;
-    public exchange:    MedicineProposeExchange;
+    public exchange:    ProposedExchange;
     
 
-    public fromJson(proposeToOfferJson: IMedicineProposedJson): void {
+    public fromJson(proposeToOfferJson: IProposedJson): void {
         this.id = proposeToOfferJson.id;
         this.type = proposeToOfferJson.type;
         this.newReturnDate = proposeToOfferJson.new_return_date;
         this.observations = proposeToOfferJson.observations;
         this.proposeId = proposeToOfferJson.propose_id;
-
+        this.amount = proposeToOfferJson.amount;
         this.medicine = new MedicineProposedToOffer();
         if (proposeToOfferJson.medicine) {
             this.medicine.fromJson(proposeToOfferJson.medicine);
         }
         this.operation = MedicineOperationEnum.OFFER;
-        this.exchange = new MedicineProposeExchange();
+        this.exchange = new ProposedExchange();
         if(proposeToOfferJson.exchange) {
             this.exchange.fromJson(proposeToOfferJson.exchange);
         }
 
     }
 
-    public toJson(): IMedicineProposedJson {
-        const medicineOfferedRequestJson: IMedicineProposedJson = {
+    public toJson(): IProposedJson {
+        const medicineOfferedRequestJson: IProposedJson = {
+            amount: this.amount,
             medicine: this.medicine.toJson(),
             new_return_date: this.newReturnDate,
             observations: this.observations,
@@ -79,6 +85,11 @@ export class ProposeToOffer implements IValidator {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
+
+        if (!this.amount) {
+            validationResult.addError(ProposeToOffer.ERROR_EMPTY_AMOUNT);
+
+        }
 
         if (!this.type) {
             validationResult.addError(ProposeToOffer.ERROR_EMPTY_TYPE);

@@ -35,7 +35,6 @@ export class MedicineProposedToRequest extends Medicine {
 
 
     //#endregion
-    public amount: string;
     public pharmaIndustry: string;
     public classification: string;
     public refValue: number;
@@ -57,7 +56,6 @@ export class MedicineProposedToRequest extends Medicine {
 
         }
 
-        this.amount = medicineOffered.amount;
         this.activeIngredient = medicineOffered.active_ingredient;
         this.commercialName = medicineOffered.commercial_name;
         this.pharmaForm = medicineOffered.pharma_form;
@@ -86,7 +84,6 @@ export class MedicineProposedToRequest extends Medicine {
 
         const json: IMedicineProposedRequestJson = {
             active_ingredient: this.activeIngredient,
-            amount: this.amount,
             classification: this.classification,
             commercial_name: this.commercialName,
             concentration: this.concentration,
@@ -102,10 +99,6 @@ export class MedicineProposedToRequest extends Medicine {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
 
-        if (!this.amount) {
-            validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_AMOUNT);
-
-        }
 
         if (!this.activeIngredient) {
             validationResult.addError(MedicineProposedToRequest.ERROR_EMPTY_ACTIVE_INGREDIENT);

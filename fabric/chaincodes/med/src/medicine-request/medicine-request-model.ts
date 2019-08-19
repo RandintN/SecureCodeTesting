@@ -65,6 +65,7 @@ export class MedicineRequest implements IValidator {
         this.exchange = exchanges;
 
         this.foreignId = medicineRequestJson.id;
+        this.internalId = medicineRequestJson.internal_id;
     }
 
     public toJson(): IMedicineRequestJson {

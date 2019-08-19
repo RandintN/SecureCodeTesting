@@ -21,11 +21,7 @@ export class MedicineProposedToOffer extends Medicine {
     private static ERROR_EMPTY_CLASSIFICATION: ValidationError =
         new ValidationError('MO-005', 'The parameter classification cannot be empty or null');
 
-    private static ERROR_EMPTY_AMOUNT: ValidationError =
-        new ValidationError('MO-008', 'The parameter amount cannot be empty or null');
-
     //#endregion
-    public amount: string;
     public pharmaIndustry: string;
     public classification: string;
     public refValue: number;
@@ -33,7 +29,6 @@ export class MedicineProposedToOffer extends Medicine {
 
     public fromJson(medicineOffered: IMedicineProposedOfferJson): void {
       
-        this.amount = medicineOffered.amount;
         this.activeIngredient = medicineOffered.active_ingredient;
         this.commercialName = medicineOffered.commercial_name;
         this.pharmaForm = medicineOffered.pharma_form;
@@ -48,7 +43,6 @@ export class MedicineProposedToOffer extends Medicine {
 
         const json: IMedicineProposedOfferJson = {
             active_ingredient: this.activeIngredient,
-            amount: this.amount,
             classification: this.classification,
             commercial_name: this.commercialName,
             concentration: this.concentration,
@@ -62,11 +56,6 @@ export class MedicineProposedToOffer extends Medicine {
 
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
-
-        if (!this.amount) {
-            validationResult.addError(MedicineProposedToOffer.ERROR_EMPTY_AMOUNT);
-
-        }
 
         if (!this.activeIngredient) {
             validationResult.addError(MedicineProposedToOffer.ERROR_EMPTY_ACTIVE_INGREDIENT);

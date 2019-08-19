@@ -19,6 +19,7 @@ import moment = require('moment');
 import { IMedicineOfferQueryResultJson } from './medicine-offer-query-result';
 import { IMedicineOfferQuery, QueryType } from './medicine-offer-query';
 import { IMedicineOfferPaginationResultJson } from './medicine-offer-pagination-result';
+import { IApproveRejectJson } from '../approve-reject/approve-reject-json';
 
 export class MedicineOfferDomain extends MedicineDomain {
 
@@ -248,26 +249,26 @@ export class MedicineOfferDomain extends MedicineDomain {
     public async approveMedicinePendingOffer(ctx: Context, medOfferApproveStr: string): Promise<ChaincodeResponse> {
         let medRequestInBytes: Buffer = null;
         try {
-            const medReqApproveJson: IMedicineOfferJson =
-                JSON.parse(medOfferApproveStr) as IMedicineOfferJson;
+            const approveJson: IApproveRejectJson =
+                JSON.parse(medOfferApproveStr) as IApproveRejectJson;
 
-            if(medReqApproveJson==null){
+            if(approveJson==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER)));
             }
 
-            if(medReqApproveJson.id==null){
+            if(approveJson.id==null){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_NULL_MEDICINE_OFFER)));
             }
 
-            if(medReqApproveJson.id==""){
+            if(approveJson.id==""){
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_EMPTY_MEDICINE_OFFER_ID)));
             }
 
             medRequestInBytes = await ctx.stub.getPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                medReqApproveJson.id);
+                approveJson.id);
 
             if (!medRequestInBytes || medRequestInBytes.length < 1) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
@@ -296,7 +297,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const result: Result = new Result();
 
-            result.id = medReqApproveJson.id;
+            result.id = approveJson.id;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
