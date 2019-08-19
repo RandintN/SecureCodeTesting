@@ -60,6 +60,7 @@ export class ProposeToOffer implements IValidator {
         }
         this.operation = MedicineOperationEnum.OFFER;
         this.exchange = new ProposedExchange();
+        this.exchange.medicine = new MedicineProposeExchange();
         if(proposeToOfferJson.exchange) {
             this.exchange.fromJson(proposeToOfferJson.exchange);
         }
@@ -94,7 +95,7 @@ export class ProposeToOffer implements IValidator {
         if (!this.type) {
             validationResult.addError(ProposeToOffer.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE && !this.exchange || Object.keys(this.exchange).length === 0) {
+        } else if (this.type.toLocaleLowerCase() === RequestMode.EXCHANGE && (!this.exchange || Object.keys(this.exchange).length === 0 || Object.keys(this.exchange.medicine).length === 0)) {
             validationResult.addError(ProposeToOffer.ERROR_NEGOTIATION_IS_NEEDED);
         }
 

@@ -17,7 +17,6 @@ export class ProposedExchange extends Medicine {
     public fromJson(proposedExchange: IProposedExchangeJson): void {
         
         this.amount = proposedExchange.amount;
-        this.medicine = new MedicineProposeExchange();
         if(proposedExchange.medicine){
             this.medicine.fromJson(proposedExchange.medicine);
         }
