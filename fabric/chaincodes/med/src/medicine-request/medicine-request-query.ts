@@ -1,5 +1,3 @@
-import { MedicineStatusEnum } from '../utils/enums';
-
 /**
  * Interface of queryMedicineRequests
  *

@@ -4,10 +4,11 @@ export enum SituationEnum {
 
 }
 
-export enum MedicineStatusEnum {
+export enum TradeStatusEnum {
     APPROVED = 'APPROVED',
     REJECTED = 'REJECTED',
-    WAITING_FOR_APPROVAL = 'WAITING FOR APPROVAL'
+    WAITING_FOR_APPROVAL = 'WAITING FOR APPROVAL',
+    WAITING_FOR_WITHDRAW = 'WAITING_FOR_WITHDRAW'
 
 }
 

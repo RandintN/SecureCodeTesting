@@ -2,7 +2,7 @@ import { IRequestExchangeJson } from './exchange-json';
 import { RequestExchange } from './exchange-model';
 import { MedicineRequestModel } from './medicine-request-model-base';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
+import { TradeStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -41,7 +41,7 @@ export class MedicineRequest implements IValidator {
         this.returnDate = medicineRequestJson.return_date;
         this.type = medicineRequestJson.type;
         this.status = medicineRequestJson.status ? medicineRequestJson.status
-            : MedicineStatusEnum.WAITING_FOR_APPROVAL;
+            : TradeStatusEnum.WAITING_FOR_APPROVAL;
 
         const medicineOffer: MedicineRequestModel = new MedicineRequestModel();
         if (medicineRequestJson.medicine) {

@@ -28,7 +28,7 @@ export interface IMedicineProposedService {
      * Method for approving proposed drug offers.
      *
      * @param ctx Context of transaction
-     * @param approveOfferMedicineRequest approve offer medicine request json,
+     * @param approvePropose approve propose json,
      * thats must have to implement the interface
      * IMedicineOfferedRequestService
      * @returns If success, returns 201 (created) and the timestamp of transaction, otherwise, will return one of the
@@ -38,6 +38,6 @@ export interface IMedicineProposedService {
      * - 404 (not found)
      * - 500 (internal error)
      */
-    approveOfferMedicineRequest(ctx: Context, approveOfferMedicineRequest: string): Promise<ChaincodeResponse>;
+    approvePropose(ctx: Context, approvePropose: string): Promise<ChaincodeResponse>;
 
 }

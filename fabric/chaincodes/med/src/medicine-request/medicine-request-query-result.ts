@@ -10,7 +10,7 @@ export interface IMedicineRequestQueryResultJson {
     /**
      * Array with records
      */
-    medicine_requests: IMedicineRequestJson[];
+    medicine_trades: IMedicineRequestJson[];
 
     /**
      * Operation timestamp

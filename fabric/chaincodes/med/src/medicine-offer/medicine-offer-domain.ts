@@ -6,7 +6,7 @@ import { ValidationResult } from '../validation/validation-model';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
-import { RequestMode, MedicineStatusEnum } from '../utils/enums';
+import { RequestMode, TradeStatusEnum } from '../utils/enums';
 import { Result } from '../result/result';
 import { OfferExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -145,7 +145,7 @@ export class MedicineOfferDomain extends MedicineDomain {
                 await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD,
                     medicineOffer.internalId, Buffer.from(JSON.stringify(medicineOfferToLedger)));
             } else {
-                medicineOffer.status = MedicineStatusEnum.APPROVED;
+                medicineOffer.status = TradeStatusEnum.APPROVED;
 
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                 medicineOffer.toJson() as IMedicineOfferLedgerJson;
@@ -279,7 +279,7 @@ export class MedicineOfferDomain extends MedicineDomain {
             const medOfferJson: IMedicineOfferJson =
                 JSON.parse(medRequestInBytes.toString()) as IMedicineOfferJson;
 
-            if (!medOfferJson || medOfferJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medOfferJson || medOfferJson.status !== TradeStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
 
@@ -287,7 +287,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const medicineOffer: MedicineOffer = new MedicineOffer();
             medicineOffer.fromJson(medOfferJson);
-            medicineOffer.status = MedicineStatusEnum.APPROVED;
+            medicineOffer.status = TradeStatusEnum.APPROVED;
 
             console.log("getTxID: " + medicineOffer.internalId);
 
@@ -340,7 +340,7 @@ export class MedicineOfferDomain extends MedicineDomain {
             const medOfferJson: IMedicineOfferJson =
                 JSON.parse(medOfferInBytes.toString()) as IMedicineOfferJson;
 
-            if (!medOfferJson || medOfferJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medOfferJson || medOfferJson.status !== TradeStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineOfferDomain.ERROR_MEDICINE_OFFER_NOT_FOUND)));
 
@@ -348,7 +348,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             const medicineOffer: MedicineOffer = new MedicineOffer();
             medicineOffer.fromJson(medOfferJson);
-            medicineOffer.status = MedicineStatusEnum.REJECTED;
+            medicineOffer.status = TradeStatusEnum.REJECTED;
 
             await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD, medOfferRejectJson.id
                 , Buffer.from(JSON.stringify(medicineOffer.toJson())));

@@ -17,6 +17,7 @@ import { IPharmaceuticalIndustryService } from './pharmaceutical-industry/pharma
 import { ValidationResult } from './validation/validation-model';
 import { MedicineDeliveryDomain} from './medicine-delivery/medicine-delivery-domain';
 import { MedicineOfferDomain } from './medicine-offer/medicine-offer-domain';
+import { Trade } from './utils/trade-operations';
 
 export class MedicineRouterCC extends Contract implements
     IActiveIngredientService,
@@ -72,12 +73,12 @@ export class MedicineRouterCC extends Contract implements
         return await new MedicineRequestDomain().queryMedicineRequest(ctx, key);
     }
 
-    public async queryMedicineRequestsWithPagination(
+    public async queryMedicineTradesWithPagination(
         ctx: Context,
         queryParams: string,
         pageSize: string,
         bookmark?: string): Promise<ChaincodeResponse> {
-        return await new MedicineRequestDomain().queryMedicineRequestsWithPagination(
+        return await new Trade().queryMedicineTradesWithPagination(
             ctx,
             queryParams,
             pageSize,
@@ -157,10 +158,10 @@ export class MedicineRouterCC extends Contract implements
         return await new MedicineProposeDomain().proposeMedicine(ctx, medicineOfferedRequestJson);
     }
 
-    public async approveOfferMedicineRequest(ctx: Context, approveOfferMedicineRequestJson: string)
+    public async approvePropose(ctx: Context, approveProposeJson: string)
         : Promise<ChaincodeResponse> {
         return await new MedicineProposeDomain()
-            .approveOfferMedicineRequest(ctx, approveOfferMedicineRequestJson);
+            .approvePropose(ctx, approveProposeJson);
     }
 
     public async offerMedicine(ctx: Context, medicineOfferedJson: string): Promise<ChaincodeResponse> {

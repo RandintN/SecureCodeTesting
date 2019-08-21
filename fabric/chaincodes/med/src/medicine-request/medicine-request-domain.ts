@@ -5,7 +5,7 @@ import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-m
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
-import { MedicineStatusEnum, RequestMode } from '../utils/enums';
+import { TradeStatusEnum, RequestMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IApproveRejectJson } from '../approve-reject/approve-reject-json';
@@ -86,7 +86,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             } else {
-                medicineRequest.status = MedicineStatusEnum.APPROVED;
+                medicineRequest.status = TradeStatusEnum.APPROVED;
 
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
@@ -208,7 +208,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                     resultArray.push(result);
     
                 } else {
-                    medicineRequest.status = MedicineStatusEnum.APPROVED;
+                    medicineRequest.status = TradeStatusEnum.APPROVED;
                     const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
                     medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
@@ -258,7 +258,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             const medRequestJson: IMedicineRequestJson =
                 JSON.parse(medRequestInBytes.toString()) as IMedicineRequestJson;
 
-            if (!medRequestJson || medRequestJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medRequestJson || medRequestJson.status !== TradeStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
 
@@ -266,7 +266,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(medRequestJson);
-            medicineRequest.status = MedicineStatusEnum.APPROVED;
+            medicineRequest.status = TradeStatusEnum.APPROVED;
 
             console.log("getTxID: " + medicineRequest.internalId);
 
@@ -319,7 +319,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             const medRequestJson: IMedicineRequestJson =
                 JSON.parse(medRequestInBytes.toString()) as IMedicineRequestJson;
 
-            if (!medRequestJson || medRequestJson.status !== MedicineStatusEnum.WAITING_FOR_APPROVAL) {
+            if (!medRequestJson || medRequestJson.status !== TradeStatusEnum.WAITING_FOR_APPROVAL) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
 
@@ -327,7 +327,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
             medicineRequest.fromJson(medRequestJson);
-            medicineRequest.status = MedicineStatusEnum.REJECTED;
+            medicineRequest.status = TradeStatusEnum.REJECTED;
 
             await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD, medReqRejectJson.id
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
@@ -366,66 +366,11 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             const result: IMedicineRequestPaginationResultJson = {
                 bookmark: undefined,
                 fetched_records_count: 1,
-                medicine_requests: JSON.parse(requestAsByte.toString()),
+                medicine_trades: JSON.parse(requestAsByte.toString()),
                 timestamp: new Date().getTime(),
             };
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
 
-        } catch (error) {
-            console.log(error);
-            return ResponseUtil.ResponseError(error.toString(), undefined);
-        }
-    }
-
-    /** Check the documentation of IMedicineRequestService */
-    public async queryMedicineRequestsWithPagination(
-        ctx: Context,
-        queryParams: string,
-        pageSize: string,
-        bookmark?: string):
-        Promise<ChaincodeResponse> {
-
-        try {
-            // Retrieves query from string
-            const query: IMedicineRequestQuery = JSON.parse(queryParams) as IMedicineRequestQuery;
-
-            // When the kind of query is own the MSP_ID is setted in endogenous way,
-            // to assurance that is the trust identity
-            if (query.query_type === QueryType.MY_OWN_REQUESTS) {
-                query.selector.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
-            }
-
-            // Creates the query of couchdb
-            const queryJson = {
-                selector: query.selector,
-            };
-
-            const filter: string = JSON.stringify(queryJson);
-
-            // Get Query
-            const stateQuery: StateQueryResponse<Iterators.StateQueryIterator> =
-                await ctx.stub.getQueryResultWithPagination(
-                    filter,
-                    Number(pageSize),
-                    bookmark);
-
-            const records: IMedicineRequestJson[] = await this.getMedicineRequests(stateQuery.iterator);
-
-            // Checking if some records were founding...
-            if (!records || records.length < 1) {
-                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
-                    Buffer.from(JSON.stringify(MedicineRequestDomain.ERROR_MEDICINE_REQUEST_NOT_FOUND)));
-            }
-
-            const result: IMedicineRequestPaginationResultJson = {
-                bookmark: stateQuery.metadata.bookmark,
-                fetched_records_count: stateQuery.metadata.fetched_records_count,
-                medicine_requests: records,
-                timestamp: new Date().getTime(),
-
-            };
-
-            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
         } catch (error) {
             console.log(error);
             return ResponseUtil.ResponseError(error.toString(), undefined);
@@ -458,7 +403,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             }
 
             const result: IMedicineRequestQueryResultJson = {
-                medicine_requests: records,
+                medicine_trades: records,
                 timestamp: new Date().getTime(),
 
             };

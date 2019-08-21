@@ -8,7 +8,7 @@ import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineProposedStatusEnum, MedicineStatusEnum, RequestMode as Mode, MedicineOperationEnum } from '../utils/enums';
+import { MedicineProposedStatusEnum, TradeStatusEnum, RequestMode as Mode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IProposeApprovalJson } from './propose-approval-json';
@@ -19,7 +19,6 @@ import { ProposeToOffer } from './propose-to-offer-model';
 import { IMedicineQueryKey } from '../medicine/medicine-query-key';
 import { MedicineProposedToRequestDomain } from '../medicine-proposed/medicine-proposed-to-request-domain';
 import { ProposeToRequest } from './propose-to-request-model';
-import { MedicineProposeExchange } from './medicine-exchange-model';
 import { IMedicineOfferJson } from '../medicine-offer/medicine-offer-json';
 import { IOfferExchangeJson } from '../medicine-offer/exchange-json';
 import { IMedicineOfferClaPharmIndJson } from '../medicine-offer/medicine-offer-classification-pharma-industry-json';
@@ -185,7 +184,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
      * @param ctx Context of operation
      * @param approveOfferMedicineRequestJson the Id and propose Id
      */
-    public async approveOfferMedicineRequest(ctx: Context, approveOfferMedicineRequestJson: string)
+    public async approvePropose(ctx: Context, approveOfferMedicineRequestJson: string)
         : Promise<ChaincodeResponse> {
         try {
             const medicineOfferedApprove: IProposeApprovalJson = JSON.parse(approveOfferMedicineRequestJson);
@@ -207,8 +206,14 @@ export class MedicineProposeDomain implements IMedicineProposedService {
 
                 for (const offer of medicineOfferedRequests) {
 
-                    if (offer.propose_id === medicineOfferedApprove.propose_id) {
+                    if (offer.propose_id === medicineOfferedApprove.propose_id)
+                    //Achou o propose correspondente para dar o accept
+                    {
+                        //Mudar o status do propose
                         offer.status = MedicineProposedStatusEnum.ACCEPTED;
+                        //Mudar o status do trade
+                        this.medicineTrade.status = TradeStatusEnum.WAITING_FOR_WITHDRAW;
+
                         result.propose_id = offer.key;
                         result.id = this.medicineTrade.internal_id;
                     } else {
@@ -217,6 +222,8 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                     }
                     await ctx.stub.putState(offer.key
                         , Buffer.from(JSON.stringify(offer)));
+                    await ctx.stub.putState(this.medicineTrade.internal_id
+                            , Buffer.from(JSON.stringify(this.medicineTrade)));
                 }
 
                 result.timestamp = new Date().getTime();
@@ -269,7 +276,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             const offer: IMedicineOfferJson = JSON.parse(result.toString());
 
             //Verify is the medicine is approved or waiting for approved
-            if (offer.status !== MedicineStatusEnum.APPROVED) {
+            if (offer.status !== TradeStatusEnum.APPROVED) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
@@ -391,7 +398,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             const request: IMedicineRequestJson = JSON.parse(result.toString());
 
             //Verify is the medicine is approved or waiting for approved
-            if (request.status !== MedicineStatusEnum.APPROVED) {
+            if (request.status !== TradeStatusEnum.APPROVED) {
                 validationResult.addError(MedicineProposeDomain.ERROR_MEDICINE_NOT_FOUND);
                 return validationResult;
             }
@@ -566,7 +573,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
         const queryJson = {
             selector:{
                 id: query.id,
-                status: MedicineStatusEnum.APPROVED
+                status: TradeStatusEnum.APPROVED
             }
         };
 
