@@ -1,7 +1,7 @@
 import { OfferExchange } from './exchange-model';
 import { MedicineOfferModel } from './medicine-offer-model-base';
 import { DateExtension } from '../utils/date-extension';
-import { TradeStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
+import { TradeStatusEnum, TradeMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -112,7 +112,7 @@ export class MedicineOffer implements IValidator {
         if (!this.type) {
             validationResult.errors.push(MedicineOffer.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === RequestMode.LOAN) {
+        } else if (this.type.toLocaleLowerCase() === TradeMode.LOAN) {
             if (!this.returnDate) {
                 validationResult.errors.push(MedicineOffer.ERROR_EMPTY_RETURN_DATE);
             } else {

@@ -6,7 +6,7 @@ import { ValidationResult } from '../validation/validation-model';
 import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
 import { ResponseUtil } from '../result/response-util';
 import { CommonConstants } from '../utils/common-messages';
-import { RequestMode, TradeStatusEnum } from '../utils/enums';
+import { TradeMode, TradeStatusEnum } from '../utils/enums';
 import { Result } from '../result/result';
 import { OfferExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
@@ -133,8 +133,8 @@ export class MedicineOfferDomain extends MedicineDomain {
             //Internal generation of transaction id, to be stored on the ledger.
             medicineOffer.internalId = ctx.stub.getTxID();
 
-            if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE
-            || medicineOffer.type.toLocaleLowerCase() === RequestMode.DONATION) {
+            if (medicineOffer.type.toLocaleLowerCase() === TradeMode.EXCHANGE
+            || medicineOffer.type.toLocaleLowerCase() === TradeMode.DONATION) {
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                     medicineOffer.toJson() as IMedicineOfferLedgerJson;
 
@@ -162,6 +162,7 @@ export class MedicineOfferDomain extends MedicineDomain {
             result.id = medicineOffer.internalId;
             result.timestamp = timestamp;
 
+            console.log('Medicine External Offer Id: ' + medicineOffer.foreignId);
             console.log('Medicine Offer Id: ' + result.id);
 
             return ResponseUtil.ResponseCreated(Buffer.from(JSON.stringify(result)));
@@ -410,9 +411,9 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             }
 
-            if (medicineOffer.type.toLocaleLowerCase() !== RequestMode.DONATION &&
-            medicineOffer.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
-            medicineOffer.type.toLocaleLowerCase() !== RequestMode.LOAN
+            if (medicineOffer.type.toLocaleLowerCase() !== TradeMode.DONATION &&
+            medicineOffer.type.toLocaleLowerCase() !== TradeMode.EXCHANGE &&
+            medicineOffer.type.toLocaleLowerCase() !== TradeMode.LOAN
             ) {
                 validationResult.addError(MedicineOfferDomain.ERROR_INVALID_TYPE);
 
@@ -423,7 +424,7 @@ export class MedicineOfferDomain extends MedicineDomain {
                 validationResult.addError(MedicineOfferDomain.ERROR_INVALID_OFFER);
             }
 
-            if (medicineOffer.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+            if (medicineOffer.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                 const exchangeDomain: OfferExchangeDomain = new OfferExchangeDomain();
 
                 for (const exchange of medicineOffer.exchange) {

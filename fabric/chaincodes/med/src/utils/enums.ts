@@ -8,7 +8,9 @@ export enum TradeStatusEnum {
     APPROVED = 'APPROVED',
     REJECTED = 'REJECTED',
     WAITING_FOR_APPROVAL = 'WAITING FOR APPROVAL',
-    WAITING_FOR_WITHDRAW = 'WAITING_FOR_WITHDRAW'
+    WAITING_FOR_WITHDRAW = 'WAITING_FOR_WITHDRAW',
+    FINISHED = 'FINISHED',
+    WAITING_FOR_RETURN = 'WAITING_FOR_RETURN'
 
 }
 
@@ -27,7 +29,7 @@ export enum ResponseCodes {
 
 }
 
-export enum RequestMode {
+export enum TradeMode {
     LOAN = 'loan',
     EXCHANGE = 'exchange',
     DONATION = 'donation',

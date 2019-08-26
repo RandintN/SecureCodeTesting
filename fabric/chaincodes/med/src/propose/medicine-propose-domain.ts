@@ -8,7 +8,7 @@ import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
 import { DateExtension } from '../utils/date-extension';
-import { MedicineProposedStatusEnum, TradeStatusEnum, RequestMode as Mode, MedicineOperationEnum } from '../utils/enums';
+import { MedicineProposedStatusEnum, TradeStatusEnum, TradeMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IProposeApprovalJson } from './propose-approval-json';
@@ -290,7 +290,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Comparing return date
-            if (propose.type.toLocaleLowerCase() === Mode.LOAN) {
+            if (propose.type.toLocaleLowerCase() === TradeMode.LOAN) {
                 if (propose.newReturnDate) {
                     const dateExtension: DateExtension = new DateExtension();
                     if (!dateExtension.validateDate(propose.newReturnDate, validationResult)) {
@@ -305,7 +305,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Detect if it's a exchange operation
-            if (propose.type.toLocaleLowerCase() === Mode.EXCHANGE) {
+            if (propose.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                 //Detect if the offer specified one or more itens
                 //to give in exchange. Otherwise, it is not necessary
                 //to validate the proposed exchange.
@@ -412,7 +412,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Comparing return date
-            if (propose.type.toLocaleLowerCase() === Mode.LOAN) {
+            if (propose.type.toLocaleLowerCase() === TradeMode.LOAN) {
                 if (propose.newReturnDate) {
                     const dateExtension: DateExtension = new DateExtension();
                     if (!dateExtension.validateDate(propose.newReturnDate, validationResult)) {
@@ -427,7 +427,7 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             }
 
             //Detect if it's a exchange operation
-            if (propose.type.toLocaleLowerCase() === Mode.EXCHANGE) {
+            if (propose.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                 //Verify if the exchange propose is equal to some of
                 //request exchange itens.
                 let hasExchange : boolean;

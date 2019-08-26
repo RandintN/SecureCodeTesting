@@ -2,7 +2,7 @@ import { IRequestExchangeJson } from './exchange-json';
 import { RequestExchange } from './exchange-model';
 import { MedicineRequestModel } from './medicine-request-model-base';
 import { DateExtension } from '../utils/date-extension';
-import { TradeStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
+import { TradeStatusEnum, TradeMode, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
@@ -112,7 +112,7 @@ export class MedicineRequest implements IValidator {
         if (!this.type) {
             validationResult.errors.push(MedicineRequest.ERROR_EMPTY_TYPE);
 
-        } else if (this.type.toLocaleLowerCase() === RequestMode.LOAN) {
+        } else if (this.type.toLocaleLowerCase() === TradeMode.LOAN) {
             if (!this.returnDate) {
                 validationResult.errors.push(MedicineRequest.ERROR_EMPTY_RETURN_DATE);
             } else {

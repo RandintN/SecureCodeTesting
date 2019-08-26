@@ -1,12 +1,10 @@
-import { MedicineProposedStatusEnum, RequestMode, MedicineOperationEnum } from '../utils/enums';
+import { MedicineProposedStatusEnum, MedicineOperationEnum } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IValidator } from '../validation/validator-interface';
 import { IProposedJson } from './medicine-proposed-json';
 import { MedicineProposedToRequest } from '../medicine-proposed/medicine-proposed-to-request-model';
 import { IProposeToRequestJson } from './propose-to-request-json';
-import { IMedicineExchangeJson } from '../medicine-exchange/medicine-exchange-json';
-import { IProposedExchangeJson } from './proposed-exchange-json';
 import { MedicineProposeExchange } from './medicine-exchange-model';
 import { ProposedExchange } from './exchange-model';
 

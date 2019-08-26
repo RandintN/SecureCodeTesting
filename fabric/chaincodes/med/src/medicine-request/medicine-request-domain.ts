@@ -1,11 +1,11 @@
 import { Context } from 'fabric-contract-api';
-import { ChaincodeResponse, Iterators, StateQueryResponse } from 'fabric-shim';
+import { ChaincodeResponse, Iterators} from 'fabric-shim';
 import { RequestExchangeDomain } from './exchange-domain';
 import { NegotiationModalityDomain } from '../negotiation-modality/negotiation-modality-domain';
 import { ResponseUtil } from '../result/response-util';
 import { Result } from '../result/result';
 import { CommonConstants } from '../utils/common-messages';
-import { TradeStatusEnum, RequestMode } from '../utils/enums';
+import { TradeStatusEnum, TradeMode } from '../utils/enums';
 import { ValidationError } from '../validation/validation-error-model';
 import { ValidationResult } from '../validation/validation-model';
 import { IApproveRejectJson } from '../approve-reject/approve-reject-json';
@@ -14,7 +14,7 @@ import { IMedicineRequestJson } from './medicine-request-json';
 import { IMedicineRequestLedgerJson } from './medicine-request-ledger-json';
 import { MedicineRequest } from './medicine-request-model';
 import { IMedicineRequestPaginationResultJson } from './medicine-request-pagination-result';
-import { IMedicineRequestQuery, QueryType } from './medicine-request-query';
+import { IMedicineRequestQuery} from './medicine-request-query';
 import { IMedicineRequestQueryResultJson } from './medicine-request-query-result';
 import { MedicineRequestModel } from './medicine-request-model-base';
 import { MedicineDomain } from '../medicine-abstract/medicine-domain';
@@ -76,7 +76,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             //const idRequest: string = medicineRequest.foreignId;
             medicineRequest.internalId = ctx.stub.getTxID();
 
-            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+            if (medicineRequest.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
 
@@ -197,7 +197,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
                 result.id = medicineRequest.internalId;
                 result.timestamp = timestamp;
-                if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+                if (medicineRequest.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                     
                     const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
@@ -468,9 +468,9 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             }
 
-            if (medicineRequest.type.toLocaleLowerCase() !== RequestMode.DONATION &&
-                medicineRequest.type.toLocaleLowerCase() !== RequestMode.EXCHANGE &&
-                medicineRequest.type.toLocaleLowerCase() !== RequestMode.LOAN
+            if (medicineRequest.type.toLocaleLowerCase() !== TradeMode.DONATION &&
+                medicineRequest.type.toLocaleLowerCase() !== TradeMode.EXCHANGE &&
+                medicineRequest.type.toLocaleLowerCase() !== TradeMode.LOAN
             ) {
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_TYPE);
 
@@ -481,7 +481,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
                 validationResult.addError(MedicineRequestDomain.ERROR_INVALID_REQUEST_TYPE);
             }
 
-            if (medicineRequest.type.toLocaleLowerCase() === RequestMode.EXCHANGE) {
+            if (medicineRequest.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
                 if (!medicineRequest.exchange || medicineRequest.exchange.length < 1) {
                     validationResult.addError(MedicineRequestDomain.ERROR_NEGOTIATION_IS_NEEDED);
 
