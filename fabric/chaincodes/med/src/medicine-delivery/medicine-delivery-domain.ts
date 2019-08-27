@@ -23,9 +23,9 @@ export class MedicineDeliveryDomain {
         new ValidationError('MRD-002',
             'The medicine propose was not found.');
 
-    private static ERROR_MEDICINE_DELIVERED: ValidationError =
-            new ValidationError('MRD-008',
-            'The medicine requested is already marked as delivered.');
+    private static ERROR_TRADE_AND_PROPOSE_NOT_RELATED: ValidationError =
+            new ValidationError('MRD-003',
+                'The trade and propose do not associate to the same medicine.');
             
 
     public async medicineDeliveryConfirmation(ctx: Context, deliveryJson: string): Promise<ChaincodeResponse>  {
@@ -34,7 +34,7 @@ export class MedicineDeliveryDomain {
 
             //To validate if there's some query corresponding with the
             //given id and if it belongs to an trade waiting for withdraw.
-            if (!(await this.existsMedicineTradeStatusWaitingForWithdraw(ctx, deliveryJson))) {
+            if (!(await this.hasValidTrade(ctx, deliveryJson))) {
                 return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_TRADE_NOT_FOUND)));
             }
@@ -43,6 +43,13 @@ export class MedicineDeliveryDomain {
             if(!await medicineDelivery.fromJson(ctx, JSON.parse(deliveryJson) as IMedicineDeliveryJson)){
                 return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_MEDICINE_PROPOSE_NOT_FOUND)));
+            }
+
+            //Check if both trade and propose are related
+            //to the same transaction.
+            if(this.medicineTrade.id !== medicineDelivery.propose.id){
+                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                    Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_TRADE_AND_PROPOSE_NOT_RELATED)));
             }
 
             // Make basic validations
@@ -58,28 +65,33 @@ export class MedicineDeliveryDomain {
             if (medicineDelivery.propose.status != MedicineProposedStatusEnum.DELIVERED){
                 //Mudar o status do propose
                 medicineDelivery.propose.status = MedicineProposedStatusEnum.DELIVERED;
+            }
 
-                //Mudar o status do trade
-                if(this.medicineTrade.type.toLocaleLowerCase() !== TradeMode.LOAN ) {
+            //Mudar o status do trade
+            if(this.medicineTrade.type.toLocaleLowerCase() !== TradeMode.LOAN ) {
+                //Se não for empréstimo, finaliza.
+                this.medicineTrade.status = TradeStatusEnum.FINISHED;
+            } else {
+                //Já que é empréstimo, verifica se é retirada ou devolução:
+                if(this.medicineTrade.status === TradeStatusEnum.WAITING_FOR_RETURN) {
+                    //Devolução. Finaliza a operação.
                     this.medicineTrade.status = TradeStatusEnum.FINISHED;
                 } else {
+                    //Retirada. Portanto, indica que ele será retornado.
                     this.medicineTrade.status = TradeStatusEnum.WAITING_FOR_RETURN;
                 }
-
-                //STORING TRANSACTION ON THE LEDGER -----------------
-                await ctx.stub.putState(medicineDelivery.propose.key, Buffer.from(JSON.stringify(medicineDelivery.toJson())));
-                await ctx.stub.putState(this.medicineTrade.internal_id, Buffer.from(JSON.stringify(this.medicineTrade)));
-                //---------------------------------------------------
-
-                console.log("Medicine Delivered id: "+medicineDelivery.propose.key);
-                console.log('Medicine Status: '      +medicineDelivery.propose.status);
-                const result: Result = new Result();
-                result.timestamp = new Date().getTime();
-                return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
-            } else {
-                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
-                    Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_MEDICINE_DELIVERED)));
             }
+
+            //STORING TRANSACTION ON THE LEDGER -----------------
+            await ctx.stub.putState(medicineDelivery.propose.key, Buffer.from(JSON.stringify(medicineDelivery.toJson())));
+            await ctx.stub.putState(this.medicineTrade.internal_id, Buffer.from(JSON.stringify(this.medicineTrade)));
+            //---------------------------------------------------
+
+            console.log("Medicine Delivered id: "+medicineDelivery.propose.key);
+            console.log('Medicine Status: '      +medicineDelivery.propose.status);
+            const result: Result = new Result();
+            result.timestamp = new Date().getTime();
+            return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
 
         } catch (error) {
             console.log(error);
@@ -93,14 +105,23 @@ export class MedicineDeliveryDomain {
      * @param ctx Context of operation
      * @param tradeJson the json with the information to be used
      */
-    private async existsMedicineTradeStatusWaitingForWithdraw(ctx: Context, tradeJson: string): Promise<boolean> {
+    private async hasValidTrade(ctx: Context, tradeJson: string): Promise<boolean> {
+
+        //Tenta ver se ele é uma retirada de medicamento
         this.medicineTrade = await this.searchMedicineWaitingForWithdraw(ctx, tradeJson);
 
-        if (!this.medicineTrade) {
-            //Entrou no erro pra dizer que não achou o ID
-            return false;
+        if (this.medicineTrade) {
+            return true;
         }
-        return true;
+
+        //Tenta ver se ele é uma devolução de medicamento
+        this.medicineTrade = await this.searchMedicineWaitingForReturn(ctx, tradeJson);
+
+        if (this.medicineTrade) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -117,6 +138,34 @@ export class MedicineDeliveryDomain {
             selector:{
                 id: query.id,
                 status: TradeStatusEnum.WAITING_FOR_WITHDRAW
+            }
+        };
+
+        const filter: string = JSON.stringify(queryJson);
+
+        // Get Query
+        const queryIterator: Iterators.StateQueryIterator = await ctx.stub.getQueryResult
+        (filter);
+
+        const medJson: IMedicineBaseJson = await this.getMedicine(queryIterator);
+
+        return medJson;
+    }
+
+    /**
+     * This Method search for an delivered medicine, but in loan modality.
+     * @param ctx Context of operation
+     * @param medObject the informations of the trade
+     */
+    private async searchMedicineWaitingForReturn(ctx: Context, medObject: string){
+        // Retrieves query from string
+        const query: IMedicineQueryKey = JSON.parse(medObject) as IMedicineQueryKey;
+
+        // Creates the query of couchdb
+        const queryJson = {
+            selector:{
+                id: query.id,
+                status: TradeStatusEnum.WAITING_FOR_RETURN
             }
         };
 

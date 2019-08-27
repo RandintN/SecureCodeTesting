@@ -18,20 +18,21 @@ export class MedicineDelivery implements IValidator {
     private static ERROR_EMPTY_CONSUMER_ID_NUMBER: ValidationError =
         new ValidationError('MDEL-003', 'The parameter number of consumer_id cannot be empty or null');
 
-    private static ERROR_EMPTY_WITHDRAWAL_DATE: ValidationError = new ValidationError
-        ('MDEL-004', 'The parameter withdrawal_date cannot be empty or null');
+    private static ERROR_EMPTY_DATE: ValidationError = new ValidationError
+        ('MDEL-004', 'The parameter date cannot be empty or null');
 
-    private static ERROR_EMPTY_PROPOSE_ID: ValidationError = new ValidationError
-        ('MDEL-005', 'The parameter propose_id cannot be empty or null');
+    //private static ERROR_EMPTY_PROPOSE_ID: ValidationError = new ValidationError
+    //    ('MDEL-005', 'The parameter propose_id cannot be empty or null');
 
-    private static ERROR_EMPTY_ID: ValidationError = new ValidationError
-        ('MDEL-006', 'The parameter id cannot be empty or null');
+    //private static ERROR_EMPTY_ID: ValidationError = new ValidationError
+    //    ('MDEL-006', 'The parameter id cannot be empty or null');
 
-    private static ERROR_EMPTY_CONSUMER_DDD_NUMBER: ValidationError = new ValidationError
-        ('MDEL-007', 'The parameter ddd of consumer_phone cannot be empty or null');
+    //Tepelhone number is now an optional attribute.
+    //private static ERROR_EMPTY_CONSUMER_DDD_NUMBER: ValidationError = new ValidationError
+    //    ('MDEL-007', 'The parameter ddd of consumer_phone cannot be empty or null');
 
-    private static ERROR_EMPTY_CONSUMER_PHONE_NUMBER: ValidationError = new ValidationError
-        ('MDEL-008', 'The parameter number of consumer_phone cannot be empty or null');
+    //private static ERROR_EMPTY_CONSUMER_PHONE_NUMBER: ValidationError = new ValidationError
+    //    ('MDEL-008', 'The parameter number of consumer_phone cannot be empty or null');
     //#endregion
     consumerIdNumber:       string;
     consumerIdType:         string;
@@ -39,27 +40,39 @@ export class MedicineDelivery implements IValidator {
     notes:                  string;
     consumerDdd:            string;
     consumerPhoneNumber:    string;
-    withdrawalDate:         string;
+    date:                   string;
     propose:                IMedicineProposedLedgerJson
 
     public async fromJson(ctx: Context, medicineDeliveryJson: IMedicineDeliveryJson): Promise<boolean> {
 
         if(medicineDeliveryJson.propose_id) {
+            //Checa se existe uma proposta aceita relacionada ao id informado.
             this.propose = await this.searchProposedMedicineByProposeId(ctx, medicineDeliveryJson.propose_id
                 , MedicineProposedStatusEnum.ACCEPTED);
+            if(!this.propose) {
+                //Se não retornou uma proposta aceita, provavelmente se trata
+                //de uma proposta na modalidade empréstimo. Neste caso,
+                //pode ser de um medicamento que já tenha sido retirado
+                //e está sendo devolvido.
+                //Se é este o caso, seu status deve ser DELIVERED.
+                this.propose = await this.searchProposedMedicineByProposeId(ctx, medicineDeliveryJson.propose_id
+                    , MedicineProposedStatusEnum.DELIVERED);
+            }
         }
 
+        //Se mesmo assim, não houve um registro relacionado,
+        //a operação não deve ser considerada válida.
         if(!this.propose){
             return false;
         }
-        this.propose.id = medicineDeliveryJson.id
+
         this.consumerIdNumber = medicineDeliveryJson.consumer_id.number;
         this.consumerIdType = medicineDeliveryJson.consumer_id.type;
         this.consumerName = medicineDeliveryJson.consumer_name;
         this.notes = medicineDeliveryJson.notes;
         this.consumerDdd = medicineDeliveryJson.consumer_phone.ddd;
         this.consumerPhoneNumber = medicineDeliveryJson.consumer_phone.number;
-        this.withdrawalDate = medicineDeliveryJson.withdrawal_date;
+        this.date = medicineDeliveryJson.date;
         return true;
     }
 
@@ -87,7 +100,7 @@ export class MedicineDelivery implements IValidator {
                 "ddd": this.consumerDdd,
                 "number": this.consumerPhoneNumber
             },
-            withdrawal_date: this.withdrawalDate
+            date: this.date
         };
 
         return medicineDeliveryJson;
@@ -96,13 +109,13 @@ export class MedicineDelivery implements IValidator {
     public isValid(): ValidationResult {
         const validationResult: ValidationResult = new ValidationResult();
 
-        if(!this.propose.id){
-            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_ID);
-        }
+        //if(!this.propose.id){
+        //    validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_ID);
+        //}
 
-        if(!this.propose.propose_id){
-            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_PROPOSE_ID);
-        }
+        //if(!this.propose.propose_id){
+        //    validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_PROPOSE_ID);
+        //}
 
         if(!this.consumerName){
             validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_NAME);
@@ -116,16 +129,16 @@ export class MedicineDelivery implements IValidator {
             validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_ID_NUMBER);
         }
 
-        if(!this.consumerDdd){
-            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_DDD_NUMBER);
-        }
+        //if(!this.consumerDdd){
+        //    validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_DDD_NUMBER);
+        //}
 
-        if(!this.consumerPhoneNumber){
-            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_PHONE_NUMBER);
-        }
+        //if(!this.consumerPhoneNumber){
+        //    validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_CONSUMER_PHONE_NUMBER);
+        //}
 
-        if(!this.withdrawalDate){
-            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_WITHDRAWAL_DATE);
+        if(!this.date){
+            validationResult.errors.push(MedicineDelivery.ERROR_EMPTY_DATE);
         }
 
         validationResult.isValid = validationResult.errors.length < 1;

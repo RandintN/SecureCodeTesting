@@ -7,6 +7,6 @@ export interface IMedicineDeliveryJson extends IMedicineProposedLedgerJson {
     consumer_name : string;
     notes: string;
     consumer_phone: IDeliveryConsumerPhone;
-    withdrawal_date: string;
+    date: string;
 
 }
