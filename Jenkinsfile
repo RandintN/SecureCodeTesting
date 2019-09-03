@@ -34,7 +34,7 @@ pipeline {
             script {
                sh ''' 
                   cd $WORKSPACE/hyperledger/environments/dev/
-                  ./init_hyperledger.sh
+                  ./init_hyperledger.sh -o create
                '''
             }
          }

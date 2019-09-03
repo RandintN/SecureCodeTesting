@@ -129,7 +129,3 @@ services:
       - couchdb
     networks:
       - n2med
-
-volumes:
-  db-data:
-    driver: local
