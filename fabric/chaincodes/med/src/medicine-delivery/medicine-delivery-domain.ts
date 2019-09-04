@@ -41,14 +41,14 @@ export class MedicineDeliveryDomain {
 
             const medicineDelivery: MedicineDelivery = new MedicineDelivery();
             if(!await medicineDelivery.fromJson(ctx, JSON.parse(deliveryJson) as IMedicineDeliveryJson)){
-                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_MEDICINE_PROPOSE_NOT_FOUND)));
             }
 
             //Check if both trade and propose are related
             //to the same transaction.
             if(this.medicineTrade.id !== medicineDelivery.propose.id){
-                return ResponseUtil.ResponseNotFound(CommonConstants.VALIDATION_ERROR,
+                return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
                     Buffer.from(JSON.stringify(MedicineDeliveryDomain.ERROR_TRADE_AND_PROPOSE_NOT_RELATED)));
             }
 

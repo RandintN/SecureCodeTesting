@@ -503,6 +503,8 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 //ID not found
                 validationResult.addError(MedicineProposeDomain.ERROR_OFFER_MEDICINE_REQUEST_NOT_FOUND);
 
+            } else {
+                console.log("Medicine from json: ", this.medicineJson);
             }
 
             validationResult.isValid = validationResult.errors.length < 1;
@@ -569,13 +571,20 @@ export class MedicineProposeDomain implements IMedicineProposedService {
         // Retrieves query from string
         const query: IMedicineQueryKey = JSON.parse(medObject) as IMedicineQueryKey;
 
-        // Creates the query of couchdb
-        const queryJson = {
-            selector:{
-                id: query.id,
-                status: TradeStatusEnum.APPROVED
-            }
-        };
+        let queryJson;
+
+        //Only make the query if there's an id comming from medObject
+        if(query.id) {
+            // Creates the query of couchdb
+            queryJson = {
+                selector:{
+                    id: query.id,
+                    status: TradeStatusEnum.APPROVED
+                }
+            };
+        } else {
+            return null;
+        }
 
         const filter: string = JSON.stringify(queryJson);
 

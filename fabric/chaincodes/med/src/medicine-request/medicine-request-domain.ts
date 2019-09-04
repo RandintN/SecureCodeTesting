@@ -169,7 +169,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
                 if (!validationResult.isValid) {
                     return ResponseUtil.ResponseBadRequest(CommonConstants.VALIDATION_ERROR,
-                        Buffer.from(JSON.stringify(validationResult)));
+                        Buffer.from(JSON.stringify(validationResult.errors)));
                 }
                 medicineRequestArray.push(objectRequest);
             }
