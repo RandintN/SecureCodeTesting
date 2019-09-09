@@ -1,0 +1,132 @@
+version: '2'
+
+networks:
+  n2med: 
+
+services:
+  ca:
+    container_name: ca.${COMPANY_DOMAIN}
+    image: hyperledger/fabric-ca:1.4.1
+    command: sh -c 'fabric-ca-server start -d -b ${CA_ADMIN_USER}:${CA_ADMIN_PASSWORD} --port 7150 --cfg.identities.allowremove'
+    environment:
+        - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
+        - FABRIC_CA_SERVER_CLIENT=/etc/hyperledger/fabric-ca-client
+        - FABRIC_CA_CLIENT_TLS_CERTFILES=/etc/hyperledger/fabric-ca/tls-cert.pem
+        - FABRIC_CA_SERVER_TLS_ENABLED=true
+        - FABRIC_CA_SERVER_CA_NAME=ca.${COMPANY_DOMAIN}
+        - FABRIC_CA_SERVER_CSR_CN=ca.${COMPANY_DOMAIN}
+        - FABRIC_CA_SERVER_CSR_HOSTS=ca.${COMPANY_DOMAIN}
+        - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca/tlsca/ca.${ORGANIZATION_NAME_LOWERCASE}-key.pem
+        - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca/tlsca/ca.${ORGANIZATION_NAME_LOWERCASE}-cert.pem
+        - FABRIC_CA_SERVER_DEBUG=true
+    volumes:
+        - ./${ORGANIZATION_NAME}Ca/:/etc/hyperledger/fabric-ca
+        - ./${ORGANIZATION_NAME}Ca/server:/etc/hyperledger/fabric-ca-server
+        - ./${ORGANIZATION_NAME}Ca/client:/etc/hyperledger/fabric-ca-client
+    ports:
+        - 7150:7150
+
+  orderer:
+    container_name: orderer.${COMPANY_DOMAIN}
+    image: hyperledger/fabric-orderer
+    environment:
+      - FABRIC_LOGGING_SPEC=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
+      # Enable TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt]
+    working_dir: /opt/orderer
+    command: orderer
+    ports:
+      - 8050:8050
+    volumes:
+        - ./config/:/etc/hyperledger/configtx
+        - ./crypto-config/ordererOrganizations/orderers/orderer.${COMPANY_DOMAIN}:/etc/hyperledger/msp/orderer
+        - ./crypto-config/peerOrganizations/peers/peer.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/
+    networks:
+      - n2med
+
+  peer:
+    container_name: peer${PEER_NUMBER}.${COMPANY_DOMAIN}
+    image: hyperledger/fabric-peer
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer${PEER_NUMBER}.${COMPANY_DOMAIN}
+      - FABRIC_LOGGING_SPEC=debug
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_CHAINCODE_LOGGING_LEVEL=debug
+      - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=n2mi_n2med
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5985
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCH_DB_USERNAME}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCH_DB_PASSWORD}
+      # Enable TLS
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt      
+    working_dir: /etc/hyperledger/msp/peer
+    command: peer node start
+    ports:
+      - 8051:8051
+      - 8053:8053
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/peers/peer.${COMPANY_DOMAIN}/msp:/etc/hyperledger/msp/peer
+        - ./crypto-config/peerOrganizations/users:/etc/hyperledger/msp/users
+        - ./config:/etc/hyperledger/configtx
+    depends_on:
+      - orderer
+      - couchdb
+    networks:
+      - n2med
+
+  cli:
+    container_name: cli.${COMPANY_DOMAIN}
+    image: hyperledger/fabric-tools
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=info
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
+      - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/peerOrganizations/${COMPANY_DOMAIN}/users/Admin@${COMPANY_DOMAIN}/msp
+      - CORE_CHAINCODE_KEEPALIVE=10
+      # Enable TLS
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt          
+    working_dir: /opt/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config:/etc/hyperledger/crypto-config
+        - ./config:/etc/hyperledger/configtx
+    networks:
+        - n2med
+
+  couchdb:
+    container_name: couchdb.${COMPANY_DOMAIN}
+    image: hyperledger/fabric-couchdb
+    environment:
+      - COUCHDB_USER=${COUCH_DB_USERNAME}
+      - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
+    ports:
+      - 5985:5985
+    networks:
+      - n2med

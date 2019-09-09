@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "target": "es2018",
+      "module": "commonjs",
+      "outDir": "./dist",
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "noImplicitAny": true,
+      "allowJs": true
+    },
+    "include": [
+      "./src/**/*"
+    ]
+}
