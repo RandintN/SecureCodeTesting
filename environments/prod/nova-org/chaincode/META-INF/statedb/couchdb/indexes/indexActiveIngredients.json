@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["name"]
-    },
-    "ddoc": "indexActiveIngredientsDoc",
-    "name": "indexActiveIngredients",
-    "type": "json"
-}

@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["msp_id", "medicine.active_ingredient"]
-    },
-    "ddoc": "indexMedicineRequestDoc",
-    "name": "indexMedicineRequest",
-    "type": "json"
-}

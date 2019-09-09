@@ -10,9 +10,16 @@ export ORDERER_ADMIN_PASSWORD=admin
 export PEER_PASSWORD=admin
 
 export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers/orderer.$COMPANY_DOMAIN
-export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer.$COMPANY_DOMAIN
+export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN
 
 export FABRIC_START_TIMEOUT=3
+
+ CONTAINER_IDS=$(docker ps -aq)
+  if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
+    echo "---- No containers available for deletion ----"
+  else
+    docker rm -f $CONTAINER_IDS
+  fi
 
 sudo rm -rf crypto-config/ ${ORGANIZATION_NAME}Ca/ ${ORGANIZATION_NAME_LOWERCASE}.json
 
@@ -49,11 +56,17 @@ sudo ./configtxgen -printOrg ${ORGANIZATION_NAME}MSP > ${ORGANIZATION_NAME_LOWER
 docker-compose -p n2med -f docker-compose.yml up -d
 
 
-pushd ./chaincode
+pushd ../../../fabric/chaincodes/med
 npm install
 npm run build
 popd
 
-docker exec -e "CORE_PEER_LOCALMSPID=ExampleMSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/peer/crypto/peerOrganizations/example.com/users/Admin@example.com/msp" cli.$COMPANY_DOMAIN peer chaincode install -n med -v 508.16 -p /opt/med/ -l node
+docker exec cli.$COMPANY_DOMAIN peer chaincode install -n med -v 1 -p /etc/hyperledger/chaincode/med/ -l node
 
+# Join peer to the channel.
+# docker exec cli.$COMPANY_DOMAIN peer channel fetch 0 n2medchannel.block -o orderer.n2med.com:7050 -c n2medchannel
+
+# docker exec cli.$COMPANY_DOMAIN peer channel join -b n2medchannel.block
+
+#docker exec cli.$COMPANY_DOMAIN peer channel update -o orderer.n2med.com:7050 -c n2medchannel -f /etc/hyperledger/configtx/ExampleMSPanchors.tx
 

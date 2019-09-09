@@ -48,7 +48,7 @@ services:
     volumes:
         - ./config/:/etc/hyperledger/configtx
         - ./crypto-config/ordererOrganizations/orderers/orderer.${COMPANY_DOMAIN}:/etc/hyperledger/msp/orderer
-        - ./crypto-config/peerOrganizations/peers/peer.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/
+        - ./crypto-config/peerOrganizations/peers/peer0.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/
     networks:
       - n2med
 
@@ -64,28 +64,28 @@ services:
       - CORE_PEER_PROFILE_ENABLED=true
       - CORE_CHAINCODE_LOGGING_LEVEL=debug
       - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
-      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peer/users/Admin@peer0.${COMPANY_DOMAIN}/msp
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:7051
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=n2mi_n2med
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5985
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.${COMPANY_DOMAIN}:5984
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${COUCH_DB_USERNAME}
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${COUCH_DB_PASSWORD}
       # Enable TLS
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt      
-    working_dir: /etc/hyperledger/msp/peer
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/peer/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/peer/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peer/tls/ca.crt      
+    working_dir: /etc/hyperledger/peer
     command: peer node start
     ports:
-      - 8051:8051
+      - 7051:7051
       - 8053:8053
     volumes:
         - /var/run/:/host/var/run/
-        - ./crypto-config/peerOrganizations/peers/peer.${COMPANY_DOMAIN}/msp:/etc/hyperledger/msp/peer
-        - ./crypto-config/peerOrganizations/users:/etc/hyperledger/msp/users
+        - ./crypto-config/peerOrganizations/peers/peer0.${COMPANY_DOMAIN}:/etc/hyperledger/peer
+        - ./crypto-config/peerOrganizations/users:/etc/hyperledger/peer/users
         - ./config:/etc/hyperledger/configtx
     depends_on:
       - orderer
@@ -102,21 +102,23 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=info
       - CORE_PEER_ID=cli
-      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:8051
+      - CORE_PEER_ADDRESS=peer${PEER_NUMBER}.${COMPANY_DOMAIN}:7051
       - CORE_PEER_LOCALMSPID=${ORGANIZATION_NAME}MSP
-      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/peerOrganizations/${COMPANY_DOMAIN}/users/Admin@${COMPANY_DOMAIN}/msp
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto-config/peerOrganizations/users/Admin@peer0.${COMPANY_DOMAIN}/msp
       - CORE_CHAINCODE_KEEPALIVE=10
       # Enable TLS
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
-      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt          
-    working_dir: /opt/peer
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/ca.crt          
+      
+    working_dir: /etc/hyperledger/peer
     command: /bin/bash
     volumes:
         - /var/run/:/host/var/run/
         - ./crypto-config:/etc/hyperledger/crypto-config
         - ./config:/etc/hyperledger/configtx
+        - ../../../fabric/chaincodes/med:/etc/hyperledger/chaincode/med/        
     networks:
         - n2med
 
@@ -127,6 +129,6 @@ services:
       - COUCHDB_USER=${COUCH_DB_USERNAME}
       - COUCHDB_PASSWORD=${COUCH_DB_PASSWORD}
     ports:
-      - 5985:5985
+      - 5984:5984
     networks:
       - n2med

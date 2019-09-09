@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["request_id", "status"]
-    },
-    "ddoc": "indexApproveOfferMedicineRequestDoc",
-    "name": "indexApproveOfferMedicineRequest",
-    "type": "json"
-}

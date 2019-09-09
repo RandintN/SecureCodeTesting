@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["modality"]
-    },
-    "ddoc": "indexNegotiationModalityDoc",
-    "name": "indexNegotiationModality",
-    "type": "json"
-}

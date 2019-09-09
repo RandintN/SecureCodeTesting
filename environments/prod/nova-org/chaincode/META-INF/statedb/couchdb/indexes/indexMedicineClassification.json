@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["category"]
-    },
-    "ddoc": "indexMedicineClassificationDoc",
-    "name": "indexMedicineClassification",
-    "type": "json"
-}

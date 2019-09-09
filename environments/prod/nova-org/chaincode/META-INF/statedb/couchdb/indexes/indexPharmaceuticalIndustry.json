@@ -1,8 +1,0 @@
-{
-    "index": {
-        "fields": ["pharma_industry"]
-    },
-    "ddoc": "indexPharmaceuticalIndustryDoc",
-    "name": "indexPharmaceuticalIndustry",
-    "type": "json"
-}
