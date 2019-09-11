@@ -68,13 +68,15 @@ docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://orderer.$C
 # Enroll orderer Admin identity
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@orderer.$COMPANY_DOMAIN:ordereradminpw@$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/msp
 
+# Get TLS for Admin identity
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@orderer.$COMPANY_DOMAIN:ordereradminpw@$CA_ADDRESS_PORT --enrollment.profile tls --csr.hosts orderer.$COMPANY_DOMAIN -M $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/tls 
+
 # Get Orderer Admin certs
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client certificate list --id Admin@orderer.$COMPANY_DOMAIN --store $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@peer0.$COMPANY_DOMAIN/msp/admincerts
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client certificate list --id Admin@orderer.$COMPANY_DOMAIN --store $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/msp/admincerts
 
 # Copy Admin certs to Peers MSP
 docker exec rca.$COMPANY_DOMAIN mkdir $NODE_DIRECTORY/$ORDERER_MSP/msp
-docker exec rca.$COMPANY_DOMAIN cp -r $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@peer0.$COMPANY_DOMAIN/msp/admincerts/ $NODE_DIRECTORY/$ORDERER_MSP/orderers/orderer.$COMPANY_DOMAIN/msp/admincerts
-
+docker exec rca.$COMPANY_DOMAIN cp -r $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/msp/admincerts/ $NODE_DIRECTORY/$ORDERER_MSP/orderers/orderer.$COMPANY_DOMAIN/msp/admincerts
 
 # Get MSP Files for Orderer
 # cacerts --orderer

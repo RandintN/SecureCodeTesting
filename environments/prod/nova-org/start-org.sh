@@ -64,7 +64,7 @@ popd
 docker exec cli.$COMPANY_DOMAIN peer chaincode install -n med -v 1 -p /etc/hyperledger/chaincode/med/ -l node
 
 # Join peer to the channel.
-# docker exec cli.$COMPANY_DOMAIN peer channel fetch 0 n2medchannel.block -o orderer.n2med.com:7050 -c n2medchannel
+docker exec cli.alphamed.com peer channel fetch 0 n2medchannel.block -o gcpbari:7050 -c n2medchannel --certfile /etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.alphamed.com/tls/ca.crt
 
 # docker exec cli.$COMPANY_DOMAIN peer channel join -b n2medchannel.block
 

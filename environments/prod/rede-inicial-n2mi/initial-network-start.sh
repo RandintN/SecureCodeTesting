@@ -34,8 +34,6 @@ sleep 1
 
 sudo chmod -R 777 ./crypto-config
 
-sudo cp add-org-channel.sh ./config
-
 sleep 2
 
 sudo cp -r $ORDERER_MSP/tls/tlscacerts ./crypto-config/ordererOrganizations/msp
@@ -51,7 +49,13 @@ sudo mv $PEER_DIRECTORY/tls/signcerts/cert.pem $PEER_DIRECTORY/tls/server.crt
 sudo mv $PEER_DIRECTORY/tls/keystore/*_sk $PEER_DIRECTORY/tls/server.key
 sudo mv $PEER_DIRECTORY/tls/tlscacerts/*.pem $PEER_DIRECTORY/tls/ca.crt
 
+# Delete empty TLS directories
+sudo rm -rf $ORDERER_MSP/tls/{cacerts,keystore,signcerts,tlscacerts,user}
+sudo rm -rf $PEER_DIRECTORY/tls/{cacerts,keystore,signcerts,tlscacerts,user}
+
 sudo ./generate.sh
+
+sudo cp add-org-channel.sh ./config
 
 sleep ${FABRIC_START_TIMEOUT}
 

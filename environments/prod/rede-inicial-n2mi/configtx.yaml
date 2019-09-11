@@ -212,26 +212,23 @@ Channel: &ChannelDefaults
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
 
-    # Capabilities describes the channel level capabilities, see the
-    # dedicated Capabilities section elsewhere in this file for a full
-    # description
     Capabilities:
         <<: *ChannelCapabilities
 
-################################################################################
-#
-#   Profile
-#
-#   - Different configuration profiles may be encoded here to be specified
-#   as parameters to the configtxgen tool
-#
-################################################################################
 Profiles:
-
     OrdererGenesis:
         <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
+            OrdererType: etcdraft
+            EtcdRaft:
+                 Consenters:
+                    Host: orderer.n2med.com
+                    Port: 7050
+                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+            Addresses:
+                - orderer.n2med.com:7050
             Organizations:
                 - *OrdererMSP
             Capabilities:
