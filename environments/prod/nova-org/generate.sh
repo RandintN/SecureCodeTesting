@@ -6,7 +6,7 @@ CHANNEL_NAME=n2medchannel
 mkdir -p config/
 
 # generate genesis block for orderer
-configtxgen -profile OrdererGenesis -outputBlock ./config/genesis.block
+configtxgen -profile OrdererGenesis -channelID $CHANNEL_NAME -outputBlock ./config/genesis.block
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate orderer genesis block..."
   exit 1
