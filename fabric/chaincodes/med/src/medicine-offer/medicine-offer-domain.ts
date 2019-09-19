@@ -119,6 +119,8 @@ export class MedicineOfferDomain extends MedicineDomain {
 
         try {
 
+            const result: Result = new Result();
+
             const medicineOffer: MedicineOffer = new MedicineOffer();
             medicineOffer.fromJson(JSON.parse(medJsonIn) as IMedicineOfferJson);
 
@@ -135,6 +137,7 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             if (medicineOffer.type.toLocaleLowerCase() === TradeMode.EXCHANGE
             || medicineOffer.type.toLocaleLowerCase() === TradeMode.DONATION) {
+                result.id = medicineOffer.foreignId;
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                     medicineOffer.toJson() as IMedicineOfferLedgerJson;
 
@@ -142,24 +145,26 @@ export class MedicineOfferDomain extends MedicineDomain {
 
                 //Writing the new offer, using internalId as key.
                 //Wating for aproval.
+                //In case of private data, we will use foreign Id
+                //The private data cannot do a rich query and write
+                //on the ledgeron the same execution. Therefore, it is not
+                //possible to use internal Id in this case.
                 await ctx.stub.putPrivateData(MedicineOfferDomain.MED_OFFER_PD,
-                    medicineOffer.internalId, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                    result.id, Buffer.from(JSON.stringify(medicineOfferToLedger)));
             } else {
                 medicineOffer.status = TradeStatusEnum.APPROVED;
+                result.id = medicineOffer.internalId;
 
                 const medicineOfferToLedger: IMedicineOfferLedgerJson =
                 medicineOffer.toJson() as IMedicineOfferLedgerJson;
                 medicineOfferToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
                 //Writing the new offer, using internalId as key.
-                await ctx.stub.putState(medicineOffer.internalId, Buffer.from(JSON.stringify(medicineOfferToLedger)));
+                await ctx.stub.putState(result.id, Buffer.from(JSON.stringify(medicineOfferToLedger)));
 
             }
 
             const timestamp: number = new Date().getTime();
-            const result: Result = new Result();
-
-            result.id = medicineOffer.internalId;
             result.timestamp = timestamp;
 
             console.log('Medicine External Offer Id: ' + medicineOffer.foreignId);
@@ -294,11 +299,11 @@ export class MedicineOfferDomain extends MedicineDomain {
 
             await ctx.stub.putState(medicineOffer.internalId
                 , Buffer.from(JSON.stringify(medicineOffer.toJson())));
-            await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medicineOffer.internalId);
+            await ctx.stub.deletePrivateData(MedicineOfferDomain.MED_OFFER_PD, medicineOffer.foreignId);
 
             const result: Result = new Result();
 
-            result.id = approveJson.id;
+            result.id = medicineOffer.internalId;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));

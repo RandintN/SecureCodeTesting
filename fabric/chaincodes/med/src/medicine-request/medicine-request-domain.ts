@@ -58,6 +58,7 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
     /** Check the documentation of IMedicineRequestService */
     public async addMedicineRequest(ctx: Context, medRequestJson: string): Promise<ChaincodeResponse> {
 
+        const result: Result = new Result();
         try {
 
             const medicineRequest: MedicineRequest = new MedicineRequest();
@@ -77,15 +78,17 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
             medicineRequest.internalId = ctx.stub.getTxID();
 
             if (medicineRequest.type.toLocaleLowerCase() === TradeMode.EXCHANGE) {
+                result.id = medicineRequest.foreignId;
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
                     medicineRequest.toJson() as IMedicineRequestLedgerJson;
 
                 medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
                 await ctx.stub.putPrivateData(MedicineRequestDomain.MED_REQUEST_PD,
-                    medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                    result.id, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             } else {
+                result.id = medicineRequest.internalId;
                 medicineRequest.status = TradeStatusEnum.APPROVED;
 
                 const medicineRequestToLedger: IMedicineRequestLedgerJson =
@@ -93,14 +96,11 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
                 medicineRequestToLedger.msp_id = ctx.clientIdentity.getMSPID().toUpperCase();
 
-                await ctx.stub.putState(medicineRequest.internalId, Buffer.from(JSON.stringify(medicineRequestToLedger)));
+                await ctx.stub.putState(result.id, Buffer.from(JSON.stringify(medicineRequestToLedger)));
 
             }
 
             const timestamp: number = new Date().getTime();
-            const result: Result = new Result();
-
-            result.id = medicineRequest.internalId;
             result.timestamp = timestamp;
 
             console.log('Medicine Request id: ' + result.id);
@@ -272,11 +272,11 @@ export class MedicineRequestDomain extends MedicineDomain implements IMedicineRe
 
             await ctx.stub.putState(medicineRequest.internalId
                 , Buffer.from(JSON.stringify(medicineRequest.toJson())));
-            await ctx.stub.deletePrivateData(MedicineRequestDomain.MED_REQUEST_PD, medicineRequest.internalId);
+            await ctx.stub.deletePrivateData(MedicineRequestDomain.MED_REQUEST_PD, medicineRequest.foreignId);
 
             const result: Result = new Result();
 
-            result.id = reqApproveJson.id;
+            result.id = medicineRequest.internalId;
             result.timestamp = new Date().getTime();
 
             return ResponseUtil.ResponseOk(Buffer.from(JSON.stringify(result)));
