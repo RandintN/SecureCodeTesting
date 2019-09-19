@@ -602,11 +602,14 @@ export class MedicineOfferDomain extends MedicineDomain {
                     let year : string = medicineBatchItem.expireDate.substr(3, 6);
                     let today : Date = new Date(moment().format('YYYY-MM-DD HH:mm:ss'));
 
+                    //Se o ano atual for maior que o informado, erro
                     if(today.getUTCFullYear()>Number(year)){
                         validationResult.addError(MedicineOfferDomain.ERROR_YEAR);
-                    }
-
-                    if(today.getUTCMonth()+1>=Number(month)){
+                      //Se o ano atual for igual que o informado
+                      //e se o mês atual for maior ou igual que o informado,
+                      //erro.
+                    } else if(today.getUTCFullYear()===Number(year) &&
+                              today.getUTCMonth()+1>=Number(month)) {
                         validationResult.addError(MedicineOfferDomain.ERROR_MONTH);
                     }
                 }
