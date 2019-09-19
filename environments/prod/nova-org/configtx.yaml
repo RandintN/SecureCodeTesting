@@ -53,7 +53,7 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: peer0.example.com
+            - Host: 192.168.68.133
               Port: 7051
 
 Capabilities:
@@ -139,7 +139,7 @@ Orderer: &OrdererDefaults
     OrdererType: solo
 
     Addresses:
-        - orderer.example.com:7050
+        - 192.168.68.133:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -228,6 +228,15 @@ Profiles:
         <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
+            OrdererType: etcdraft
+            EtcdRaft:
+                 Consenters:
+                    Host: orderer.example.com
+                    Port: 7050
+                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.example.com/tls/server.crt
+                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.example.com/tls/server.crt
+            Addresses:
+                - orderer.example.com:7050
             Organizations:
                 - *Orderer
             Capabilities:

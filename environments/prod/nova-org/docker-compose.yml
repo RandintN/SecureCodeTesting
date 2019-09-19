@@ -7,27 +7,28 @@ services:
   ca:
     container_name: ca.${COMPANY_DOMAIN}
     image: hyperledger/fabric-ca
-    command: sh -c 'fabric-ca-server start -d -b ${CA_ADMIN_USER}:${CA_ADMIN_PASSWORD} --port 7150 --cfg.identities.allowremove'
+    command: sh -c 'fabric-ca-server start -d -b ${CA_ADMIN_USER}:${CA_ADMIN_PASSWORD} --tls.enabled --port 7150 -u https://admin:adminpw@${HOST_CA} --intermediate.tls.certfiles /etc/hyperledger/tls-certificates/tls-cert.pem --cfg.identities.allowremove'
     environment:
         - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
         - FABRIC_CA_SERVER_CLIENT=/etc/hyperledger/fabric-ca-client
         - FABRIC_CA_CLIENT_TLS_CERTFILES=/etc/hyperledger/fabric-ca/tls-cert.pem
         - FABRIC_CA_SERVER_TLS_ENABLED=true
         - FABRIC_CA_SERVER_CA_NAME=ca.${COMPANY_DOMAIN}
-        - FABRIC_CA_SERVER_CSR_CN=ca.${COMPANY_DOMAIN}
-        - FABRIC_CA_SERVER_CSR_HOSTS=ca.${COMPANY_DOMAIN}
+        - FABRIC_CA_SERVER_CSR_HOSTS=ca.${COMPANY_DOMAIN}, ${HOST_IP}
         - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca/tlsca/ca.${ORGANIZATION_NAME_LOWERCASE}-key.pem
         - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca/tlsca/ca.${ORGANIZATION_NAME_LOWERCASE}-cert.pem
         - FABRIC_CA_SERVER_DEBUG=true
+        - FABRIC_CA_ROOT_TLS=/etc/hyperledger/tls-certificates/tls-cert.pem
     volumes:
         - ./${ORGANIZATION_NAME}Ca/:/etc/hyperledger/fabric-ca
         - ./${ORGANIZATION_NAME}Ca/server:/etc/hyperledger/fabric-ca-server
         - ./${ORGANIZATION_NAME}Ca/client:/etc/hyperledger/fabric-ca-client
+        - ./tls-certificates:/etc/hyperledger/tls-certificates
     ports:
         - 7150:7150
 
   orderer:
-    container_name: orderer.${COMPANY_DOMAIN}
+    container_name: orderer.example.com
     image: hyperledger/fabric-orderer
     environment:
       - FABRIC_LOGGING_SPEC=grpc=debug:info
@@ -40,8 +41,8 @@ services:
       - ORDERER_GENERAL_TLS_ENABLED=true
       - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
       - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
-      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/msp/orderer/tls/ca.crt
-      - ORDERER_GENERAL_TLS_CLIENTROOTCAS=/etc/hyperledger/msp/orderer/tls/ca.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/configtx/server.crt
+      - ORDERER_GENERAL_TLS_CLIENTROOTCAS=/etc/hyperledger/msp/orderer/tls/ca-chain.pem
       - ORDERER_GENERAL_TLS_CLIENTAUTHREQUIRED=true
     working_dir: /opt/orderer
     command: orderer
@@ -49,8 +50,9 @@ services:
       - 8050:8050
     volumes:
         - ./config/:/etc/hyperledger/configtx
-        - ./crypto-config/ordererOrganizations/orderers/orderer.${COMPANY_DOMAIN}:/etc/hyperledger/msp/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.${COMPANY_DOMAIN}/:/etc/hyperledger/msp/
+        - ./crypto-config/ordererOrganizations/orderers/orderer.example.com:/etc/hyperledger/msp/orderer
+        - ./crypto-config/peerOrganizations/peers/peer0.example.com/:/etc/hyperledger/msp/
+        - ./tls-certificates:/etc/hyperledger/tls-certificates       
     networks:
       - n2med
 
@@ -80,6 +82,9 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/peer/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peer/tls/ca.crt
       - ORDERER_GENERAL_TLS_CLIENTAUTHREQUIRED=true
+      - CORE_PEER_TLS_CLIENTROOTCAS_FILES=/etc/hyperledger/peer/tls/ca.crt
+      - CORE_PEER_TLS_CLIENTCERT_FILE=/etc/hyperledger/peer/tls/server.crt
+      - CORE_PEER_TLS_CLIENTKEY_FILE=/etc/hyperledger/peer/tls/server.key
     working_dir: /etc/hyperledger/peer
     command: peer node start
     ports:
@@ -90,6 +95,7 @@ services:
         - ./crypto-config/peerOrganizations/peers/peer0.${COMPANY_DOMAIN}:/etc/hyperledger/peer
         - ./crypto-config/peerOrganizations/users:/etc/hyperledger/peer/users
         - ./config:/etc/hyperledger/configtx
+        - ../../../fabric/chaincodes/med:/etc/hyperledger/chaincode/med/        
     depends_on:
       - orderer
       - couchdb
@@ -113,8 +119,7 @@ services:
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/server.key
-      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/ca.crt          
-      
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN/tls/ca.crt
     working_dir: /etc/hyperledger/peer
     command: /bin/bash
     volumes:
