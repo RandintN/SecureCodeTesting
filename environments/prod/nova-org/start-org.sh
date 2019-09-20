@@ -1,13 +1,19 @@
 set -ev
-export ORGANIZATION_NAME=Example
-export ORGANIZATION_NAME_LOWERCASE=example
+# Section 1: Organization information
+export ORGANIZATION_NAME=Alphamed
+export ORGANIZATION_NAME_LOWERCASE=alphamed
+export ORDERER_NAME=AlphamedOrderer
 export PEER_NUMBER=0
+export COMPANY_DOMAIN=alphamed.com
+
+# Section 2: Intermediate CA variables
 export CA_ADMIN_USER=admin
 export CA_ADMIN_PASSWORD=admin
-export COMPANY_DOMAIN=example.com
 export CA_ADDRESS_PORT=ca.$COMPANY_DOMAIN:7150
 export ORDERER_ADMIN_PASSWORD=admin
 export PEER_PASSWORD=admin
+
+# Section 3: Ip Address Section
 export IP_ADDRESS=192.168.68.133
 export HOST_CA=192.168.65.89:7054
 export N2MED_ORDERER_IP=192.168.65.89
@@ -17,6 +23,7 @@ export FABRIC_CFG_PATH=${PWD}
 export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers/orderer.$COMPANY_DOMAIN
 export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer0.$COMPANY_DOMAIN
 
+# Timeout variable  
 export FABRIC_START_TIMEOUT=3
 
  CONTAINER_IDS=$(docker ps -aq)
@@ -38,6 +45,7 @@ sleep ${FABRIC_START_TIMEOUT}
 
 sudo cp -r ./${ORGANIZATION_NAME}Ca/client/crypto-config ./
 sudo cp ./tls-certificates/server.crt ./config
+sudo cp ./tls-certificates/medcc.pak ./config
 
 sleep 1
 
@@ -65,26 +73,26 @@ sleep ${FABRIC_START_TIMEOUT}
 
 sudo ./generate.sh
 
-sudo ./configtxgen -printOrg ${ORGANIZATION_NAME}MSP > ${ORGANIZATION_NAME_LOWERCASE}.json
+sudo ./configtxgen -printOrg ${ORGANIZATION_NAME}MSP > ${ORGANIZATION_NAME}.json
+sudo ./configtxgen -printOrg ${ORDERER_NAME}MSP > ${ORDERER_NAME}.json
 
-docker-compose -p n2med -f docker-compose.yml up -d
+docker-compose -p n2med -f docker-compose.yml up -d  peer cli couchdb
 
-pushd ../../../fabric/chaincodes/med
-npm install
-npm run build
-popd
+sleep 5
 
-docker exec cli.$COMPANY_DOMAIN peer chaincode install -n med -v 1 -p /etc/hyperledger/chaincode/med/ -l node --certfile /etc/hyperledger/crypto-config/peerOrganizations/peers/peer0.alphamed.com/tls/ca.crt
+docker exec cli.${COMPANY_DOMAIN} peer chaincode install /etc/hyperledger/configtx/medcc.pak
 
-# Join peer to the channel.
-# docker exec cli.$COMPANY_DOMAIN peer channel fetch 0 n2medchannel.block -o $N2MED_ORDERER_IP:7050 -c n2medchannel --tls --cafile /etc/hyperledger/configtx/server.crt
-
-# docker exec cli.$COMPANY_DOMAIN peer channel join -b n2medchannel.block
-
-#docker exec cli.$COMPANY_DOMAIN peer channel update -o orderer.n2med.com:7050 -c n2medchannel -f /etc/hyperledger/configtx/ExampleMSPanchors.tx
-
-# docker exec cli.example.com peer channel fetch 0 n2medchannel.block -o 192.168.65.89:7050 -c n2medchannel --tls --cafile /etc/hyperledger/configtx/server.crt
+# docker exec cli.alphamed.com peer channel fetch 0 n2medchannel.block -o 192.168.65.89:7050 -c n2medchannel --tls --cafile /etc/hyperledger/configtx/server.crt
  
-# docker exec cli.example.com peer channel join -b n2medchannel.block
+# docker exec cli.alphamed.com peer channel join -b n2medchannel.block
 
-# peer chaincode invoke -o 192.168.65.89:7050 --tls $CORE_PEER_TLS_ENABLED --cafile /etc/hyperledger/configtx/server.crt -C n2medchannel -n med -c '{"Args":["invoke","a","b","10"]}'
+# docker exec cli.alphamed.com peer channel update -o orderer.alphamed.com:7050 --tls --cafile /etc/hyperledger/crypto-config/ordererOrganizations/orderers/orderer.alphamed.com/tls/ca.crt -c n2medchannel -f /etc/hyperledger/configtx/AlphamedMSPanchors.tx
+
+
+# docker exec cli.example.com peer chaincode invoke -o orderer.alphamed.com:7050 --tls --cafile /etc/hyperledger/crypto-config/ordererOrganizations/orderers/orderer.alphamed.com/tls/server.crt -C n2medchannel -n med -c '{"Args":["invoke","a","b","10"]}'
+
+
+# peer chaincode invoke -o orderer.example.com:7050 --tls --cafile /etc/hyperledger/crypto-config/ordererOrganizations/orderers/orderer.example.com/tls/ca.crt -C n2medchannel -n med -c '{"Args":["addMedicineRequest","{\"amount\":\"23\", \"type\":\"donation\",\"medicine\":{\"active_ingredient\":\"AGUA\", \"pharma_form\":\"Xarope\", \"pharma_industry\":[\"3M\"],\"concentration\":\"33\", \"classification\":[\"Similar\"]},\"id\":\"13\" }"]}'
+
+
+docker exec cli.alphamed.com peer channel fetch config testchainid.block -o 192.168.65.89:7050 -c testchainid --tls --cafile /etc/hyperledger/configtx/server.crt

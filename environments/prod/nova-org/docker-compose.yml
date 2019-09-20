@@ -28,30 +28,32 @@ services:
         - 7150:7150
 
   orderer:
-    container_name: orderer.example.com
+    container_name: orderer.alphamed.com
     image: hyperledger/fabric-orderer
     environment:
       - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/n2medchannel.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
       # Enable TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
       - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
       - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
-      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/configtx/server.crt
-      - ORDERER_GENERAL_TLS_CLIENTROOTCAS=/etc/hyperledger/msp/orderer/tls/ca-chain.pem
-      - ORDERER_GENERAL_TLS_CLIENTAUTHREQUIRED=true
+      - ORDERER_GENERAL_TLS_ROOTCAS=/etc/hyperledger/msp/orderer/tls/ca.crt
+      - ORDERER_GENERAL_TLS_CLIENTROOTCAS=/etc/hyperledger/msp/orderer/tls/ca.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/msp/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/msp/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/msp/orderer/tls/ca.crt]      
     working_dir: /opt/orderer
     command: orderer
     ports:
       - 8050:8050
     volumes:
         - ./config/:/etc/hyperledger/configtx
-        - ./crypto-config/ordererOrganizations/orderers/orderer.example.com:/etc/hyperledger/msp/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.example.com/:/etc/hyperledger/msp/
+        - ./crypto-config/ordererOrganizations/orderers/orderer.alphamed.com:/etc/hyperledger/msp/orderer
+        - ./crypto-config/peerOrganizations/peers/peer0.alphamed.com/:/etc/hyperledger/msp/
         - ./tls-certificates:/etc/hyperledger/tls-certificates       
     networks:
       - n2med
@@ -81,11 +83,10 @@ services:
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/peer/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/peer/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peer/tls/ca.crt
-      - ORDERER_GENERAL_TLS_CLIENTAUTHREQUIRED=true
       - CORE_PEER_TLS_CLIENTROOTCAS_FILES=/etc/hyperledger/peer/tls/ca.crt
       - CORE_PEER_TLS_CLIENTCERT_FILE=/etc/hyperledger/peer/tls/server.crt
       - CORE_PEER_TLS_CLIENTKEY_FILE=/etc/hyperledger/peer/tls/server.key
-    working_dir: /etc/hyperledger/peer
+    working_dir: /etc/hyperledger/configtx
     command: peer node start
     ports:
       - 7051:7051

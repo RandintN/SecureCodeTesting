@@ -5,13 +5,13 @@ Organizations:
     - &Orderer
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
-        Name: OrdererMSP
+        Name: AlphamedOrdererMSP
 
         # ID to load the MSP definition as
-        ID: OrdererMSP
+        ID: AlphamedOrdererMSP
 
         # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: crypto-config/ordererOrganizations/orderers/orderer.example.com/msp
+        MSPDir: crypto-config/ordererOrganizations/orderers/orderer.alphamed.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -19,19 +19,19 @@ Organizations:
         Policies:
             Readers:
                 Type: Signature
-                Rule: "OR('OrdererMSP.member')"
+                Rule: "OR('AlphamedOrdererMSP.member')"
             Writers:
                 Type: Signature
-                Rule: "OR('OrdererMSP.member')"
+                Rule: "OR('AlphamedOrdererMSP.member')"
             Admins:
                 Type: Signature
-                Rule: "OR('OrdererMSP.admin')"
+                Rule: "OR('AlphamedOrdererMSP.admin')"
 
     - &Organization
-        Name: ExampleMSP
+        Name: AlphamedMSP
 
         # ID to load the MSP definition as
-        ID: ExampleMSP
+        ID: AlphamedMSP
 
         MSPDir: crypto-config/peerOrganizations/msp
 
@@ -41,13 +41,13 @@ Organizations:
         Policies:
             Readers:
                 Type: Signature
-                Rule: "OR('ExampleMSP.member')"
+                Rule: "OR('AlphamedMSP.member')"
             Writers:
                 Type: Signature
-                Rule: "OR('ExampleMSP.member')"
+                Rule: "OR('AlphamedMSP.member')"
             Admins:
                 Type: Signature
-                Rule: "OR('ExampleMSP.admin')"
+                Rule: "OR('AlphamedMSP.admin')"
         # leave this flag set to true.
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
@@ -231,12 +231,12 @@ Profiles:
             OrdererType: etcdraft
             EtcdRaft:
                  Consenters:
-                    Host: orderer.example.com
+                    Host: orderer.alphamed.com
                     Port: 7050
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.example.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.example.com/tls/server.crt
+                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.alphamed.com/tls/server.crt
+                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.alphamed.com/tls/server.crt
             Addresses:
-                - orderer.example.com:7050
+                - orderer.alphamed.com:7050
             Organizations:
                 - *Orderer
             Capabilities:
@@ -245,7 +245,7 @@ Profiles:
             Consortium:
                 Organizations:
                     - *Organization
-    N2medChannel:
+    Channel:
         Consortium: Consortium
         Application:
             <<: *ApplicationDefaults
