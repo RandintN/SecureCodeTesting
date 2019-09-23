@@ -57,7 +57,7 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: peer0.n2med.com
+            - Host: 192.168.65.89
               Port: 7051
 
 Capabilities:
@@ -126,7 +126,7 @@ Application: &ApplicationDefaults
             Rule: "ANY Writers"
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: "ANY Admins"
 
 ################################################################################
 #
@@ -143,7 +143,7 @@ Orderer: &OrdererDefaults
     OrdererType: solo
 
     Addresses:
-        - orderer.n2med.com:7050
+        - 192.168.65.89:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -179,7 +179,7 @@ Orderer: &OrdererDefaults
             Rule: "ANY Writers"
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: "ANY Admins"
         # BlockValidation specifies what signatures must be included in the block
         # from the orderer for the peer to validate it.
         BlockValidation:
@@ -210,7 +210,7 @@ Channel: &ChannelDefaults
         # By default, who may modify elements at this config level
         Admins:
             Type: ImplicitMeta
-            Rule: "MAJORITY Admins"
+            Rule: "ANY Admins"
 
     Capabilities:
         <<: *ChannelCapabilities
@@ -223,12 +223,15 @@ Profiles:
             OrdererType: etcdraft
             EtcdRaft:
                  Consenters:
-                    Host: orderer.n2med.com
+                    Host: 192.168.65.89
                     Port: 7050
                     ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
                     ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
             Addresses:
                 - orderer.n2med.com:7050
+                - 192.168.65.89:7050
+                - orderer.example.com:7050
+                - 192.168.68.133:7050
             Organizations:
                 - *OrdererMSP
             Capabilities:
