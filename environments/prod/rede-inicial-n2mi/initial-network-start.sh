@@ -2,19 +2,23 @@
 
 # don't rewrite paths for Windows Git Bash users
 export MSYS_NO_PATHCONV=1
-export FABRIC_START_TIMEOUT=4
+export FABRIC_START_TIMEOUT=5
 
 export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers/orderer.n2med.com
 export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer0.n2med.com
 
-  CONTAINER_IDS=$(docker ps -aq)
-  if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
-    echo "---- No containers available for deletion ----"
-  else
-    docker rm -f $CONTAINER_IDS
-  fi
+CA_ADDRESS_PORT=rca.n2med.com:7054
+COMAPNY_DOMAIN=n2med.com
+IP_ADDRESS=192.168.65.89
 
-sudo rm -rf crypto-config/ n2medCa/ config/*
+CONTAINER_IDS=$(docker ps -aq)
+if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
+  echo "---- No containers available for deletion ----"
+else
+  docker rm -f $CONTAINER_IDS
+fi
+
+sudo rm -rf crypto-config/ n2medCa/ config/* artifacts/*
 
 docker-compose -f docker-compose.yml down
 
@@ -24,7 +28,7 @@ docker-compose -p n2mi -f docker-compose.yml up -d rca.n2med
 
 sleep ${FABRIC_START_TIMEOUT}
 
-./generate-node-certificates.sh rca.n2med.com:7054 n2med.com
+./generate-node-certificates.sh $CA_ADDRESS_PORT $COMAPNY_DOMAIN $IP_ADDRESS
 
 sleep ${FABRIC_START_TIMEOUT}
 
@@ -56,6 +60,7 @@ sudo rm -rf $PEER_DIRECTORY/tls/{cacerts,keystore,signcerts,tlscacerts,user}
 sudo ./generate.sh
 
 sudo cp add-org-channel.sh ./config
+sudo cp add-orderer-channel.sh ./config
 
 sleep ${FABRIC_START_TIMEOUT}
 
@@ -83,3 +88,14 @@ popd
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp" cli peer chaincode install -n med -v 1 -p /opt/med/ -l node
 
 docker exec -e "CORE_PEER_LOCALMSPID=N2miMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp" cli peer chaincode instantiate -o orderer.n2med.com:7050 -C n2medchannel -n med -l node -v 1 -c '{"Args":[]}' -P "OR('N2miMSP.member')" --collections-config /opt/med/collection-config.json --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt
+
+docker exec cli peer chaincode package -n med -p /opt/med -v 1 medcc.pak -l node
+sudo chmod -R 777 ./crypto-config/medcc.pak
+sudo chmod -R 777 ./n2medCa
+
+mkdir artifacts
+cp ./n2medCa/tls-cert.pem ./artifacts
+cp ./crypto-config/medcc.pak ./artifacts
+cp ./crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt ./artifacts
+
+#peer chaincode invoke -o orderer.n2med.com:7050  --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt -C n2medchannel -n med -c '{"Args":["addMedicineRequest","{\"amount\":\"23\", \"type\":\"donation\",\"medicine\":{\"active_ingredient\":\"AGUA\", \"pharma_form\":\"Xarope\", \"pharma_industry\":[\"3M\"],\"concentration\":\"33\", \"classification\":[\"Similar\"]},\"id\":\"13\" }"]}'

@@ -2,6 +2,7 @@
 # Arguments
 CA_ADDRESS_PORT=$1
 COMPANY_DOMAIN=$2
+IP_ADDRESS=$3
 
 # Directories
 NODE_DIRECTORY=/etc/hyperledger/fabric-ca-client
@@ -9,7 +10,7 @@ ORDERER_MSP=crypto-config/ordererOrganizations
 PEER_DIRECTORY=crypto-config/peerOrganizations
 
 # Enroll CA Admin
-docker exec rca.n2med.com fabric-ca-client enroll -d -u https://admin:adminpw@rca.n2med.com:7054
+docker exec rca.n2med.com fabric-ca-client enroll -d -u https://admin:adminpw@rca.n2med.com:7054 --csr.hosts 192.168.65.89
 # Rename Key file to key.pem
 docker exec rca.n2med.com sh -c 'mv /etc/hyperledger/fabric-ca-server/msp/keystore/*_sk /etc/hyperledger/fabric-ca-server/msp/keystore/key.pem'
 
@@ -30,7 +31,7 @@ docker exec rca.$COMPANY_DOMAIN fabric-ca-client register -d --id.name User@peer
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://peer0.$COMPANY_DOMAIN:peerpw@$CA_ADDRESS_PORT --csr.hosts peer0.$COMPANY_DOMAIN -M $NODE_DIRECTORY/$PEER_DIRECTORY/peers/peer0.$COMPANY_DOMAIN/msp
 
 # Enroll peer identity to get TLS certificates
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://peer0.$COMPANY_DOMAIN:peerpw@$CA_ADDRESS_PORT --csr.hosts peer0.$COMPANY_DOMAIN --enrollment.profile tls -M $NODE_DIRECTORY/$PEER_DIRECTORY/peers/peer0.$COMPANY_DOMAIN/tls
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://peer0.$COMPANY_DOMAIN:peerpw@$CA_ADDRESS_PORT --csr.hosts peer0.$COMPANY_DOMAIN,$IP_ADDRESS --enrollment.profile tls -M $NODE_DIRECTORY/$PEER_DIRECTORY/peers/peer0.$COMPANY_DOMAIN/tls
 
 # Enroll Admin identities for the Peer MSP
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@peer0.$COMPANY_DOMAIN:peeradminpw@$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$PEER_DIRECTORY/users/Admin@peer0.$COMPANY_DOMAIN/msp
@@ -46,7 +47,7 @@ docker exec rca.$COMPANY_DOMAIN mkdir $NODE_DIRECTORY/$PEER_DIRECTORY/msp
 docker exec rca.$COMPANY_DOMAIN cp -r $NODE_DIRECTORY/$PEER_DIRECTORY/users/Admin@peer0.$COMPANY_DOMAIN/msp/admincerts $NODE_DIRECTORY/$PEER_DIRECTORY/peers/peer0.$COMPANY_DOMAIN/msp/admincerts
 
 # Get Admin identity TLS certificates
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@peer0.$COMPANY_DOMAIN:peeradminpw@$CA_ADDRESS_PORT --enrollment.profile tls -M $NODE_DIRECTORY/$PEER_DIRECTORY/users/Admin@peer0.$COMPANY_DOMAIN/tls
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@peer0.$COMPANY_DOMAIN:peeradminpw@$CA_ADDRESS_PORT --csr.hosts peer0.$COMPANY_DOMAIN,$IP_ADDRESS --enrollment.profile tls -M $NODE_DIRECTORY/$PEER_DIRECTORY/users/Admin@peer0.$COMPANY_DOMAIN/tls
 
 
 
@@ -63,13 +64,13 @@ docker exec rca.$COMPANY_DOMAIN fabric-ca-client register -d --id.name Admin@ord
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://orderer.$COMPANY_DOMAIN:ordererpw@$CA_ADDRESS_PORT --csr.hosts orderer.$COMPANY_DOMAIN -M $NODE_DIRECTORY/$ORDERER_MSP/orderers/orderer.$COMPANY_DOMAIN/msp
 
 # Enroll TLS orderer identity
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://orderer.$COMPANY_DOMAIN:ordererpw@$CA_ADDRESS_PORT --csr.hosts orderer.$COMPANY_DOMAIN --enrollment.profile tls -M $NODE_DIRECTORY/$ORDERER_MSP/orderers/orderer.$COMPANY_DOMAIN/tls
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://orderer.$COMPANY_DOMAIN:ordererpw@$CA_ADDRESS_PORT --enrollment.profile tls --csr.hosts orderer.$COMPANY_DOMAIN,$IP_ADDRESS -M $NODE_DIRECTORY/$ORDERER_MSP/orderers/orderer.$COMPANY_DOMAIN/tls
 
 # Enroll orderer Admin identity
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@orderer.$COMPANY_DOMAIN:ordereradminpw@$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/msp
 
 # Get TLS for Admin identity
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@orderer.$COMPANY_DOMAIN:ordereradminpw@$CA_ADDRESS_PORT --enrollment.profile tls --csr.hosts orderer.$COMPANY_DOMAIN -M $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/tls 
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client enroll -d -u https://Admin@orderer.$COMPANY_DOMAIN:ordereradminpw@$CA_ADDRESS_PORT --enrollment.profile tls --csr.hosts orderer.$COMPANY_DOMAIN,$IP_ADDRESS -M $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/tls 
 
 # Get Orderer Admin certs
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client certificate list --id Admin@orderer.$COMPANY_DOMAIN --store $NODE_DIRECTORY/$ORDERER_MSP/users/Admin@orderer.$COMPANY_DOMAIN/msp/admincerts
@@ -86,7 +87,7 @@ docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcacert -u https://$CA_ADDRES
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client certificate list --id Admin@orderer.$COMPANY_DOMAIN --store $NODE_DIRECTORY/$ORDERER_MSP/msp/admincerts
 
 # tlscacerts --orderer
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcacert -u https://$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$ORDERER_MSP/msp --enrollment.profile tls
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcacert -u https://$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$ORDERER_MSP/msp --csr.hosts peer0.$COMPANY_DOMAIN,$IP_ADDRESS --enrollment.profile tls 
 
 # Get MSP Files for Peer
 # cacerts --peer org
@@ -96,5 +97,5 @@ docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcainfo -u https://$CA_ADDRES
 docker exec rca.$COMPANY_DOMAIN fabric-ca-client certificate list --id Admin@peer0.$COMPANY_DOMAIN --store $NODE_DIRECTORY/$PEER_DIRECTORY/msp/admincerts
 
 # tlscacerts --peer org
-docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcacert -u https://$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$PEER_DIRECTORY/msp --enrollment.profile tls
+docker exec rca.$COMPANY_DOMAIN fabric-ca-client getcacert -u https://$CA_ADDRESS_PORT -M $NODE_DIRECTORY/$PEER_DIRECTORY/msp --csr.hosts peer0.$COMPANY_DOMAIN,$IP_ADDRESS --enrollment.profile tls
 

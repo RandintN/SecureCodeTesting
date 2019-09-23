@@ -9,13 +9,14 @@ services:
       image: hyperledger/fabric-ca:1.4.1
       command: sh -c 'fabric-ca-server start -d -b admin:adminpw --port 7054 --cfg.identities.allowremove'
       environment:
+         - FABRIC_LOGGING_SPEC=grpc=debug:info        
          - FABRIC_CA_SERVER_HOME=/etc/hyperledger/fabric-ca
          - FABRIC_CA_SERVER_CLIENT=/etc/hyperledger/fabric-ca-client
          - FABRIC_CA_CLIENT_TLS_CERTFILES=/etc/hyperledger/fabric-ca/tls-cert.pem
          - FABRIC_CA_SERVER_TLS_ENABLED=true
          - FABRIC_CA_SERVER_CA_NAME=rca.n2med.com
          - FABRIC_CA_SERVER_CSR_CN=rca.n2med.com
-         - FABRIC_CA_SERVER_CSR_HOSTS=rca.n2med.com
+         - FABRIC_CA_SERVER_CSR_HOSTS=rca.n2med.com,192.168.65.89
          - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca/tlsca/rca.n2med-key.pem
          - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca/tlsca/rca.n2med-cert.pem
          - FABRIC_CA_SERVER_DEBUG=true
@@ -30,7 +31,7 @@ services:
     container_name: orderer.n2med.com
     image: hyperledger/fabric-orderer
     environment:
-      - FABRIC_LOGGING_SPEC=debug
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
@@ -63,7 +64,7 @@ services:
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.n2med.com
-      - FABRIC_LOGGING_SPEC=debug
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
       - CORE_PEER_GOSSIP_USELEADERELECTION=false
       - CORE_PEER_GOSSIP_ORGLEADER=true
       - CORE_PEER_PROFILE_ENABLED=true
@@ -115,7 +116,7 @@ services:
     tty: true
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - FABRIC_LOGGING_SPEC=info
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
       - CORE_PEER_ID=cli
       - CORE_PEER_ADDRESS=peer0.n2med.com:7051
       - CORE_PEER_LOCALMSPID=N2miMSP
