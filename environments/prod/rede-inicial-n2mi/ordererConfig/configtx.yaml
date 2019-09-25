@@ -217,12 +217,12 @@ Profiles:
                     ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
                     Host: 192.168.65.89
                     Port: 7060
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
+                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
                     Host: 192.168.65.89
                     Port: 7070
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
+                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
             Addresses:
                 - 192.168.65.89:7050
                 - 192.168.65.89:7060
