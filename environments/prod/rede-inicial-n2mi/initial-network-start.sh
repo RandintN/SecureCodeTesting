@@ -4,7 +4,7 @@
 export MSYS_NO_PATHCONV=1
 export FABRIC_START_TIMEOUT=5
 
-export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers/orderer.n2med.com
+export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers
 export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer0.n2med.com
 
 CA_ADDRESS_PORT=rca.n2med.com:7054
@@ -40,13 +40,23 @@ sudo chmod -R 777 ./crypto-config
 
 sleep 2
 
-sudo cp -r $ORDERER_MSP/tls/tlscacerts ./crypto-config/ordererOrganizations/msp
+sudo cp -r $ORDERER_MSP/orderer.n2med.com/tls/tlscacerts ./crypto-config/ordererOrganizations/msp
 sudo cp -r $PEER_DIRECTORY/tls/tlscacerts ./crypto-config/peerOrganizations/msp
 
 # Move Orderer TLS files
-sudo mv $ORDERER_MSP/tls/signcerts/cert.pem $ORDERER_MSP/tls/server.crt
-sudo mv $ORDERER_MSP/tls/keystore/*_sk $ORDERER_MSP/tls/server.key
-sudo mv $ORDERER_MSP/tls/tlscacerts/*.pem $ORDERER_MSP/tls/ca.crt
+# Orderer 1
+sudo mv $ORDERER_MSP/orderer.n2med.com/tls/signcerts/cert.pem $ORDERER_MSP/orderer.n2med.com/tls/server.crt
+sudo mv $ORDERER_MSP/orderer.n2med.com/tls/keystore/*_sk $ORDERER_MSP/orderer.n2med.com/tls/server.key
+sudo mv $ORDERER_MSP/orderer.n2med.com/tls/tlscacerts/*.pem $ORDERER_MSP/orderer.n2med.com/tls/ca.crt
+# Orderer 2
+sudo mv $ORDERER_MSP/orderer2.n2med.com/tls/signcerts/cert.pem $ORDERER_MSP/orderer2.n2med.com/tls/server.crt
+sudo mv $ORDERER_MSP/orderer2.n2med.com/tls/keystore/*_sk $ORDERER_MSP/orderer2.n2med.com/tls/server.key
+sudo mv $ORDERER_MSP/orderer2.n2med.com/tls/tlscacerts/*.pem $ORDERER_MSP/orderer2.n2med.com/tls/ca.crt
+# Orderer 3
+sudo mv $ORDERER_MSP/orderer3.n2med.com/tls/signcerts/cert.pem $ORDERER_MSP/orderer3.n2med.com/tls/server.crt
+sudo mv $ORDERER_MSP/orderer3.n2med.com/tls/keystore/*_sk $ORDERER_MSP/orderer3.n2med.com/tls/server.key
+sudo mv $ORDERER_MSP/orderer3.n2med.com/tls/tlscacerts/*.pem $ORDERER_MSP/orderer3.n2med.com/tls/ca.crt
+
 
 # Move Peer TLS files
 sudo mv $PEER_DIRECTORY/tls/signcerts/cert.pem $PEER_DIRECTORY/tls/server.crt
@@ -55,16 +65,17 @@ sudo mv $PEER_DIRECTORY/tls/tlscacerts/*.pem $PEER_DIRECTORY/tls/ca.crt
 
 # Delete empty TLS directories
 sudo rm -rf $ORDERER_MSP/tls/{cacerts,keystore,signcerts,tlscacerts,user}
+sudo rm -rf $ORDERER_MSP/orderer2.n2med.com/tls/{cacerts,keystore,signcerts,tlscacerts,user}
+sudo rm -rf $ORDERER_MSP/orderer3.n2med.com/tls/{cacerts,keystore,signcerts,tlscacerts,user}
 sudo rm -rf $PEER_DIRECTORY/tls/{cacerts,keystore,signcerts,tlscacerts,user}
 
 sudo ./generate.sh
 
-sudo cp add-org-channel.sh ./config
-sudo cp add-orderer-channel.sh ./config
+sudo cp add-org-n2medchannel.sh ./config
 
 sleep ${FABRIC_START_TIMEOUT}
 
-docker-compose -p n2mi -f docker-compose.yml up -d orderer.n2med.com peer0.n2med.com cli couchdb
+docker-compose -p n2mi -f docker-compose.yml up -d orderer.n2med.com orderer2.n2med.com orderer3.n2med.com peer0.n2med.com cli couchdb
 
 sleep ${FABRIC_START_TIMEOUT}
 
@@ -93,7 +104,6 @@ docker exec cli peer chaincode package -n med -p /opt/med -v 1 medcc.pak -l node
 sudo chmod -R 777 ./crypto-config/medcc.pak
 sudo chmod -R 777 ./n2medCa
 
-mkdir artifacts
 cp ./n2medCa/tls-cert.pem ./artifacts
 cp ./crypto-config/medcc.pak ./artifacts
 cp ./crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt ./artifacts

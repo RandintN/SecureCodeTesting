@@ -9,7 +9,7 @@ mkdir -p config/
 rm -fr config/*
 
 # generate genesis block for orderer
-configtxgen -profile OrdererGenesis -outputBlock ./config/genesis.block
+configtxgen -profile OrdererGenesis -channelID n2med-system-channel -outputBlock ./config/genesis.block
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate orderer genesis block..."
   exit 1
