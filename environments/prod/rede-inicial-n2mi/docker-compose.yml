@@ -16,7 +16,7 @@ services:
          - FABRIC_CA_SERVER_TLS_ENABLED=true
          - FABRIC_CA_SERVER_CA_NAME=rca.n2med.com
          - FABRIC_CA_SERVER_CSR_CN=rca.n2med.com
-         - FABRIC_CA_SERVER_CSR_HOSTS=rca.n2med.com,192.168.65.89
+         - FABRIC_CA_SERVER_CSR_HOSTS=rca.n2med.com,${IP_ADDRESS}
          - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca/tlsca/rca.n2med-key.pem
          - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca/tlsca/rca.n2med-cert.pem
          - FABRIC_CA_SERVER_DEBUG=true
@@ -33,6 +33,7 @@ services:
     environment:
       - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LEDGERTYPE=file
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
@@ -46,6 +47,7 @@ services:
       - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_OPERATIONS_LISTENADDRESS=127.0.0.1:1443
     working_dir: /etc/hyperledger/
     command: orderer
     ports:
@@ -53,7 +55,6 @@ services:
     volumes:
         - ./config/:/etc/hyperledger/configtx
         - ./crypto-config/ordererOrganizations/orderers/orderer.n2med.com/:/etc/hyperledger/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.n2med.com/:/etc/hyperledger/
         - ./ordererConfig:/etc/hyperledger/ordererConfig
     networks:
       - n2med
@@ -64,28 +65,29 @@ services:
     environment:
       - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LEDGERTYPE=file      
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer/msp
-      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer2/msp
+      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig2
       # Enable TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer/tls/server.key
-      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer/tls/server.crt
-      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer/tls/ca.crt]
-      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer/tls/server.crt
-      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer/tls/server.key
-      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer2/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer2/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer2/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer2/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer2/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer2/tls/ca.crt]
+      - ORDERER_OPERATIONS_LISTENADDRESS=127.0.0.1:1444
     working_dir: /etc/hyperledger/
     command: orderer
     ports:
-      - 7060:7050
+      - 7060:7060
     volumes:
         - ./config/:/etc/hyperledger/configtx
-        - ./crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/:/etc/hyperledger/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.n2med.com/:/etc/hyperledger/
-        - ./ordererConfig2:/etc/hyperledger/ordererConfig        
+        - ./crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/:/etc/hyperledger/orderer2
+        - ./ordererConfig2:/etc/hyperledger/ordererConfig2
     networks:
       - n2med
 
@@ -95,28 +97,29 @@ services:
     environment:
       - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LEDGERTYPE=file      
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
-      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer/msp
-      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig    
+      - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/orderer3/msp
+      - FABRIC_CFG_PATH=/etc/hyperledger/ordererConfig3
       # Enable TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
-      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer/tls/server.key
-      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer/tls/server.crt
-      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer/tls/ca.crt]
-      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer/tls/server.crt
-      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer/tls/server.key
-      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/etc/hyperledger/orderer3/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/etc/hyperledger/orderer3/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/etc/hyperledger/orderer3/tls/ca.crt]
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/etc/hyperledger/orderer3/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/etc/hyperledger/orderer3/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/etc/hyperledger/orderer3/tls/ca.crt]
+      - ORDERER_OPERATIONS_LISTENADDRESS=127.0.0.1:1444
     working_dir: /etc/hyperledger/
     command: orderer
     ports:
-      - 7070:7050
+      - 7070:7070
     volumes:
         - ./config/:/etc/hyperledger/configtx
-        - ./crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/:/etc/hyperledger/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.n2med.com/:/etc/hyperledger/
-        - ./ordererConfig3:/etc/hyperledger/ordererConfig        
+        - ./crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/:/etc/hyperledger/orderer3
+        - ./ordererConfig3:/etc/hyperledger/ordererConfig3
     networks:
       - n2med
 
