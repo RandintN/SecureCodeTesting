@@ -45,7 +45,8 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: 192.168.65.89
+            - Host: 192.168.68.133
+            - Host: peer0.n2med.com
               Port: 7051
 
 Capabilities:
@@ -125,55 +126,72 @@ Application: &ApplicationDefaults
 #
 ################################################################################
 Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - 192.168.0.8:7050
+    - 192.168.0.8:7060
+    - 192.168.0.8:7070
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  EtcdRaft:
+    Consenters:
+    - Host: 192.168.0.8
+      Port: 7050
+      ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
+    - Host: 192.168.0.8
+      Port: 7060
+      ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
+    - Host: 192.168.0.8
+      Port: 7070
+      ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt      
+    
+    # Options to be specified for all the etcd/raft nodes. The values here
+    # are the defaults for all new channels and can be modified on a
+    # per-channel basis via configuration updates.
+    Options:
+        # TickInterval is the time interval between two Node.Tick invocations.
+        TickInterval: 500ms
 
-    # Orderer Type: The orderer implementation to start
-    # Available types are "solo" and "kafka"
-    OrdererType: solo
+        # ElectionTick is the number of Node.Tick invocations that must pass
+        # between elections. That is, if a follower does not receive any
+        # message from the leader of current term before ElectionTick has
+        # elapsed, it will become candidate and start an election.
+        # ElectionTick must be greater than HeartbeatTick.
+        ElectionTick: 10
 
-    Addresses:
-        - 192.168.65.89:7050
+        # HeartbeatTick is the number of Node.Tick invocations that must
+        # pass between heartbeats. That is, a leader sends heartbeat
+        # messages to maintain its leadership every HeartbeatTick ticks.
+        HeartbeatTick: 1
 
-    # Batch Timeout: The amount of time to wait before creating a batch
-    BatchTimeout: 2s
+        # MaxInflightBlocks limits the max number of in-flight append messages
+        # during optimistic replication phase.
+        MaxInflightBlocks: 5
 
-    # Batch Size: Controls the number of messages batched into a block
-    BatchSize:
-
-        # Max Message Count: The maximum number of messages to permit in a batch
-        MaxMessageCount: 10
-
-        # Absolute Max Bytes: The absolute maximum number of bytes allowed for
-        # the serialized messages in a batch.
-        AbsoluteMaxBytes: 99 MB
-
-        # Preferred Max Bytes: The preferred maximum number of bytes allowed for
-        # the serialized messages in a batch. A message larger than the preferred
-        # max bytes will result in a batch larger than preferred max bytes.
-        PreferredMaxBytes: 512 KB
-
-    # Organizations is the list of orgs which are defined as participants on
-    # the orderer side of the network
-    Organizations:
-
-    # Policies defines the set of policies at this level of the config tree
-    # For Orderer policies, their canonical path is
-    #   /Channel/Orderer/<PolicyName>
-    Policies:
-        Readers:
-            Type: ImplicitMeta
-            Rule: "ANY Readers"
-        Writers:
-            Type: ImplicitMeta
-            Rule: "ANY Writers"
-        Admins:
-            Type: ImplicitMeta
-            Rule: "ANY Admins"
-        # BlockValidation specifies what signatures must be included in the block
-        # from the orderer for the peer to validate it.
-        BlockValidation:
-            Type: ImplicitMeta
-            Rule: "ANY Writers"
-
+        # SnapshotIntervalSize defines number of bytes per which a snapshot is taken
+        SnapshotIntervalSize: 20 MB  
+  Organizations:
+  Policies:
+    Readers:
+        Type: ImplicitMeta
+        Rule: "ANY Readers"
+    Writers:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+    Admins:
+        Type: ImplicitMeta
+        Rule: "MAJORITY Admins"
+    BlockValidation:
+        Type: ImplicitMeta
+        Rule: "ANY Writers"
+  Capabilities:
+      <<: *OrdererCapabilities
 ################################################################################
 #
 #   CHANNEL
@@ -208,29 +226,8 @@ Profiles:
         <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
-            OrdererType: etcdraft
-            EtcdRaft:
-                 Consenters:
-                    Host: 192.168.65.89
-                    Port: 7050
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
-                    Host: 192.168.65.89
-                    Port: 7060
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
-                    Host: 192.168.65.89
-                    Port: 7070
-                    ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
-                    ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
-            Addresses:
-                - 192.168.65.89:7050
-                - 192.168.65.89:7060
-                - 192.168.65.89:7070
             Organizations:
                 - *OrdererMSP
-            Capabilities:
-                <<: *OrdererCapabilities
         Consortiums:
             N2medConsortium:
                 Organizations:
