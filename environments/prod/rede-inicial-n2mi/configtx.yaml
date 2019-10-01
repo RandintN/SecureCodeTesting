@@ -45,8 +45,7 @@ Organizations:
             # AnchorPeers defines the location of peers which can be used
             # for cross org gossip communication.  Note, this value is only
             # encoded in the genesis block in the Application section context
-            - Host: 192.168.68.133
-            - Host: peer0.n2med.com
+            - Host: 192.168.65.89
               Port: 7051
 
 Capabilities:
@@ -128,9 +127,9 @@ Application: &ApplicationDefaults
 Orderer: &OrdererDefaults
   OrdererType: etcdraft
   Addresses:
-    - 192.168.0.8:7050
-    - 192.168.0.8:7060
-    - 192.168.0.8:7070
+    - 192.168.65.89:7050
+    - 192.168.65.89:7060
+    - 192.168.65.89:7070
   BatchTimeout: 2s
   BatchSize:
     MaxMessageCount: 10
@@ -138,15 +137,15 @@ Orderer: &OrdererDefaults
     PreferredMaxBytes: 512 KB
   EtcdRaft:
     Consenters:
-    - Host: 192.168.0.8
+    - Host: 192.168.65.89
       Port: 7050
       ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
       ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt
-    - Host: 192.168.0.8
+    - Host: 192.168.65.89
       Port: 7060
       ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
       ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer2.n2med.com/tls/server.crt
-    - Host: 192.168.0.8
+    - Host: 192.168.65.89
       Port: 7070
       ClientTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt
       ServerTLSCert: crypto-config/ordererOrganizations/orderers/orderer3.n2med.com/tls/server.crt      
