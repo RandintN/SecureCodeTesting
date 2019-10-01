@@ -77,3 +77,13 @@ typings/
 # next.js build output
 .next
 blockchain.code-workspace
+
+# production environment
+fabric/chaincodes/med/package-lock.json
+
+environments/pros/rede-inicial-n2mi/artifacts/*
+environments/pros/rede-inicial-n2mi/crypto-config/*
+environments/pros/rede-inicial-n2mi/config/*
+environments/pros/rede-inicial-n2mi/n2medCa/*
+environments/pros/rede-inicial-n2mi/configtxgen
+
