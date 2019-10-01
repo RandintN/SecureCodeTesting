@@ -7,9 +7,9 @@ export FABRIC_START_TIMEOUT=5
 export ORDERER_MSP=./crypto-config/ordererOrganizations/orderers
 export PEER_DIRECTORY=./crypto-config/peerOrganizations/peers/peer0.n2med.com
 
-CA_ADDRESS_PORT=rca.n2med.com:7054
-COMAPNY_DOMAIN=n2med.com
-IP_ADDRESS=192.168.0.8
+export CA_ADDRESS_PORT=rca.n2med.com:7054
+export COMAPNY_DOMAIN=n2med.com
+export IP_ADDRESS=192.168.65.89
 
 CONTAINER_IDS=$(docker ps -aq)
 if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
@@ -112,14 +112,13 @@ cp ./n2medCa/tls-cert.pem ./artifacts
 cp ./crypto-config/medcc.pak ./artifacts
 cp ./crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt ./artifacts
 
-# sleep 3 
 
-# docker-compose -p n2mi -f docker-compose.yml up -d orderer2.n2med.com 
 
-# sleep 20
 
-# docker-compose -p n2mi -f docker-compose.yml up -d orderer3.n2med.com 
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp
+export CORE_PEER_ADDRESS=peer0.n2med.com:7050
+export CORE_PEER_LOCALMSPID=N2miMSP
+export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peerOrganizations/peers/peer0.n2med.com/tls/ca.crt
 
-# sleep 20
 
 #peer chaincode invoke -o orderer.n2med.com:7050  --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt -C n2medchannel -n med -c '{"Args":["addMedicineRequest","{\"amount\":\"23\", \"type\":\"donation\",\"medicine\":{\"active_ingredient\":\"AGUA\", \"pharma_form\":\"Xarope\", \"pharma_industry\":[\"3M\"],\"concentration\":\"33\", \"classification\":[\"Similar\"]},\"id\":\"13\" }"]}'

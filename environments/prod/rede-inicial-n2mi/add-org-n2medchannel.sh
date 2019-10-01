@@ -122,3 +122,9 @@ peer channel update -f org_update_in_envelope.pb -c n2medchannel -o orderer.n2me
 # rm -rf /etc/hyperledger/channel-artifacts/add-org-temp
 
 popd
+
+
+export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp
+export CORE_PEER_ADDRESS=peer0.n2med.com:7051
+export CORE_PEER_LOCALMSPID=N2miMSP
+export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peerOrganizations/peers/peer0.n2med.com/tls/ca.crt

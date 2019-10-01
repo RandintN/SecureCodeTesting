@@ -10,7 +10,7 @@ ORDERER_MSP=crypto-config/ordererOrganizations
 PEER_DIRECTORY=crypto-config/peerOrganizations
 
 # Enroll CA Admin
-docker exec rca.n2med.com fabric-ca-client enroll -d -u https://admin:adminpw@rca.n2med.com:7054 --csr.hosts rca.n2med.com,192.168.68.133
+docker exec rca.n2med.com fabric-ca-client enroll -d -u https://admin:adminpw@rca.n2med.com:7054
 # Rename Key file to key.pem
 docker exec rca.n2med.com sh -c 'mv /etc/hyperledger/fabric-ca-server/msp/keystore/*_sk /etc/hyperledger/fabric-ca-server/msp/keystore/key.pem'
 
