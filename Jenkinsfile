@@ -15,20 +15,6 @@ pipeline {
             }
          }
       }
-      stage('Remove Containers'){
-         steps {
-            sh '''
-               cd $WORKSPACE/hyperledger/environments/dev
-               docker-compose -p n2mi down --remove-orphans
-               docker volume prune -f
-               docker network prune -f
-               container=`docker container ls | awk 'FNR==2{print $0}'`
-               if [ ! -z $container ]; then
-                  docker rm -f $(docker ps -aq)
-               fi
-            '''
-         }
-      }
       stage('Docker: Hyperledger'){
          steps {
             script {
