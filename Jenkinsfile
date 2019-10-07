@@ -15,27 +15,33 @@ pipeline {
             }
          }
       }
-      stage('Remove Containers'){
+      stage('Label: Baseline') {
          steps {
-            sh '''
-               cd $WORKSPACE/hyperledger/environments/dev
-               docker-compose -p n2mi down --remove-orphans
-               docker volume prune -f
-               docker network prune -f
-               container=`docker container ls | awk 'FNR==2{print $0}'`
-               if [ ! -z $container ]; then
-                  docker rm -f $(docker ps -aq)
-               fi
-            '''
+            script {
+               if("${TAG_NAME}" == ""){
+                  echo "Sem necessidade de label, apenas build"
+               }
+               else{
+                  dir('hyperledger'){
+                     echo "Tagging ${TAG_NAME} on Bitbucket"
+                     withCredentials([usernamePassword(credentialsId: '6bfbe257-3c46-44be-a2b6-28be60d5a1b9',  passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                               sh 'git tag -a ${TAG_NAME} -m "[${JIRA}] - Cria tag ${TAG_NAME}"'
+                               sh 'git push https://${GIT_USERNAME}:${GIT_PASSWORD}@bitbucket.cpqd.com.br/scm/n2mi/core-hyperledger ${TAG_NAME}'
+                     }
+                  }
+               }
+            }
          }
       }
       stage('Docker: Hyperledger'){
          steps {
             script {
-               sh ''' 
-                  cd $WORKSPACE/hyperledger/environments/dev/
-                  ./init_hyperledger.sh -o create
-               '''
+               dir('hyperledger'){
+                  sh '''
+                     cd environments/dev 
+                     ./init_hyperledger.sh -o create
+                  '''
+               }
             }
          }
       } 

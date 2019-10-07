@@ -27,13 +27,13 @@ peer channel fetch config config_block.pb -o orderer.n2med.com:7050 -c n2med-sys
 configtxlator proto_decode --input config_block.pb --type common.Block | jq .data.data[0].payload.data.config > config.json
 
 # Add to organization channel group
-jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"AlphamedOrdererMSP":.[1]}}}}}' config.json AlphamedOrderer.json > modified_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"'$ORGANIZATION_ORDERER'MSP":.[1]}}}}}' config.json $ORGANIZATION_ORDERER.json > modified_config.json
 
 # Add orderer address to addresses list
 jq ".channel_group.values.OrdererAddresses.value.addresses += [\"192.168.68.133:7050\"]" modified_config.json > modified_config1.json
 
 # Add new Org MSP to Consortium channel group
-jq -s ".[0] * {\"channel_group\":{\"groups\":{\"Consortiums\":{\"groups\":{\"N2medConsortium\":{\"groups\": {\"AlphamedMSP\":.[1]}}}}}}}" modified_config1.json Alphamed.json > modified_config2.json
+jq -s ".[0] * {\"channel_group\":{\"groups\":{\"Consortiums\":{\"groups\":{\"N2medConsortium\":{\"groups\": {\"AlphamedMSP\":.[1]}}}}}}}" modified_config1.json $ORGANIZATION_MSP.json > modified_config2.json
 
 # Add to consenters list
 export FLAG=$(if [ "$(uname -s)" == "Linux" ]; then echo "-w 0"; else echo "-b 0"; fi)
@@ -85,13 +85,13 @@ peer channel fetch config config_block.pb -o orderer.n2med.com:7050 -c n2medchan
 configtxlator proto_decode --input config_block.pb --type common.Block | jq .data.data[0].payload.data.config > config.json
 
 # Add to organization channel group
-jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"AlphamedOrdererMSP":.[1]}}}}}' config.json AlphamedOrderer.json > modified_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"'$ORGANIZATION_ORDERER'MSP":.[1]}}}}}' config.json $ORGANIZATION_ORDERER.json > modified_config.json
 
 # Add orderer address to addresses list
 jq ".channel_group.values.OrdererAddresses.value.addresses += [\"192.168.68.133:7050\"]" modified_config.json > modified_config1.json
 
 # Add new Org MSP to Application channel group
-jq -s ".[0] * {\"channel_group\":{\"groups\":{\"Application\":{\"groups\": {\"AlphamedMSP\":.[1]}}}}}" modified_config1.json Alphamed.json > modified_config2.json
+jq -s ".[0] * {\"channel_group\":{\"groups\":{\"Application\":{\"groups\": {\"AlphamedMSP\":.[1]}}}}}" modified_config1.json $ORGANIZATION_MSP.json > modified_config2.json
 
 # Add to consenters list
 export FLAG=$(if [ "$(uname -s)" == "Linux" ]; then echo "-w 0"; else echo "-b 0"; fi)
