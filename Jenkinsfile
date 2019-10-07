@@ -18,7 +18,7 @@ pipeline {
       stage('Label: Baseline') {
          steps {
             script {
-               if("${TAG_NAME}" == "){
+               if("${TAG_NAME}" == ""){
                   echo "Sem necessidade de label, apenas build"
                }
                else{
