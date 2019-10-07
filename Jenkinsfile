@@ -36,10 +36,12 @@ pipeline {
       stage('Docker: Hyperledger'){
          steps {
             script {
-               sh ''' 
-                  cd $WORKSPACE/hyperledger/environments/dev/
-                  ./init_hyperledger.sh -o create
-               '''
+               dir('hyperledger'){
+                  sh '''
+                     cd environments/dev 
+                     ./init_hyperledger.sh -o create
+                  '''
+               }
             }
          }
       } 
