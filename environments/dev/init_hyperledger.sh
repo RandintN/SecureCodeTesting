@@ -48,6 +48,7 @@ elif [[ $opt == "up" ]]; then
 	docker-compose -p n2mi up -d
 elif [[ $opt == "down" ]]; then
 	docker-compose -p n2mi down
+	docker rm -f $(docker ps -a | grep dev-peer0 | awk '{print $1}')
 elif [[ $opt == "restart" ]]; then
 	docker-compose -p n2mi restart
 elif [[ $opt == "re-build" ]]; then
