@@ -324,6 +324,31 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                     return validationResult;
                     }
                 }
+                // In this case, the exchange proposed need to be attached to the offer, to be used on future proposals.
+                // Then, it needs to update the ledger.
+                else {
+                    offer.exchange[0] = {
+                        //1- Amount
+                        "amount":propose.exchange.amount,
+                        "medicine":{
+                            //2- Active ingredient
+                            "active_ingredient": propose.exchange.medicine.activeIngredient,
+                            //3- Commercial name
+                            "commercial_name": propose.exchange.medicine.commercialName,
+                            //4- Pharma form
+                            "pharma_form": propose.exchange.medicine.pharmaForm,
+                            //5- Concentration
+                            "concentration": propose.exchange.medicine.concentration,
+                            //6- Pharma industry
+                            "pharma_industry": [propose.exchange.medicine.pharmaIndustry],
+                            //7- Classification
+                            "classification": [propose.exchange.medicine.classification]
+                        }
+                    }
+
+                    await ctx.stub.putState(propose.internalId
+                        , Buffer.from(JSON.stringify(offer)));
+                }
             }
 
             if (!offer.amount.includes(propose.amount)) {
@@ -503,9 +528,9 @@ export class MedicineProposeDomain implements IMedicineProposedService {
                 //ID not found
                 validationResult.addError(MedicineProposeDomain.ERROR_OFFER_MEDICINE_REQUEST_NOT_FOUND);
 
-            } else {
-                console.log("Medicine from json: ", this.medicineJson);
-            }
+            } //else {
+            //    console.log("Trade medicine from json was found: ", this.medicineJson);
+            //}
 
             validationResult.isValid = validationResult.errors.length < 1;
 
@@ -637,10 +662,10 @@ export class MedicineProposeDomain implements IMedicineProposedService {
         if (originalExchange.medicine.active_ingredient !== proposedExchange.medicine.activeIngredient) {
             console.log("Different active ingredients:");
             console.log("Sugested active ingredient: " + originalExchange.medicine.active_ingredient);
-            console.log("Proposed active ingredient: " + proposedExchange.activeIngredient);
+            console.log("Proposed active ingredient: " + proposedExchange.medicine.activeIngredient);
             return false;
         } else {
-         //   console.log("Equals");
+            //console.log("Ingredientes equals :)");
         }
         //CLASSIFICATION
         if (originalExchange.medicine.classification && originalExchange.medicine.classification && !originalExchange.medicine.classification.includes(proposedExchange.medicine.classification)) {
@@ -659,11 +684,16 @@ export class MedicineProposeDomain implements IMedicineProposedService {
             console.log("Proposed amount: " + proposedExchange.medicine.commercialName);
             return false;
         } else {
-            //console.log("Equals");
+            //console.log("Commercial names equals :)");
         }
         //PHARMA INDUSTRY
-        if (originalExchange.medicine.pharma_industry && originalExchange.medicine.pharma_industry.length > 0
+        if (originalExchange.medicine.pharma_industry && originalExchange.medicine.pharma_industry.length > 1
             && !originalExchange.medicine.pharma_industry.includes(proposedExchange.medicine.pharmaIndustry)) {
+            //console.log("Different pharma industry:");
+            //console.log("Sugested pharma industry: " + originalExchange.medicine.pharma_industry);
+            //console.log("Proposed pharma industry: " + proposedExchange.medicine.pharmaIndustry);
+            //console.log("Tamanho do pharm industry.");
+            //console.log(originalExchange.medicine.pharma_industry.length);
             return false;
         } else {
             //console.log("Pharma Industries found equality.")
