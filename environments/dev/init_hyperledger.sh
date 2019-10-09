@@ -38,12 +38,17 @@ done
 if [ -z $opt ]; then
 	usage
 elif [[ $opt == "create" ]]; then
+        docker-compose -p n2mi down
+	docker rm -f $(docker ps -a | grep dev-peer0 | awk '{print $1}')
+        docker volume prune -f
 	docker-compose -p n2mi up --build -d
 	start
+	docker update --restart always $(docker ps -a | grep dev-peer0 | awk '{print $1}')
 elif [[ $opt == "up" ]]; then
 	docker-compose -p n2mi up -d
 elif [[ $opt == "down" ]]; then
 	docker-compose -p n2mi down
+	docker rm -f $(docker ps -a | grep dev-peer0 | awk '{print $1}')
 elif [[ $opt == "restart" ]]; then
 	docker-compose -p n2mi restart
 elif [[ $opt == "re-build" ]]; then
