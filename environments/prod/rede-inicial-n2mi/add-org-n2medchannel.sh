@@ -2,8 +2,8 @@
 ADD_ORG_TEMP=/etc/hyperledger/channel-artifacts
 
 # Parameters
-ORGANIZATION_ORDERER=$1
-ORGANIZATION_MSP=$2
+ORGANIZATION_MSP=$1
+ORGANIZATION_ORDERER=$2
 
 ##################
 # System Channel #
@@ -17,7 +17,7 @@ export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/ordererOrganizations/orderer
 mkdir $ADD_ORG_TEMP/system-temp
 cp $ADD_ORG_TEMP/AlphamedOrderer.json $ADD_ORG_TEMP/system-temp
 cp $ADD_ORG_TEMP/Alphamed.json $ADD_ORG_TEMP/system-temp
-cp server.crt $ADD_ORG_TEMP/system-temp
+cp $ADD_ORG_TEMP/server.crt $ADD_ORG_TEMP/system-temp
 
 pushd $ADD_ORG_TEMP/system-temp
 
@@ -63,6 +63,8 @@ sleep 5
 
 popd
 
+peer channel fetch config n2medchannel.block -o orderer.n2med.com:7050 -c n2med-system-channel --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt
+
 #######################
 # Application Channel #
 #######################
@@ -75,7 +77,7 @@ export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/ordererOrganizations/orderer
 mkdir $ADD_ORG_TEMP/application-temp
 cp $ADD_ORG_TEMP/AlphamedOrderer.json $ADD_ORG_TEMP/application-temp
 cp $ADD_ORG_TEMP/Alphamed.json $ADD_ORG_TEMP/application-temp
-cp server.crt $ADD_ORG_TEMP/application-temp
+cp $ADD_ORG_TEMP/server.crt $ADD_ORG_TEMP/application-temp
 
 pushd $ADD_ORG_TEMP/application-temp
 
@@ -119,12 +121,4 @@ sleep 10
 
 peer channel update -f org_update_in_envelope.pb -c n2medchannel -o orderer.n2med.com:7050 --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt
 
-# rm -rf /etc/hyperledger/channel-artifacts/add-org-temp
-
 popd
-
-
-export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp
-export CORE_PEER_ADDRESS=peer0.n2med.com:7051
-export CORE_PEER_LOCALMSPID=N2miMSP
-export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peerOrganizations/peers/peer0.n2med.com/tls/ca.crt

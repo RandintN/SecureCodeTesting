@@ -112,13 +112,4 @@ cp ./n2medCa/tls-cert.pem ./artifacts
 cp ./crypto-config/medcc.pak ./artifacts
 cp ./crypto-config/ordererOrganizations/orderers/orderer.n2med.com/tls/server.crt ./artifacts
 
-
-
-
-export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/peerOrganizations/users/Admin@peer0.n2med.com/msp
-export CORE_PEER_ADDRESS=peer0.n2med.com:7050
-export CORE_PEER_LOCALMSPID=N2miMSP
-export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/peerOrganizations/peers/peer0.n2med.com/tls/ca.crt
-
-
 #peer chaincode invoke -o orderer.n2med.com:7050  --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt -C n2medchannel -n med -c '{"Args":["addMedicineRequest","{\"amount\":\"23\", \"type\":\"donation\",\"medicine\":{\"active_ingredient\":\"AGUA\", \"pharma_form\":\"Xarope\", \"pharma_industry\":[\"3M\"],\"concentration\":\"33\", \"classification\":[\"Similar\"]},\"id\":\"13\" }"]}'

@@ -1,4 +1,4 @@
-var express = require('express'),
+    var express = require('express'),
     app = express(),
     //port number
     port = process.env.PORT || 3000,
@@ -8,9 +8,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //importing route
-var routes = require('./listRoutes'); 
+var routes = require('./endpoints'); 
  //register the route
 routes(app);
+
 
 app.listen(port);
 
