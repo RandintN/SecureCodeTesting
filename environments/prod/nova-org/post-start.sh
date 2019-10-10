@@ -13,6 +13,6 @@ docker exec cli.$COMPANY_DOMAIN peer channel fetch 0 n2medchannel.block -o $N2ME
 
 docker exec cli.$COMPANY_DOMAIN peer channel join -b n2medchannel.block
 
-docker-compose -p n2med -f docker-compose.yml up -d orderer
+docker-compose -p n2mi -f docker-compose.yml up -d orderer
 
 # docker exec cli.$COMPANY_DOMAIN peer channel update -o orderer.n2med.com:7050 -c n2medchannel -f /etc/hyperledger/configtx/ExampleMSPanchors.tx

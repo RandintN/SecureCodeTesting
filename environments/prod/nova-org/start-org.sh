@@ -33,9 +33,9 @@ export FABRIC_START_TIMEOUT=3
     docker rm -f $CONTAINER_IDS
   fi
 
-sudo rm -rf crypto-config/ ${ORGANIZATION_NAME}Ca/ ${ORGANIZATION_NAME_LOWERCASE}.json ./config/*
+sudo rm -rf crypto-config/ ${ORGANIZATION_NAME}Ca/ ${ORGANIZATION_NAME_LOWERCASE}.json ./config/* ./artifacts/*
 
-docker-compose -p n2med -f docker-compose.yml up -d ca
+docker-compose -p n2mi -f docker-compose.yml up -d ca
 
 sleep ${FABRIC_START_TIMEOUT}
 
@@ -64,25 +64,27 @@ sudo mv $PEER_DIRECTORY/tls/keystore/*_sk $PEER_DIRECTORY/tls/server.key
 sudo mv $PEER_DIRECTORY/tls/tlsintermediatecerts/*.pem $PEER_DIRECTORY/tls/ca.crt
 
 # Delete empty TLS directories
-sudo rm -rf $ORDERER_MSP/tls/{cacerts,keystore,signcerts,tlscacerts,user,tlsintermediatecerts}
-sudo rm -rf $PEER_DIRECTORY/tls/{cacerts,keystore,signcerts,tlscacerts,user,tlsintermediatecerts}
+sudo rm -rf $ORDERER_MSP/tls/{cacerts,keystore,signcerts,user}
+sudo rm -rf $PEER_DIRECTORY/tls/{cacerts,keystore,signcerts,user}
 
 sudo cp ./${ORGANIZATION_NAME}Ca/ca-chain.pem $ORDERER_MSP/tls
 sudo cp ./${ORGANIZATION_NAME}Ca/ca-chain.pem $PEER_DIRECTORY/tls
 
 sleep ${FABRIC_START_TIMEOUT}
 
-sudo ./generate.sh
-
 sudo ./configtxgen -printOrg ${ORGANIZATION_NAME}MSP > ./artifacts/${ORGANIZATION_NAME}.json
 sudo ./configtxgen -printOrg ${ORDERER_NAME}MSP > ./artifacts/${ORDERER_NAME}.json
 cp $ORDERER_MSP/tls/server.crt ./artifacts
 
-docker-compose -p n2med -f docker-compose.yml up -d  peer cli couchdb
+docker-compose -p n2mi -f docker-compose.yml up -d peer cli couchdb
 
 sleep 5
 
 docker exec cli.${COMPANY_DOMAIN} peer chaincode install /etc/hyperledger/configtx/medcc.pak
+
+sleep 3
+sudo chmod -R 777 ./artifacts
+node setup-component/send-json.js $ORGANIZATION_NAME ${ORGANIZATION_NAME}Orderer $N2MED_ORDERER_IP
 
 # docker exec cli.alphamed.com peer channel fetch 0 n2medchannel.block -o 192.168.65.89:7050 -c n2medchannel --tls --cafile /etc/hyperledger/configtx/server.crt
  

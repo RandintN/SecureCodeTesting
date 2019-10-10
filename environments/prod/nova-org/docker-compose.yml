@@ -31,11 +31,11 @@ services:
     container_name: orderer.alphamed.com
     image: hyperledger/fabric-orderer
     environment:
-      - FABRIC_LOGGING_SPEC=debug:info
+      - FABRIC_LOGGING_SPEC=grpc=debug:info
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:8443
-      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/config_block.pb
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/n2medchannel.block
       - ORDERER_GENERAL_LOCALMSPID=AlphamedOrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer/msp
       # Enable TLS
@@ -54,7 +54,6 @@ services:
     volumes:
         - ./config/:/etc/hyperledger/configtx
         - ./crypto-config/ordererOrganizations/orderers/orderer.alphamed.com:/etc/hyperledger/msp/orderer
-        - ./crypto-config/peerOrganizations/peers/peer0.alphamed.com/:/etc/hyperledger/msp/
         - ./tls-certificates:/etc/hyperledger/tls-certificates       
     networks:
       - n2med
