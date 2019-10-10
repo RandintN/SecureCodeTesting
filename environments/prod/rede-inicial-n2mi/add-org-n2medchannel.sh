@@ -121,4 +121,7 @@ sleep 10
 
 peer channel update -f org_update_in_envelope.pb -c n2medchannel -o orderer.n2med.com:7050 --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt
 
+
+# docker exec cli /bin/bash -c 'cd channel-artifacts/application-temp && peer channel update -f org_update_in_envelope.pb -c n2medchannel -o orderer.n2med.com:7050 --tls --cafile /etc/hyperledger/ordererOrganizations/orderers/orderer.n2med.com/tls/ca.crt'
+
 popd

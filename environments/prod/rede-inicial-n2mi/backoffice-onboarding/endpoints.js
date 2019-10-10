@@ -32,10 +32,21 @@ module.exports =  function(app) {
 
     app.post('/get-orderer-genesis', (req, res) => {
 
-        var n2medOrdererGenesis = fs.createReadStream('../config/n2medchannel.block');
-        console.log("orderer genesis block ", n2medOrdererGenesis);
- 
-        res.send(n2medOrdererGenesis);
+        var genesis = fs.readFileSync('../config/n2medchannel.block');
+        // convert binary data to base64 encoded string
+        var buffered = Buffer.from(genesis).toString('base64');
+        console.log(buffered);
+        res.send(buffered);
 
-    });
+        //var n2medOrdererGenesis = Buffer.from(fs.readFile('../config/n2medchannel.block'));
+        
+        //console.log("orderer genesis block ", n2medOrdererGenesis);
+ 
+        //res.send(n2medOrdererGenesis);
+
+//        fs.readFile('../config/n2medchannel.block', (err, data) => {
+  //          if (err) res.status(500).send(err);
+    //        res.send(`base64,${new Buffer.from(data).toString('base64')}`);
+        });
+  //  });
 }
